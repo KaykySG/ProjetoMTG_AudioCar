@@ -1,0 +1,39 @@
+<div class="home-container">
+  <!-- Main Content -->
+  <div class="main-content">
+    <h1 class="car-title">Volkswagem Gol</h1>
+
+    <div class="car-display">
+      <button pButton icon="pi pi-chevron-left" class="p-button-rounded p-button-text navigation-button" (click)="previousCar()"></button>
+
+      <div class="car-image-container">
+        <!-- Car image would go here -->
+      </div>
+
+      <button pButton icon="pi pi-chevron-right" class="p-button-rounded p-button-text navigation-button" (click)="nextCar()"></button>
+    </div>
+
+    <div class="action-button-container">
+      <button pButton label="Avançar" class="p-button-rounded advance-button" (click)="advance()"></button>
+    </div>
+
+    <!-- Status Indicators -->
+    <div class="status-indicators">
+      <div *ngFor="let indicator of statusIndicators" class="indicator">
+        <label>{{indicator.label}}</label>
+        <p-progressBar [value]="indicator.value" styleClass="custom-progress-bar"></p-progressBar>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Sidebar - Audio Components -->
+  <div class="sidebar right-sidebar">
+    <div class="audio-components">
+      <button *ngFor="let component of audioComponents"
+              pButton
+              label="{{component}}"
+              class="p-button-outlined p-button-rounded audio-component-button">
+      </button>
+    </div>
+  </div>
+</div>

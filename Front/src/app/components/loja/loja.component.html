@@ -1,0 +1,43 @@
+<div class="loja-container">
+  <div class="loja-content">
+    <h1 class="loja-title">Loja de Produtos</h1>
+
+    <p-dataView [value]="products" layout="grid">
+      <ng-template pTemplate="header">
+        <div class="flex justify-content-end">
+
+        </div>
+      </ng-template>
+
+      <ng-template let-product pTemplate="gridItem">
+        <div class="col-12 md:col-4">
+          <p-card [header]="product.name" [subheader]="'R$ ' + product.price.toFixed(2)" styleClass="product-card">
+            <ng-template pTemplate="header">
+              <img [src]="product.image || '/placeholder.svg?height=200&width=300'" alt="product image" class="product-image">
+            </ng-template>
+            <p>{{product.description}}</p>
+            <ng-template pTemplate="footer">
+              <button pButton label="Adicionar ao Carrinho" icon="pi pi-shopping-cart" class="p-button-rounded"></button>
+            </ng-template>
+          </p-card>
+        </div>
+      </ng-template>
+
+      <ng-template let-product pTemplate="listItem">
+        <div class="col-12">
+          <div class="product-list-item">
+            <img [src]="product.image || '/placeholder.svg?height=150&width=150'" alt="product image">
+            <div class="product-list-detail">
+              <div class="product-name">{{product.name}}</div>
+              <div class="product-description">{{product.description}}</div>
+              <div class="product-price">{{'R$ ' + product.price.toFixed(2)}}</div>
+            </div>
+            <div class="product-list-action">
+              <button pButton label="Adicionar ao Carrinho" icon="pi pi-shopping-cart"></button>
+            </div>
+          </div>
+        </div>
+      </ng-template>
+    </p-dataView>
+  </div>
+</div>

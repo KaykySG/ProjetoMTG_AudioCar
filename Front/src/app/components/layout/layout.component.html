@@ -1,0 +1,20 @@
+<div class="layout-container">
+  <!-- Left Sidebar - Fixed -->
+  <div class="sidebar left-sidebar">
+    <div class="logo-container">
+      <img src="assets/images/mg-audiocar-logo.png" alt="MG AudioCar Logo" class="logo">
+    </div>
+
+    <p-panelMenu [model]="navItems" [style]="{'width':'100%'}" styleClass="custom-panel-menu"></p-panelMenu>
+
+    <div class="sidebar-footer">
+      <button pButton icon="pi pi-sign-out" label="Sair" class="p-button-text" (click)="logout()"></button>
+      <button pButton icon="pi pi-clock" class="p-button-rounded p-button-text"></button>
+    </div>
+  </div>
+
+  <!-- Dynamic Content Area -->
+  <div class="content-area">
+    <router-outlet></router-outlet>
+  </div>
+</div>
