@@ -2,6 +2,9 @@ import { Component } from '@angular/core';
 import { ButtonModule } from 'primeng/button';
 import { ProgressBarModule } from 'primeng/progressbar';
 import { CommonModule } from '@angular/common';
+import { SidebarModule } from 'primeng/sidebar';
+import { CardModule } from 'primeng/card';
+
 
 @Component({
   selector: 'app-home',
@@ -9,7 +12,9 @@ import { CommonModule } from '@angular/common';
   imports: [
     ButtonModule,
     ProgressBarModule,
-    CommonModule
+    CommonModule,
+    SidebarModule,
+    CardModule
   ],
   styleUrls: ['./home.component.css']
 })
