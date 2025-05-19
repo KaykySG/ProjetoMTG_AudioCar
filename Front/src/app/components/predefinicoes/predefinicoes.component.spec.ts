@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { PreinfinicoesComponent } from './preinfinicoes.component';
+import { PredefinicoesComponent } from '././predefinicoes.component';
 
 describe('PreinfinicoesComponent', () => {
-  let component: PreinfinicoesComponent;
-  let fixture: ComponentFixture<PreinfinicoesComponent>;
+  let component: PredefinicoesComponent;
+  let fixture: ComponentFixture<PredefinicoesComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [PreinfinicoesComponent]
+      imports: [PredefinicoesComponent]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(PreinfinicoesComponent);
+    fixture = TestBed.createComponent(PredefinicoesComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

@@ -1,76 +1,70 @@
 .loja-container {
-  height: 100%;
-  display: flex;
-}
-
-.loja-content {
-  flex: 1;
-  background-color: #f5f5f5;
-  border-radius: 24px;
   padding: 24px;
-  overflow-y: auto;
+  color: white;
 }
 
-.loja-title {
-  color: #7c20ff;
-  margin-bottom: 24px;
+.loja-titulo {
   text-align: center;
+  font-size: 2rem;
+  margin-bottom: 24px;
+  color: white;
 }
 
-.product-image {
-  width: 100%;
-  height: 200px;
-  object-fit: cover;
-}
-
-:host ::ng-deep .product-card {
-  margin-bottom: 16px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-}
-
-:host ::ng-deep .product-card .p-card-title {
-  font-size: 1.2rem;
-}
-
-:host ::ng-deep .product-card .p-card-subtitle {
-  color: #7c20ff;
-  font-weight: bold;
-}
-
-.product-list-item {
-  display: flex;
-  align-items: center;
+.produto-card {
+  background: linear-gradient(135deg, #7216f5 0%, #ff6b6b 100%);
+  border-radius: 24px;
   padding: 16px;
-  border-bottom: 1px solid #dcdcdc;
-}
-
-.product-list-item img {
-  width: 150px;
-  height: 150px;
-  object-fit: cover;
-  margin-right: 16px;
-}
-
-.product-list-detail {
-  flex: 1;
-}
-
-.product-name {
-  font-size: 1.2rem;
-  font-weight: bold;
-}
-
-.product-description {
-  margin: 8px 0;
-}
-
-.product-price {
-  font-size: 1.1rem;
-  font-weight: bold;
-  color: #7c20ff;
-}
-
-.product-list-action {
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  color: white;
   display: flex;
   flex-direction: column;
+  justify-content: space-between;
+  height: 100%;
+}
+
+.produto-img {
+  max-width: 100%;
+  height: 150px;
+  object-fit: contain;
+  margin-bottom: 12px;
+  border-radius: 12px;
+}
+
+.produto-metricas {
+  display: flex;
+  justify-content: space-around;
+  margin: 12px 0;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.grave-chip {
+  background-color: #7c20ff;
+  color: white;
+  border-radius: 12px;
+}
+
+.energia-chip {
+  background-color: #00c853;
+  color: white;
+  border-radius: 12px;
+}
+
+.custo-chip {
+  background-color: #00bfa5;
+  color: white;
+  border-radius: 12px;
+}
+
+.btn-carrinho {
+  background-color: #a66bff;
+  border: none;
+  border-radius: 12px;
+  color: white;
+  margin-top: 12px;
+}
+
+.btn-carrinho:hover {
+  background-color: #7c20ff;
 }

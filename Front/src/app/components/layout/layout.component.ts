@@ -26,7 +26,7 @@ export class LayoutComponent {
   navItems: NavItem[] = [
     {
       label: 'Montagem',
-      icon: 'pi pi-clock',
+      icon: 'pi pi-wrench',
       children: [
         { label: 'Sub Montagem', icon: '' },
         { label: 'Sub Montagem', icon: '' },
@@ -34,9 +34,9 @@ export class LayoutComponent {
       ]
     },
     {
-      label: 'Preinfinições',
+      label: 'Predefinições',
       icon: 'pi pi-file',
-      route: '/preinfinicoes'
+      route: '/predefinicoes'
     },
     {
       label: 'Projetos',

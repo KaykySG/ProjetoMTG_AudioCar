@@ -24,8 +24,8 @@ export const routes: Routes = [
         loadComponent: () => import('./components/projetos/projetos.component').then(m => m.ProjetosComponent)
       },
       {
-        path: 'preinfinicoes',
-        loadComponent: () => import('./components/predefinicoes/preinfinicoes.component').then(m => m.PreinfinicoesComponent)
+        path: 'predefinicoes',
+        loadComponent: () => import('./components/predefinicoes/predefinicoes.component').then(m => m.PredefinicoesComponent)
       },
       {
         path: 'configuracoes',
