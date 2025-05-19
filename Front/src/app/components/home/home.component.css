@@ -1,6 +1,7 @@
 .home-container {
   display: flex;
   height: 100%;
+
 }
 
 /* Main Content Styling */
@@ -55,12 +56,14 @@
   background-color: #7c20ff;
   border: none;
   padding: 8px 32px;
+  color: white;
 }
+
 
 /* Status Indicators */
 .status-indicators {
   position: absolute;
-  right: 32px;
+  left: 1470px;
   bottom: 32px;
   background-color: rgba(24, 24, 24, 0.8);
   padding: 16px;
@@ -92,6 +95,7 @@
   display: flex;
   flex-direction: column;
   margin-left: 16px;
+  height: 500px;
 }
 
 /* Audio Components */
@@ -103,7 +107,8 @@
 
 .audio-component-button {
   color: #444444;
-  border-color: #dcdcdc;
+  border-color: transparent;
+  border-bottom: 2px solid #7c20ff;
   background-color: transparent;
   text-align: center;
   width: 100%;

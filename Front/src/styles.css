@@ -5,8 +5,9 @@
 body {
   margin: 0;
   padding: 0;
-  font-family: var(--body-font-family), serif;
+  font-family: 'Stick', cursive;
   background-color: #181818;
+
 }
 
 /* Global utility classes */

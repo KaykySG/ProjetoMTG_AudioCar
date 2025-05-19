@@ -1,14 +1,14 @@
 .layout-container {
   display: flex;
   height: 100vh;
-  background-color: #181818;
+  background-image: linear-gradient(135deg, #7216f5 0%, #ff6b6b 100%);
   padding: 8px;
 }
 
 /* Sidebar Styling */
 .sidebar {
-  width: 180px;
-  background-color: #fcfcfc;
+  width: 200px;
+  background-color: #f5f5f5;
   border-radius: 24px;
   padding: 16px;
   display: flex;
@@ -22,8 +22,8 @@
 }
 
 .logo {
-  max-width: 120px;
-  height: auto;
+  max-width: 530px;
+  height: fit-content;
 }
 
 .sidebar-footer {
@@ -40,22 +40,135 @@
   overflow: hidden;
 }
 
-/* Custom styling for PrimeNG components */
-:host ::ng-deep .custom-panel-menu .p-panelmenu-header-link {
-  padding: 8px 16px;
+/* Menu de navegação */
+.nav-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
-:host ::ng-deep .custom-panel-menu .p-menuitem-icon {
+.nav-item-container {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Estilo dos botões de navegação - BRANCOS */
+.nav-button {
+  background-color: white;
+  color: #333333;
+  border: none;
+  border-radius: 8px;
+  border-bottom: 3px solid #7c20ff;
+  padding: 12px 16px;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  width: 100%;
+  margin-bottom: 0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.nav-button .p-button-icon {
+  color: #7c20ff;
   margin-right: 8px;
 }
 
-:host ::ng-deep .sub-montagem-item {
-  background-color: #9850ff;
-  color: white;
-  border-radius: 8px;
-  margin-bottom: 8px;
+.nav-button:hover {
+  background-color: #f0f0f0;
 }
 
-:host ::ng-deep .sub-montagem-item .p-menuitem-text {
+
+
+/* Estilo especial para o botão Montagem - ROXO */
+.nav-button.montagem-button {
+  background-color: #6a11cb;
   color: white;
+  border-bottom: 1px solid #8a3fef;
+  box-shadow: 0 4px 8px rgba(106, 17, 203, 0.2);
+}
+
+.nav-button.montagem-button .p-button-icon,
+.nav-button.montagem-button .pi-chevron-down,
+.nav-button.montagem-button .pi-chevron-right {
+  color: white;
+}
+
+.nav-button.montagem-button:hover {
+  background-color: #7c20ff;
+}
+
+/* Submenu */
+.submenu {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 4px;
+  margin-bottom: 40px;
+  padding-left: 8px;
+}
+
+/* Estilo para os subitens de Montagem - ROXO MAIS CLARO */
+.submenu-button {
+  background-color: #a66bff;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  border-bottom: 1px solid #c29fff;
+  padding: 10px 16px;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  width: 100%;
+}
+
+.submenu-button .p-button-icon {
+  color: white;
+}
+
+.submenu-button:hover {
+  background-color: #b57cff;
+}
+
+/* Botões do rodapé */
+.footer-button {
+  background-color: white;
+  color: #333333;
+  border: none;
+  border-bottom: 2px solid #7c20ff;
+  border-radius: 8px;
+  padding: 8px 12px;
+  text-align: left;
+}
+
+.footer-button .p-button-icon {
+  color: #7c20ff;
+}
+
+.footer-button-icon {
+  background-color: white;
+  color: #333333;
+  border: none;
+  border-bottom: 2px solid #7c20ff;
+  border-radius: 8px;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+}
+
+.footer-button-icon .p-button-icon {
+  color: #7c20ff;
+}
+
+.footer-button:hover,
+.footer-button-icon:hover {
+  background-color: #f0f0f0;
+}
+
+/* Ícone de expansão à direita */
+.nav-button .pi-chevron-down,
+.nav-button .pi-chevron-right {
+  margin-left: auto;
+  color: #333333;
 }

@@ -1,19 +1,39 @@
 <div class="layout-container">
-  <!-- Left Sidebar - Fixed -->
   <div class="sidebar left-sidebar">
     <div class="logo-container">
-      <img src="assets/images/mg-audiocar-logo.png" alt="MG AudioCar Logo" class="logo">
+      <img src="images/logo.png" class="logo">
     </div>
 
-    <p-panelMenu [model]="navItems" [style]="{'width':'100%'}" styleClass="custom-panel-menu"></p-panelMenu>
+    <div class="nav-menu">
+      <div *ngFor="let item of navItems" class="nav-item-container">
+
+        <button pButton
+                [icon]="item.icon"
+                [label]="item.label"
+                [class.active]="isActive(item.route)"
+                class="nav-button"
+                [class.montagem-button]="item.label === 'Montagem'"  (click)="item.children ? toggleExpand(item.label) : navigateTo(item.route)">
+          <i *ngIf="item.children" class="pi" [ngClass]="isExpanded(item.label) ? 'pi-chevron-down' : 'pi-chevron-right'" style="margin-left: auto;"></i>
+        </button>
+
+        <div *ngIf="item.children && isExpanded(item.label)" class="submenu">
+          <button *ngFor="let child of item.children"
+                  pButton
+                  [icon]="child.icon"
+                  [label]="child.label"
+                  class="submenu-button"
+                  (click)="navigateTo(child.route)">
+          </button>
+        </div>
+      </div>
+    </div>
 
     <div class="sidebar-footer">
-      <button pButton icon="pi pi-sign-out" label="Sair" class="p-button-text" (click)="logout()"></button>
-      <button pButton icon="pi pi-clock" class="p-button-rounded p-button-text"></button>
+      <button pButton icon="pi pi-sign-out" label="Sair" class="footer-button" (click)="logout()"></button>
+      <button pButton icon="pi pi-clock" class="footer-button-icon" (click)="logout()"></button>
     </div>
   </div>
 
-  <!-- Dynamic Content Area -->
   <div class="content-area">
     <router-outlet></router-outlet>
   </div>

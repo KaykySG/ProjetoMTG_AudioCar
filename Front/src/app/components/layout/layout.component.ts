@@ -1,60 +1,92 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { RouterModule, Router } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
-import { PanelMenuModule } from 'primeng/panelmenu';
-import { MenuItem } from 'primeng/api';
+
+interface NavItem {
+  label: string;
+  icon: string;
+  route?: string;
+  children?: NavItem[];
+}
 
 @Component({
   selector: 'app-layout',
   templateUrl: './layout.component.html',
+  styleUrls: ['./layout.component.css'],
+  standalone: true,
   imports: [
     CommonModule,
     RouterModule,
-    ButtonModule,
-    PanelMenuModule
-  ],
-  styleUrls: ['./layout.component.css']
+    ButtonModule
+  ]
 })
 export class LayoutComponent {
-  // Navigation items for the left sidebar
-  navItems: MenuItem[] = [
+  // Itens de navegação para a barra lateral
+  navItems: NavItem[] = [
     {
       label: 'Montagem',
       icon: 'pi pi-clock',
-      expanded: true,
-      items: [
-        { label: 'Sub Montagem', styleClass: 'sub-montagem-item' },
-        { label: 'Sub Montagem', styleClass: 'sub-montagem-item' },
-        { label: 'Sub Montagem', styleClass: 'sub-montagem-item' }
+      children: [
+        { label: 'Sub Montagem', icon: '' },
+        { label: 'Sub Montagem', icon: '' },
+        { label: 'Sub Montagem', icon: '' }
       ]
     },
     {
       label: 'Preinfinições',
       icon: 'pi pi-file',
-      routerLink: '/preinfinicoes'
+      route: '/preinfinicoes'
     },
     {
       label: 'Projetos',
       icon: 'pi pi-folder',
-      routerLink: '/projetos'
+      route: '/projetos'
     },
     {
       label: 'Loja',
       icon: 'pi pi-shopping-cart',
-      routerLink: '/loja'
+      route: '/loja'
     },
     {
       label: 'Configurações',
       icon: 'pi pi-cog',
-      routerLink: '/configuracoes'
+      route: '/configuracoes'
     },
     {
       label: 'Home',
       icon: 'pi pi-home',
-      routerLink: '/home'
+      route: '/home'
     }
   ];
+
+  // Estado de expansão para o item Montagem
+  expandedItem: string | null = 'Montagem'; // Começa expandido
+
+  constructor(private router: Router) {}
+
+  // Navegar para uma rota
+  navigateTo(route: string | undefined): void {
+    if (route) {
+      this.router.navigate([route]);
+    }
+  }
+
+  // Alternar a expansão de um item
+  toggleExpand(label: string): void {
+    this.expandedItem = this.expandedItem === label ? null : label;
+  }
+
+  // Verificar se um item está expandido
+  isExpanded(label: string): boolean {
+    return this.expandedItem === label;
+  }
+
+  // Verificar se uma rota está ativa
+  isActive(route: string | undefined): boolean {
+    if (!route) return false;
+    return this.router.url.includes(route);
+  }
 
   logout() {
     console.log('Logout');
