@@ -4,17 +4,112 @@
   align-items: center;
   height: 100vh;
   background: linear-gradient(135deg, #7216f5 0%, #ff6b6b 100%);
+  font-family: 'Poppins', sans-serif;
+}
+
+:host ::ng-deep .login-card.p-card {
+  background-color: rgba(255, 255, 255, 0.35) !important;
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37) !important;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+:host ::ng-deep .login-card .p-card-body {
+  background-color: transparent !important;
 }
 
 .login-card {
   width: 100%;
   max-width: 400px;
+  background: transparent;
+  box-shadow: none;
 }
 
 .field {
   margin-bottom: 1.5rem;
 }
 
+.field label {
+  font-weight: 500;
+  color: #333;
+  margin-bottom: 0.3rem;
+  display: block;
+}
+
+.field input,
+.field .p-password {
+  width: 100%;
+}
+
 .mt-3 {
   margin-top: 1rem;
+}
+
+.button-wrapper {
+  margin-top: 1.5rem;
+  width: 100%;
+}
+
+.forgot-password {
+  text-align: center;
+  margin-top: 0.8rem;
+}
+
+.forgot-password a {
+  font-size: 0.75rem;
+  color: #333;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.2s ease;
+}
+
+.forgot-password a:hover {
+  color: #000;
+  text-decoration: underline;
+}
+
+.login-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding-top: 1rem;
+  padding-bottom: 0.5rem;
+}
+
+.login-logo {
+  width: 80px;
+  height: auto;
+  margin-bottom: 0.5rem;
+}
+
+.login-icon {
+  font-size: 3rem;
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  padding: 1rem;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+  margin-bottom: 0.5rem;
+}
+
+/* Ícone dentro dos inputs */
+.input-icon-group {
+  position: relative;
+}
+
+.input-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #666;
+  font-size: 1.2rem;
+  z-index: 1;
+}
+
+.input-with-icon {
+  padding-left: 2.2rem !important;
 }
