@@ -67,18 +67,31 @@
   width: 100%;
   margin-bottom: 0;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
 }
 
 .nav-button .p-button-icon {
   color: #7c20ff;
   margin-right: 8px;
+  transition: color 0.3s ease;
 }
 
+/* Hover para botões brancos - ROXO */
 .nav-button:hover {
-  background-color: #f0f0f0;
+  background-color: #7c20ff;
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(124, 32, 255, 0.3);
 }
 
+.nav-button:hover .p-button-icon {
+  color: white;
+}
 
+.nav-button:hover .pi-chevron-down,
+.nav-button:hover .pi-chevron-right {
+  color: white;
+}
 
 /* Estilo especial para o botão Montagem - ROXO */
 .nav-button.montagem-button {
@@ -95,7 +108,9 @@
 }
 
 .nav-button.montagem-button:hover {
-  background-color: #7c20ff;
+  background-color: #8a3fef;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(138, 63, 239, 0.4);
 }
 
 /* Submenu */
@@ -121,6 +136,7 @@
   align-items: center;
   justify-content: flex-start;
   width: 100%;
+  transition: all 0.3s ease;
 }
 
 .submenu-button .p-button-icon {
@@ -129,6 +145,8 @@
 
 .submenu-button:hover {
   background-color: #b57cff;
+  transform: translateX(4px);
+  box-shadow: 0 2px 8px rgba(181, 124, 255, 0.3);
 }
 
 /* Botões do rodapé */
@@ -140,10 +158,23 @@
   border-radius: 8px;
   padding: 8px 12px;
   text-align: left;
+  transition: all 0.3s ease;
 }
 
 .footer-button .p-button-icon {
   color: #7c20ff;
+  transition: color 0.3s ease;
+}
+
+.footer-button:hover {
+  background-color: #7c20ff;
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(124, 32, 255, 0.3);
+}
+
+.footer-button:hover .p-button-icon {
+  color: white;
 }
 
 .footer-button-icon {
@@ -155,15 +186,23 @@
   width: 36px;
   height: 36px;
   padding: 0;
+  transition: all 0.3s ease;
 }
 
 .footer-button-icon .p-button-icon {
   color: #7c20ff;
+  transition: color 0.3s ease;
 }
 
-.footer-button:hover,
 .footer-button-icon:hover {
-  background-color: #f0f0f0;
+  background-color: #7c20ff;
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(124, 32, 255, 0.3);
+}
+
+.footer-button-icon:hover .p-button-icon {
+  color: white;
 }
 
 /* Ícone de expansão à direita */
@@ -171,4 +210,5 @@
 .nav-button .pi-chevron-right {
   margin-left: auto;
   color: #333333;
+  transition: color 0.3s ease;
 }

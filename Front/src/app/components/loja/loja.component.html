@@ -1,9 +1,74 @@
 <div class="loja-container">
-  <h2 class="loja-titulo">Produtos Disponíveis</h2>
+  <div class="loja-content">
+    <h1 class="loja-title">Loja de Produtos</h1>
 
-  <p-dataView [value]="products" layout="grid" [paginator]="true" [rows]="6">
-    <ng-template let-produto pTemplate="gridItem">
-      <span>Teste</span>
-    </ng-template>
-  </p-dataView>
+    <p-dataView #dv [value]="products" [layout]="layout" [paginator]="true" [rows]="6">
+      <ng-template pTemplate="header">
+        <div class="flex justify-content-end">
+          <p-selectButton [(ngModel)]="layout" [options]="options" optionLabel="label">
+            <ng-template let-item pTemplate="item">
+              <i [class]="item.icon"></i>
+              <span class="ml-2">{{item.label}}</span>
+            </ng-template>
+          </p-selectButton>
+        </div>
+      </ng-template>
+
+      <ng-template let-product pTemplate="listItem">
+        <div class="col-12">
+          <div class="flex flex-column sm:flex-row p-4 gap-4 border-top-1 border-300">
+            <div class="w-9 sm:w-16rem shadow-2 mr-4">
+              <img [src]="product.image || '/placeholder.svg?height=150&width=150'" [alt]="product.name" class="w-full" />
+              <p-tag [value]="product.inventoryStatus" [severity]="getSeverity(product)" styleClass="absolute top-0 left-0 mt-2 ml-2"></p-tag>
+            </div>
+            <div class="flex-1 flex flex-column gap-3">
+              <div class="flex align-items-center justify-content-between">
+                <span class="text-900 font-medium text-xl">{{product.name}}</span>
+                <span class="text-900 font-bold text-xl">{{product.price | currency:'BRL'}}</span>
+              </div>
+              <span class="text-600">{{product.category}}</span>
+              <div class="text-700 line-height-3">{{product.description}}</div>
+              <div class="flex align-items-center gap-3">
+                <span class="flex align-items-center gap-2">
+                  <i class="pi pi-star-fill text-yellow-500"></i>
+                  <span class="font-semibold">{{product.rating}}</span>
+                </span>
+                <div class="flex align-items-center gap-2 ml-auto">
+                  <button pButton icon="pi pi-shopping-cart" label="Adicionar" [disabled]="product.inventoryStatus === 'OUTOFSTOCK'"></button>
+                  <button pButton icon="pi pi-heart" class="p-button-secondary p-button-outlined"></button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </ng-template>
+
+      <ng-template let-product pTemplate="gridItem">
+        <div class="col-12 sm:col-6 lg:col-4 xl:col-3 p-2">
+          <div class="p-4 border-1 surface-border border-round">
+            <div class="relative mb-3">
+              <img [src]="product.image || '/placeholder.svg?height=200&width=300'" [alt]="product.name" class="w-full h-12rem object-contain" />
+              <p-tag [value]="product.inventoryStatus" [severity]="getSeverity(product)" styleClass="absolute top-0 left-0 mt-2 ml-2"></p-tag>
+            </div>
+            <div class="text-900 font-medium text-xl mb-2">{{product.name}}</div>
+            <div class="text-600 mb-2">{{product.category}}</div>
+            <div class="text-700 line-height-3 mb-3 h-6rem overflow-hidden text-overflow-ellipsis">{{product.description}}</div>
+            <div class="flex align-items-center justify-content-between">
+              <span class="text-900 font-bold text-xl">{{product.price | currency:'BRL'}}</span>
+              <div class="flex align-items-center gap-2">
+                <span class="flex align-items-center gap-1">
+                  <i class="pi pi-star-fill text-yellow-500"></i>
+                  <span class="font-semibold">{{product.rating}}</span>
+                </span>
+              </div>
+            </div>
+            <div class="flex align-items-center gap-2 mt-3">
+              <button pButton icon="pi pi-shopping-cart" label="Adicionar" class="flex-auto" [disabled]="product.inventoryStatus === 'OUTOFSTOCK'"></button>
+              <button pButton icon="pi pi-heart" class="p-button-secondary p-button-outlined"></button>
+            </div>
+          </div>
+        </div>
+      </ng-template>
+    </p-dataView>
+  </div>
 </div>
