@@ -113,3 +113,21 @@
 .input-with-icon {
   padding-left: 2.2rem !important;
 }
+
+/* Alinha corretamente o input dentro do p-password */
+:host ::ng-deep .p-password-input.input-with-icon {
+  padding-left: 2.2rem !important;
+}
+
+/* Ajusta o ícone de cadeado para senha */
+.input-icon-group .input-icon {
+  position: absolute;
+  top: 50%;
+  left: 12px;
+  transform: translateY(-50%);
+  z-index: 2;
+  pointer-events: none;
+  font-size: 1.2rem;
+  color: #666;
+}
+
