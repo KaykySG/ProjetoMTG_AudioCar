@@ -1,0 +1,87 @@
+<div class="login-container">
+  <p-card styleClass="login-card">
+    <ng-template pTemplate="header">
+      <div class="login-header">
+        <i class="pi pi-user-plus login-icon"></i>
+      </div>
+    </ng-template>
+
+    <div class="p-fluid">
+      <!-- Nome completo -->
+      <div class="field input-icon-group">
+        <i class="pi pi-id-card input-icon"></i>
+        <input
+          type="text"
+          pInputText
+          [(ngModel)]="fullName"
+          placeholder="Nome completo"
+          class="input-with-icon"
+        />
+      </div>
+
+      <!-- E-mail -->
+      <div class="field input-icon-group">
+        <i class="pi pi-envelope input-icon"></i>
+        <input
+          type="email"
+          pInputText
+          [(ngModel)]="email"
+          placeholder="E-mail"
+          class="input-with-icon"
+        />
+      </div>
+
+      <!-- Username -->
+      <div class="field input-icon-group">
+        <i class="pi pi-user input-icon"></i>
+        <input
+          type="text"
+          pInputText
+          [(ngModel)]="username"
+          placeholder="Nome de usuário"
+          class="input-with-icon"
+        />
+      </div>
+
+      <!-- Senha -->
+      <div class="field input-icon-group">
+        <i class="pi pi-lock input-icon"></i>
+        <p-password
+          [(ngModel)]="password"
+          placeholder="Senha"
+          [toggleMask]="true"
+          [feedback]="false"
+          inputStyleClass="input-with-icon w-full"
+        ></p-password>
+      </div>
+
+      <!-- Confirmar Senha -->
+      <div class="field input-icon-group">
+        <i class="pi pi-lock input-icon"></i>
+        <p-password
+          [(ngModel)]="confirmPassword"
+          placeholder="Confirmar senha"
+          [toggleMask]="true"
+          [feedback]="false"
+          inputStyleClass="input-with-icon w-full"
+        ></p-password>
+      </div>
+
+      <!-- Botão -->
+      <div class="p-field">
+        <button
+          pButton
+          label="Cadastrar"
+          (click)="register()"
+          class="p-button-rounded p-button-success"
+          style="width: 100%;"
+        ></button>
+      </div>
+
+      <!-- Já tem conta -->
+      <div class="forgot-password">
+        <a href="#" (click)="goToLogin()">Já tenho conta</a>
+      </div>
+    </div>
+  </p-card>
+</div>
