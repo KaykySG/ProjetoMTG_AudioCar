@@ -1,74 +1,155 @@
-<div class="loja-container">
-  <div class="loja-content">
-    <h1 class="loja-title">Loja de Produtos</h1>
+<div class="min-h-screen-custom bg-gradient-custom">
+  <div class="container-custom mx-auto-custom px-6-custom py-8-custom">
+    <div class="mb-8-custom">
+      <h1 class="text-4xl-custom font-bold-custom text-slate-800-custom mb-2-custom">Loja de Equipamentos</h1>
 
-    <p-dataView #dv [value]="products" [layout]="layout" [paginator]="true" [rows]="6">
-      <ng-template pTemplate="header">
-        <div class="flex justify-content-end">
-          <p-selectButton [(ngModel)]="layout" [options]="options" optionLabel="label">
-            <ng-template let-item pTemplate="item">
-              <i [class]="item.icon"></i>
-              <span class="ml-2">{{item.label}}</span>
-            </ng-template>
-          </p-selectButton>
-        </div>
-      </ng-template>
+    </div>
 
-      <ng-template let-product pTemplate="listItem">
-        <div class="col-12">
-          <div class="flex flex-column sm:flex-row p-4 gap-4 border-top-1 border-300">
-            <div class="w-9 sm:w-16rem shadow-2 mr-4">
-              <img [src]="product.image || '/placeholder.svg?height=150&width=150'" [alt]="product.name" class="w-full" />
-              <p-tag [value]="product.inventoryStatus" [severity]="getSeverity(product)" styleClass="absolute top-0 left-0 mt-2 ml-2"></p-tag>
-            </div>
-            <div class="flex-1 flex flex-column gap-3">
-              <div class="flex align-items-center justify-content-between">
-                <span class="text-900 font-medium text-xl">{{product.name}}</span>
-                <span class="text-900 font-bold text-xl">{{product.price | currency:'BRL'}}</span>
-              </div>
-              <span class="text-600">{{product.category}}</span>
-              <div class="text-700 line-height-3">{{product.description}}</div>
-              <div class="flex align-items-center gap-3">
-                <span class="flex align-items-center gap-2">
-                  <i class="pi pi-star-fill text-yellow-500"></i>
-                  <span class="font-semibold">{{product.rating}}</span>
-                </span>
-                <div class="flex align-items-center gap-2 ml-auto">
-                  <button pButton icon="pi pi-shopping-cart" label="Adicionar" [disabled]="product.inventoryStatus === 'OUTOFSTOCK'"></button>
-                  <button pButton icon="pi pi-heart" class="p-button-secondary p-button-outlined"></button>
+    <div class="bg-white-custom rounded-2xl-custom shadow-sm-custom border-slate-200-custom p-6-custom mb-8-custom">
+      <div class="flex-custom justify-between-custom items-center-custom">
+        <h2 class="text-xl-custom font-semibold-custom text-slate-800-custom">Produtos Disponíveis</h2>
+        <p-selectbutton
+          [(ngModel)]="layout"
+          [options]="options"
+          optionLabel="icon"
+          [allowEmpty]="false"
+          styleClass="custom-selectbutton">
+          <ng-template #item let-item>
+            <i class="pi text-slate-600-custom" [ngClass]="{ 'pi-bars': item === 'list', 'pi-table': item === 'grid' }"></i>
+          </ng-template>
+        </p-selectbutton>
+      </div>
+    </div>
+
+    <div class="bg-white-custom rounded-2xl-custom shadow-sm-custom border-slate-200-custom p-6-custom">
+      <p-dataview
+        [value]="products()"
+        [layout]="layout"
+        [rows]="5"
+        [paginator]="true"
+        styleClass="custom-dataview">
+
+        <ng-template #list let-items>
+          <div class="space-y-6-custom">
+            <div *ngFor="let item of items; let first = first"
+                 class="bg-white-custom rounded-xl-custom overflow-hidden-custom"
+                 [ngClass]="{'border-t-custom border-slate-200-custom pt-6-custom': !first}">
+              <div class="flex-custom flex-col-sm-custom gap-6-custom">
+                <div class="lg-w-80-custom flex-shrink-0-custom relative-custom p-4-custom">
+                  <div class="image-container relative-custom h-64-custom bg-gradient-custom-inner rounded-lg-custom overflow-hidden-custom flex-custom items-center-custom justify-center-custom">
+                    <img
+                      class="image-fill-parent"
+                      [src]="'/assets/images/amplificador.jpg'"
+                      [alt]="item.name"
+                    />
+                    <div class="absolute-custom top-4-custom left-4-custom z-10-custom">
+                  <span class="inline-flex-custom items-center-custom px-3-custom py-1-custom rounded-full-custom text-sm-custom font-medium-custom bg-green-100-custom text-green-800-custom">
+                    {{ getStatusLabel(item.inventoryStatus) }}
+                  </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="flex-1-custom flex-custom flex-col-md-custom justify-between-custom gap-6-custom">
+                  <div class="flex-custom flex-col-custom justify-between-custom">
+                    <div>
+                      <span class="text-slate-500-custom text-sm-custom font-medium-custom uppercase-custom tracking-wide-custom">{{ item.category }}</span>
+                      <h3 class="text-xl-custom font-bold-custom text-slate-900-custom mt-1-custom mb-2-custom">{{ item.name }}</h3>
+                      <p class="text-slate-600-custom line-clamp-2-custom">{{ item.description }}</p>
+                    </div>
+
+                    <div class="bg-slate-100-custom rounded-full-custom px-3-custom py-1-custom flex-custom items-center-custom gap-1-custom w-fit-custom mt-4-custom">
+                      <span class="text-slate-700-custom text-sm-custom font-semibold-custom">{{ item.rating }}</span>
+                      <i class="pi pi-star-fill text-amber-400-custom text-sm-custom"></i>
+                    </div>
+                  </div>
+
+                  <div class="flex-custom flex-col-custom md-items-end-custom justify-between-custom">
+                    <div class="flex-custom flex-col-custom">
+                      <span class="text-2xl-custom font-bold-custom text-slate-900-custom">{{ item.price | currency: 'BRL':'symbol':'1.2-2':'pt-BR' }}</span>
+                      <span class="text-xs-custom text-slate-500-custom">À vista no PIX</span>
+                    </div>
+
+                    <div class="flex-custom gap-2-custom mt-4-custom">
+                      <button
+                        pButton
+                        icon="pi pi-shopping-cart"
+                        label="Comprar"
+                        [disabled]="item.inventoryStatus === 'OUTOFSTOCK'"
+                        class="button-primary-custom"
+                      ></button>
+                      <button
+                        pButton
+                        icon="pi pi-heart"
+                        [outlined]="true"
+                        class="button-outline-custom">
+                      </button>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
-      </ng-template>
+        </ng-template>
 
-      <ng-template let-product pTemplate="gridItem">
-        <div class="col-12 sm:col-6 lg:col-4 xl:col-3 p-2">
-          <div class="p-4 border-1 surface-border border-round">
-            <div class="relative mb-3">
-              <img [src]="product.image || '/placeholder.svg?height=200&width=300'" [alt]="product.name" class="w-full h-12rem object-contain" />
-              <p-tag [value]="product.inventoryStatus" [severity]="getSeverity(product)" styleClass="absolute top-0 left-0 mt-2 ml-2"></p-tag>
-            </div>
-            <div class="text-900 font-medium text-xl mb-2">{{product.name}}</div>
-            <div class="text-600 mb-2">{{product.category}}</div>
-            <div class="text-700 line-height-3 mb-3 h-6rem overflow-hidden text-overflow-ellipsis">{{product.description}}</div>
-            <div class="flex align-items-center justify-content-between">
-              <span class="text-900 font-bold text-xl">{{product.price | currency:'BRL'}}</span>
-              <div class="flex align-items-center gap-2">
-                <span class="flex align-items-center gap-1">
-                  <i class="pi pi-star-fill text-yellow-500"></i>
-                  <span class="font-semibold">{{product.rating}}</span>
-                </span>
+        <ng-template #grid let-items>
+          <div class="grid-custom grid-cols-1-custom md-grid-cols-2-custom xl-grid-cols-3-custom gap-8-custom">
+            <div *ngFor="let product of items"
+                 class="bg-white-custom rounded-2xl-custom shadow-sm-custom border-slate-200-custom hover-shadow-lg-custom transition-all-custom duration-300-custom overflow-hidden-custom group-custom">
+
+              <div class="image-container relative-custom h-64-custom bg-gradient-custom-inner overflow-hidden-custom">
+                <img
+                  class="image-fill-parent group-hover-scale-105-custom transition-transform-custom duration-300-custom"
+                  [src]="'/assets/images/amplificador.jpg'"
+                  [alt]="product.name"
+                />
+                <div class="absolute-custom top-4-custom left-4-custom z-10-custom">
+              <span class="inline-flex-custom items-center-custom px-3-custom py-1-custom rounded-full-custom text-sm-custom font-medium-custom bg-green-100-custom text-green-800-custom">
+                {{ getStatusLabel(product.inventoryStatus) }}
+              </span>
+                </div>
+                <div class="absolute-custom top-4-custom right-4-custom z-10-custom">
+                  <div class="bg-white-90-custom backdrop-blur-sm-custom rounded-full-custom px-3-custom py-1-custom flex-custom items-center-custom gap-1-custom">
+                    <span class="text-slate-700-custom text-sm-custom font-semibold-custom">{{ product.rating }}</span>
+                    <i class="pi pi-star-fill text-amber-400-custom text-sm-custom"></i>
+                  </div>
+                </div>
+              </div>
+
+              <div class="p-6-custom">
+                <div class="mb-4-custom">
+                  <span class="text-slate-500-custom text-sm-custom font-medium-custom uppercase-custom tracking-wide-custom">{{ product.category }}</span>
+                  <h3 class="text-xl-custom font-bold-custom text-slate-900-custom mt-1-custom mb-2-custom leading-tight-custom">{{ product.name }}</h3>
+                  <p class="text-slate-600-custom text-sm-custom line-clamp-2-custom">{{ product.description }}</p>
+                </div>
+
+                <div class="space-y-4-custom">
+                  <div class="flex-custom flex-col-custom">
+                    <span class="text-2xl-custom font-bold-custom text-slate-900-custom">{{ product.price | currency: 'BRL':'symbol':'1.2-2':'pt-BR' }}</span>
+                    <span class="text-xs-custom text-slate-500-custom">À vista no PIX</span>
+                  </div>
+
+                  <div class="flex-custom gap-2-custom">
+                    <button
+                      pButton
+                      icon="pi pi-shopping-cart"
+                      label="Comprar"
+                      [disabled]="product.inventoryStatus === 'OUTOFSTOCK'"
+                      class="flex-1-custom button-primary-custom"
+                    ></button>
+                    <button
+                      pButton
+                      icon="pi pi-heart"
+                      [outlined]="true"
+                      class="button-outline-custom">
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
-            <div class="flex align-items-center gap-2 mt-3">
-              <button pButton icon="pi pi-shopping-cart" label="Adicionar" class="flex-auto" [disabled]="product.inventoryStatus === 'OUTOFSTOCK'"></button>
-              <button pButton icon="pi pi-heart" class="p-button-secondary p-button-outlined"></button>
-            </div>
           </div>
-        </div>
-      </ng-template>
-    </p-dataView>
+        </ng-template>
+      </p-dataview>
+    </div>
   </div>
 </div>

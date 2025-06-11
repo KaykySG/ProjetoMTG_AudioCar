@@ -1,139 +1,132 @@
-import { Component, type OnInit } from "@angular/core"
-import { CommonModule, CurrencyPipe, SlicePipe } from "@angular/common"
-import { FormsModule } from "@angular/forms"
-import { DataViewModule } from "primeng/dataview"
+import { Component } from "@angular/core"
+import type { Product } from "./product"
+import { DataView } from "primeng/dataview"
 import { ButtonModule } from "primeng/button"
-import { SelectButtonModule } from "primeng/selectbutton"
-import { TagModule } from "primeng/tag"
-
-interface Product {
-  id: string
-  name: string
-  description: string
-  price: number
-  image: string
-  category: string
-  inventoryStatus: "INSTOCK" | "LOWSTOCK" | "OUTOFSTOCK"
-  rating: number
-}
-
-interface LayoutOption {
-  label: string
-  value: "list" | "grid"
-  icon: string
-}
+import { SelectButton } from "primeng/selectbutton"
+import { CommonModule } from "@angular/common"
+import { FormsModule } from "@angular/forms"
+import { signal } from "@angular/core"
 
 @Component({
   selector: "app-loja",
-  standalone: true,
-  imports: [
-    CommonModule,
-    FormsModule,
-    DataViewModule,
-    ButtonModule,
-    SelectButtonModule,
-    TagModule,
-    CurrencyPipe
-  ],
   templateUrl: "./loja.component.html",
-  styleUrls: ["./loja.component.css"],
+  standalone: true,
+  styleUrls: ['./loja.component.css'],
+  imports: [DataView, ButtonModule, CommonModule, SelectButton, FormsModule],
 })
-export class LojaComponent implements OnInit {
-  products: Product[] = []
+export class LojaComponent {
   layout: "list" | "grid" = "grid"
-  options: LayoutOption[] = []
-
-  constructor() {
-    this.options = [
-      { value: "list", label: "Lista", icon: "pi pi-bars" },
-      { value: "grid", label: "Grade", icon: "pi pi-table" },
-    ]
-  }
+  products = signal<Product[]>([])
+  options: ("list" | "grid")[] = ["list", "grid"]
 
   ngOnInit() {
-    // Inicializar os produtos
-    this.loadProducts()
-  }
-
-  loadProducts() {
-    this.products = [
+    // Produtos de exemplo
+    const produtos: Product[] = [
       {
-        id: "1",
-        name: "Amplificador Premium X",
-        description: "Amplificador de alta potência para graves profundos e som cristalino em qualquer volume.",
+        id: "1000",
+        code: "AMP001",
+        name: "Amplificador Profissional 2000W",
+        description:
+          "Amplificador de potência profissional com 2000W RMS, ideal para eventos e shows. Tecnologia avançada com proteção contra sobrecarga.",
+        image: "amplificador.jpg",
         price: 1299.99,
-        image: "assets/images/amplifier.jpg",
-        category: "Áudio Automotivo",
+        category: "Amplificadores",
+        quantity: 5,
         inventoryStatus: "INSTOCK",
-        rating: 5,
+        rating: 4.8,
       },
       {
-        id: "2",
-        name: 'Subwoofer Destroyer 12"',
-        description: "Subwoofer de 12 polegadas com potência de 1000W RMS para graves impactantes e definidos.",
-        price: 899.99,
-        image: "assets/images/subwoofer.jpg",
-        category: "Áudio Automotivo",
-        inventoryStatus: "LOWSTOCK",
-        rating: 4,
-      },
-      {
-        id: "3",
-        name: "Central Multimídia ConnectPRO",
-        description: "Central multimídia com tela touch de 9 polegadas, GPS integrado e espelhamento sem fio.",
-        price: 1599.99,
-        image: "assets/images/multimedia.jpg",
-        category: "Eletrônicos Veiculares",
-        inventoryStatus: "INSTOCK",
-        rating: 5,
-      },
-      {
-        id: "4",
-        name: "Kit Alto-falantes Acoustic Hi-Fi",
-        description: "Kit com 4 alto-falantes (2 woofers, 2 tweeters) para qualidade sonora superior e imersiva.",
+        id: "1001",
+        code: "AMP002",
+        name: "Amplificador Compacto 800W",
+        description:
+          "Amplificador compacto com 800W RMS, perfeito para pequenos eventos e estúdios. Design leve e portátil.",
+        image: "amplificador-compacto.jpg",
         price: 799.99,
-        image: "assets/images/speakers.jpg",
-        category: "Áudio Automotivo",
+        category: "Amplificadores",
+        quantity: 3,
+        inventoryStatus: "LOWSTOCK",
+        rating: 4.2,
+      },
+      {
+        id: "1002",
+        code: "AMP003",
+        name: "Amplificador Valvulado Vintage",
+        description:
+          "Amplificador valvulado com som vintage e caloroso. Ideal para guitarristas que buscam timbre clássico.",
+        image: "amplificador-valvulado.jpg",
+        price: 2499.99,
+        category: "Amplificadores",
+        quantity: 0,
         inventoryStatus: "OUTOFSTOCK",
-        rating: 4,
+        rating: 4.9,
       },
       {
-        id: "5",
-        name: "Câmera de Ré Vision HD",
-        description: "Câmera de ré com visão noturna e ângulo amplo para manobras seguras.",
-        price: 249.9,
-        image: "/placeholder.svg?height=200&width=300",
-        category: "Acessórios Veiculares",
-        inventoryStatus: "INSTOCK",
-        rating: 3,
-      },
-      {
-        id: "6",
-        name: "Módulo de Potência Digital",
-        description: "Módulo de potência digital com 4 canais e controle remoto para ajuste fino do som.",
+        id: "1003",
+        code: "AMP004",
+        name: "Amplificador Multicanal 1500W",
+        description: "Amplificador multicanal com 1500W RMS, 4 entradas independentes e equalizador integrado.",
+        image: "amplificador-multicanal.jpg",
         price: 1899.99,
-        image: "/placeholder.svg?height=200&width=300",
-        category: "Áudio Automotivo",
+        category: "Amplificadores",
+        quantity: 7,
         inventoryStatus: "INSTOCK",
-        rating: 5,
+        rating: 4.5,
+      },
+      {
+        id: "1004",
+        code: "AMP005",
+        name: "Amplificador Digital 1200W",
+        description:
+          "Amplificador digital de última geração com 1200W RMS, controle via aplicativo e conectividade Bluetooth.",
+        image: "amplificador-digital.jpg",
+        price: 1599.99,
+        category: "Amplificadores",
+        quantity: 2,
+        inventoryStatus: "LOWSTOCK",
+        rating: 4.7,
+      },
+      {
+        id: "1005",
+        code: "AMP006",
+        name: "Amplificador para Contrabaixo 500W",
+        description:
+          "Amplificador específico para contrabaixo com 500W RMS, equalizador de 5 bandas e compressor integrado.",
+        image: "amplificador-baixo.jpg",
+        price: 1099.99,
+        category: "Amplificadores",
+        quantity: 4,
+        inventoryStatus: "INSTOCK",
+        rating: 4.6,
       },
     ]
+
+    this.products.set(produtos)
   }
 
-  getSeverity(product: Product): "success" | "warning" | "danger" | undefined {
+  getSeverity(product: Product) {
     switch (product.inventoryStatus) {
       case "INSTOCK":
         return "success"
       case "LOWSTOCK":
-        return "warning"
+        return "warn"
       case "OUTOFSTOCK":
         return "danger"
       default:
-        return undefined
+        return null
     }
   }
 
-  trackByProductId(index: number, product: Product): string {
-    return product.id
+  getStatusLabel(status: string) {
+    switch (status) {
+      case "INSTOCK":
+        return "Em Estoque"
+      case "LOWSTOCK":
+        return "Estoque Baixo"
+      case "OUTOFSTOCK":
+        return "Sem Estoque"
+      default:
+        return status
+    }
   }
 }
