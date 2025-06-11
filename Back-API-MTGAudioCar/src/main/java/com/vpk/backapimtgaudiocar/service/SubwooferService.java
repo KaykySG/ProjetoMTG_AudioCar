@@ -2,11 +2,11 @@ package com.vpk.backapimtgaudiocar.service;
 
 import com.vpk.backapimtgaudiocar.model.Subwoofer;
 import com.vpk.backapimtgaudiocar.repository.SubwooferRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
 import java.util.List;
 import java.util.Optional;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 @Service
 public class SubwooferService {
@@ -14,7 +14,7 @@ public class SubwooferService {
     @Autowired
     private SubwooferRepository subwooferRepository;
 
-    public List<Subwo,0,1ofer> listarTodos() {
+    public List<Subwoofer> listarTodos() {
         return subwooferRepository.findAll();
     }
 
@@ -53,4 +53,3 @@ public class SubwooferService {
         subwooferRepository.deleteById(id);
     }
 }
-
