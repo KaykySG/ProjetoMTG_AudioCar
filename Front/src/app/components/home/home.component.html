@@ -1,5 +1,4 @@
 <div class="home-container">
-  <!-- Main Content -->
   <div class="main-content">
     <h1 class="car-title">Volkswagem Gol</h1>
 
@@ -7,7 +6,6 @@
       <button pButton icon="pi pi-chevron-left" class="p-button-rounded p-button-text navigation-button" (click)="previousCar()"></button>
 
       <div class="car-image-container">
-        <!-- Car image would go here -->
       </div>
 
       <button pButton icon="pi pi-chevron-right" class="p-button-rounded p-button-text navigation-button" (click)="nextCar()"></button>
@@ -17,7 +15,6 @@
       <button pButton label="Avançar" class="p-button-rounded advance-button" (click)="advance()"></button>
     </div>
 
-    <!-- Status Indicators -->
     <div class="status-indicators">
       <div *ngFor="let indicator of statusIndicators" class="indicator">
         <label>{{indicator.label}}</label>
@@ -26,14 +23,52 @@
     </div>
   </div>
 
-  <!-- Right Sidebar - Audio Components -->
-  <div class="sidebar right-sidebar">
+  <div class="sidebar right-sidebar-buttons">
     <div class="audio-components">
       <button *ngFor="let component of audioComponents"
               pButton
               label="{{component}}"
-              class="p-button-outlined p-button-rounded audio-component-button">
-      </button>
+              class="p-button-outlined p-button-rounded audio-component-button"
+              (click)="toggleOverlayPanel($event, component)"> </button>
     </div>
-  </div>
+  </div >
+
+  <p-overlayPanel #op [showCloseIcon]="true" [style]="{'width': 'auto', 'min-width': '700px'}" appendTo="body">
+    <ng-template pTemplate="content">
+      <div class="overlay-panel-content" >
+        <h3 class="overlay-title">{{ selectedComponentType }} Disponíveis</h3>
+
+        <div class="store-items-grid">
+          <p-card *ngFor="let item of filteredStoreItems" class="store-item-card" (click)="selectStoreItem(item)">
+            <ng-template pTemplate="header">
+              <div class="card-image-container">
+                <img [src]="item.imageUrl" [alt]="item.name" class="card-image"/>
+
+
+              </div>
+            </ng-template>
+            <ng-template pTemplate="title">
+              {{ item.name }}
+            </ng-template>
+            <ng-template pTemplate="subtitle">
+              R$ {{ item.price | number:'1.2-2' }}
+            </ng-template>
+            <ng-template pTemplate="content">
+              <p class="item-description">{{ item.description }}</p>
+            </ng-template>
+            <ng-template pTemplate="footer">
+              <div class="card-footer-buttons">
+                <button pButton label="Comprar" icon="pi pi-shopping-cart" class="p-button-sm p-button-secondary"></button>
+                <button pButton icon="pi pi-heart" class="p-button-sm p-button-outlined"></button>
+              </div>
+            </ng-template>
+          </p-card>
+
+          <div *ngIf="filteredStoreItems.length === 0" class="no-items-message">
+            <p>Nenhum {{ selectedComponentType ? selectedComponentType.toLowerCase() : 'item' }} disponível no momento.</p>
+          </div>
+        </div>
+      </div>
+    </ng-template>
+  </p-overlayPanel>
 </div>

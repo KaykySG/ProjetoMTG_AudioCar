@@ -1,6 +1,7 @@
 .home-container {
   display: flex;
-  height: 100%;
+  height: 100vh; /* Ajuste para ocupar a altura total da viewport */
+  overflow: hidden; /* Evita scroll na tela principal */
 }
 
 /* Main Content Styling */
@@ -13,10 +14,12 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center; /* Centraliza o conteúdo verticalmente */
+  margin: 16px; /* Adiciona uma margem ao redor do conteúdo principal */
 }
 
 .car-title {
-  font-family: 'Handwriting', cursive;
+  font-family: 'Handwriting', cursive; /* Certifique-se que esta fonte está disponível ou use uma fallback */
   color: white;
   font-size: 2.5rem;
   margin-bottom: 32px;
@@ -34,18 +37,25 @@
 .car-image-container {
   width: 400px;
   height: 150px;
-  background-color: white;
+  background-color: rgba(255, 255, 255, 0.5); /* Semi-transparente para o contraste */
   border-radius: 75px;
   display: flex;
-  align-items: center;
   justify-content: center;
+  align-items: center;
+  border: 2px solid white; /* Borda branca para destacar */
 }
 
 .navigation-button {
   background-color: rgba(255, 255, 255, 0.2);
   color: white;
   margin: 0 16px;
+  border: 1px solid rgba(255, 255, 255, 0.4); /* Borda sutil */
 }
+.navigation-button:hover {
+  background-color: rgba(255, 255, 255, 0.3);
+  color: white;
+}
+
 
 .action-button-container {
   margin: 32px 0;
@@ -56,18 +66,25 @@
   border: none;
   padding: 8px 32px;
   color: white;
+  font-weight: bold;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  transition: background-color 0.3s ease;
+}
+.advance-button:hover {
+  background-color: #6a1ac7;
 }
 
 /* Status Indicators */
 .status-indicators {
   position: absolute;
-  left: 1470px;
+  left: 32px;
   bottom: 32px;
   background-color: rgba(24, 24, 24, 0.8);
   padding: 16px;
   border-radius: 16px;
   color: white;
   width: 200px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
 }
 
 .indicator {
@@ -84,23 +101,27 @@
   background-color: #1aea74;
 }
 
-/* Right Sidebar */
-.sidebar {
-  width: 180px;
+/* Right Side Buttons */
+.right-sidebar-buttons {
+  width: 200px; /* Aumentado ligeiramente para melhor espaçamento */
   background-color: #fcfcfc;
   border-radius: 24px;
   padding: 16px;
   display: flex;
   flex-direction: column;
-  margin-left: 16px;
-  height: 500px;
+  margin: 16px; /* Mesma margem que o main-content */
+  height: calc(100vh - 32px); /* Ocupa a altura total menos as margens */
+  flex-shrink: 0;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
-/* Audio Components */
+/* Audio Components Buttons */
 .audio-components {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 12px; /* Aumentado o gap para melhor espaçamento */
+  height: 100%; /* Permite que os botões se espalhem verticalmente */
+  justify-content: center; /* Centraliza os botões verticalmente */
 }
 
 .audio-component-button {
@@ -110,9 +131,208 @@
   background-color: transparent;
   text-align: center;
   width: 100%;
+  font-weight: 600;
+  padding: 10px 15px; /* Ajuste o padding */
+  transition: all 0.3s ease;
 }
 
 .audio-component-button:hover {
-  background-color: #7c20ff; /* Alterado para roxo */
-  color: white; /* Opcional: para o texto ficar branco ao passar o mouse */
+  background-color: #7c20ff;
+  color: white;
+  border-color: transparent; /* Remove a borda inferior ao hover */
+  transform: translateY(-2px); /* Efeito sutil ao passar o mouse */
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+/* Overlay Panel Content Styling */
+.overlay-panel-content {
+  padding: 20px; /* Mais padding para um visual mais limpo */
+  text-align: left; /* Ajuste para o conteúdo dos cards */
+  color: #333;
+}
+
+.overlay-title {
+  margin-top: 0;
+  margin-bottom: 20px; /* Mais espaço abaixo do título */
+  font-size: 1.5rem; /* Título maior */
+  color: #333;
+  text-align: center;
+  font-weight: bold;
+}
+
+/* Grid para os itens da loja */
+.store-items-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); /* 3 colunas responsivas */
+  gap: 20px; /* Espaço entre os cards */
+  max-height: 600px; /* Altura máxima para o scroll */
+  overflow-y: auto; /* Adiciona scroll se houver muitos itens */
+  padding-right: 10px; /* Espaço para a barra de rolagem */
+}
+
+.no-items-message {
+  grid-column: 1 / -1; /* Ocupa todas as colunas */
+  text-align: center;
+  padding: 30px;
+  color: #777;
+  font-style: italic;
+}
+
+/* Estilo individual do Card do item da loja */
+.store-item-card {
+  width: 100%; /* Ocupa a largura da coluna na grid */
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  border-radius: 10px;
+  overflow: hidden; /* Garante que a imagem e tags respeitem o border-radius */
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.store-item-card:hover {
+  transform: translateY(-5px); /* Efeito de elevação ao passar o mouse */
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+}
+
+.card-image-container {
+  position: relative;
+  width: 100%;
+  height: 150px; /* Altura fixa para as imagens */
+  overflow: hidden;
+  display: flex; /* Centraliza a imagem */
+  justify-content: center;
+  align-items: center;
+  background-color: #f0f0f0; /* Fundo para imagens que não preenchem */
+}
+
+.card-image {
+  width: 100%; /* A imagem preenche a largura do container */
+  height: 100%; /* A imagem preenche a altura do container */
+  object-fit: contain; /* Garante que a imagem se ajuste sem cortar */
+  padding: 10px; /* Espaço dentro da imagem container */
+}
+
+.card-status-tag {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  padding: 5px 10px;
+  font-size: 0.75rem;
+  z-index: 1; /* Garante que a tag fique acima da imagem */
+}
+
+.card-rating {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background-color: rgba(255, 255, 255, 0.8);
+  color: #333;
+  padding: 4px 8px;
+  border-radius: 5px;
+  font-size: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  z-index: 1;
+}
+
+.card-rating .pi-star-fill {
+  color: gold;
+}
+
+/* PrimeNG Card Content Overrides */
+:host ::ng-deep .store-item-card .p-card-body {
+  padding: 1rem; /* Ajuste o padding interno do card */
+}
+
+:host ::ng-deep .store-item-card .p-card-title {
+  font-size: 1rem;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  color: #333;
+  min-height: 2.5em; /* Garante que títulos longos tenham espaço */
+}
+
+:host ::ng-deep .store-item-card .p-card-subtitle {
+  font-size: 0.9rem;
+  color: #666;
+  margin-bottom: 0.75rem;
+}
+
+.item-description {
+  font-size: 0.8rem;
+  color: #777;
+  line-height: 1.4;
+  height: 3.6em; /* Limita a altura da descrição para 3 linhas */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 3; /* Número de linhas */
+  -webkit-box-orient: vertical;
+  margin-bottom: 1rem;
+}
+
+
+.card-footer-buttons {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 1rem;
+}
+
+/* Ajustes para o posicionamento do OverlayPanel */
+:host ::ng-deep .p-overlaypanel {
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+  border-radius: 12px;
+  background-color: #ffffff;
+  /* Largura e altura já definidas no HTML */
+  /* Remove a margem para controlarmos o posicionamento via transform */
+  margin: 0 !important; /* Importante remover margens padrão ou anteriores */
+
+  /* Adiciona transformação para mover o painel para a esquerda */
+  transform: translateX(-100%) translateX(-20px); /* Move 100% da sua própria largura + 20px extras */
+  /* Ajuste os 20px conforme a distância desejada dos botões */
+  /* Você pode ajustar o translateX com um valor fixo negativo, por exemplo:
+     transform: translateX(-400px);
+     Ou usar 'right' se ele estiver ancorado à direita:
+     right: calc(100% + 20px) !important;
+  */
+}
+
+:host ::ng-deep .p-overlaypanel .p-overlaypanel-close {
+  top: 15px;
+  right: 15px;
+  color: #555;
+  font-size: 1.2rem;
+}
+
+:host ::ng-deep .p-overlaypanel .p-overlaypanel-content {
+  padding: 0;
+}
+
+/* Scrollbar styling for store-items-grid */
+.store-items-grid::-webkit-scrollbar {
+  width: 8px;
+}
+
+.store-items-grid::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+.store-items-grid::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 10px;
+}
+
+.store-items-grid::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+:host ::ng-deep .p-overlaypanel {
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3); /* Sombra mais forte */
+  border-radius: 12px; /* Bordas mais arredondadas */
+  background-color: #ffffff; /* Fundo branco */
+  /* Largura e min-width são definidas no HTML [style] */
+  /* appendTo="body" também no HTML */
+  /* Removido quaisquer 'margin' ou 'transform' daqui */
 }
