@@ -36,7 +36,7 @@ public class ModuloAmplificador {
     @Column(name = "categoria_id")
     private String categoriaId;
 
-    @Column(nullable = true, name = "preco")
+    @Column(nullable = true)
     private Double preco;
 
     //Constructor

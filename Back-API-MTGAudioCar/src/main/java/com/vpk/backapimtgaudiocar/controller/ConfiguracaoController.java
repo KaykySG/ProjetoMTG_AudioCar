@@ -47,4 +47,9 @@ public class ConfiguracaoController {
     public ResponseEntity<Double> calcularConsumo(@PathVariable String id) {
         return ResponseEntity.ok(configuracaoService.calcularConsumoTotal(id));
     }
+
+    @GetMapping("/{id}/validacoes")
+    public ResponseEntity<List<String>> validarCompatibilidade(@PathVariable String id) {
+        return ResponseEntity.ok(configuracaoService.validarCompatibilidade(id));
+    }
 }

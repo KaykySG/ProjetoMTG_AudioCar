@@ -6,6 +6,9 @@ import com.vpk.backapimtgaudiocar.repository.ConfiguracaoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
 import java.util.List;
 import java.util.Optional;
 
@@ -14,6 +17,9 @@ public class ConfiguracaoService {
 
     @Autowired
     private ConfiguracaoRepository configuracaoRepository;
+
+    @Autowired
+    private ConfiguracaoCompatibilidade compatibilidade;
 
     public List<Configuracao> listarTodas() {
         return configuracaoRepository.findAll();
@@ -46,5 +52,9 @@ public class ConfiguracaoService {
         return configuracaoRepository.findById(id).map(cfg -> {
             return cfg.getModulos().stream().mapToDouble(ModuloAmplificador::getPotenciaPorCanalRms).sum();
         }).orElse(0.0);
+    }
+
+    public List<String> validarCompatibilidade(String id) {
+        return compatibilidade.validarCompatibilidade(id);
     }
 }
