@@ -1,6 +1,7 @@
 package com.vpk.backapimtgaudiocar.model;
 
 import jakarta.persistence.*;
+import java.util.Set;
 
 @Entity
 @Table(name = "modulos_amplificadores")
@@ -12,52 +13,24 @@ public class ModuloAmplificador {
 
     private String tipo;
     private Integer canais;
-
-    @Column(name = "potencia_por_canal_rms")
     private Integer potenciaPorCanalRms;
-
-    @Column(name = "potencia_bridge_rms")
     private Integer potenciaBridgeRms;
-
-    @Column(name = "impedancia_minima_ohms")
     private Integer impedanciaMinimaOhms;
-
-    @Column(name = "tensao_alimentacao_v")
     private Double tensaoAlimentacaoV;
-
-    @Column(name = "entrada_rca")
     private Boolean entradaRca;
-
-    @Column(name = "imagem_url")
     private String imagemUrl;
-
     private String descricao;
-
-    @Column(name = "categoria_id")
-    private String categoriaId;
-
-    @Column(nullable = true)
     private Double preco;
 
-    //Constructor
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "categoria_id")
+    private CategoriaComponente categoria;
 
-    public ModuloAmplificador() {
-    }
+    @OneToMany(mappedBy = "modulo", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<AltoFalante> altoFalantes;
 
-    public ModuloAmplificador(String id, String tipo, Integer canais, Integer potenciaPorCanalRms, Integer potenciaBridgeRms, Integer impedanciaMinimaOhms, Double tensaoAlimentacaoV, Boolean entradaRca, String imagemUrl, String descricao, String categoriaId, Double preco) {
-        this.id = id;
-        this.tipo = tipo;
-        this.canais = canais;
-        this.potenciaPorCanalRms = potenciaPorCanalRms;
-        this.potenciaBridgeRms = potenciaBridgeRms;
-        this.impedanciaMinimaOhms = impedanciaMinimaOhms;
-        this.tensaoAlimentacaoV = tensaoAlimentacaoV;
-        this.entradaRca = entradaRca;
-        this.imagemUrl = imagemUrl;
-        this.descricao = descricao;
-        this.categoriaId = categoriaId;
-        this.preco = preco;
-    }
+    @OneToMany(mappedBy = "modulo", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<Subwoofer> subwoofers;
 
     // Getters e Setters
 
@@ -141,15 +114,35 @@ public class ModuloAmplificador {
         this.descricao = descricao;
     }
 
-    public String getCategoriaId() {
-        return categoriaId;
+    public Double getPreco() {
+        return preco;
     }
 
-    public void setCategoriaId(String categoriaId) {
-        this.categoriaId = categoriaId;
+    public void setPreco(Double preco) {
+        this.preco = preco;
     }
 
-    public Double getPreco() { return preco;}
+    public CategoriaComponente getCategoria() {
+        return categoria;
+    }
 
-    public void setPreco(Double preco) { this.preco = preco;}
+    public void setCategoria(CategoriaComponente categoria) {
+        this.categoria = categoria;
+    }
+
+    public Set<AltoFalante> getAltoFalantes() {
+        return altoFalantes;
+    }
+
+    public void setAltoFalantes(Set<AltoFalante> altoFalantes) {
+        this.altoFalantes = altoFalantes;
+    }
+
+    public Set<Subwoofer> getSubwoofers() {
+        return subwoofers;
+    }
+
+    public void setSubwoofers(Set<Subwoofer> subwoofers) {
+        this.subwoofers = subwoofers;
+    }
 }

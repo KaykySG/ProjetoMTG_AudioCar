@@ -13,57 +13,27 @@ public class AltoFalante {
     private String tipo;
     private String modelo;
     private String marca;
-
-    @Column(name = "potencia_rms_w")
     private Integer potenciaRmsW;
-
-    @Column(name = "impedancia_ohms")
     private Integer impedanciaOhms;
-
-    @Column(name = "faixa_frequencia_hz")
     private String faixaFrequenciaHz;
-
-    @Column(name = "sensibilidade_db")
-    private Double sensibilidadeDb;
-
-    @Column(name = "diametro_polegadas")
+    private Integer sensibilidadeDb;
     private Double diametroPolegadas;
-
-    @Column(name = "tipo_instalacao")
     private String tipoInstalacao;
-
-    @Column(name = "imagem_url")
     private String imagemUrl;
-
     private String descricao;
-
-    @Column(name = "categoria_id")
-    private String categoriaId;
-
-    @Column(nullable = true)
     private Double preco;
 
-    //Constructor
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "categoria_id")
+    private CategoriaComponente categoria;
 
-    public AltoFalante() {
-    }
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "modulo_id")
+    private ModuloAmplificador modulo;
 
-    public AltoFalante(String id, String tipo, String modelo, String marca, Integer potenciaRmsW, Integer impedanciaOhms, String faixaFrequenciaHz, Double sensibilidadeDb, Double diametroPolegadas, String tipoInstalacao, String imagemUrl, String descricao, String categoriaId, Double preco) {
-        this.id = id;
-        this.tipo = tipo;
-        this.modelo = modelo;
-        this.marca = marca;
-        this.potenciaRmsW = potenciaRmsW;
-        this.impedanciaOhms = impedanciaOhms;
-        this.faixaFrequenciaHz = faixaFrequenciaHz;
-        this.sensibilidadeDb = sensibilidadeDb;
-        this.diametroPolegadas = diametroPolegadas;
-        this.tipoInstalacao = tipoInstalacao;
-        this.imagemUrl = imagemUrl;
-        this.descricao = descricao;
-        this.categoriaId = categoriaId;
-        this.preco = preco;
-    }
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "crossover_id")
+    private Crossover crossover;
 
     // Getters e Setters
 
@@ -123,11 +93,11 @@ public class AltoFalante {
         this.faixaFrequenciaHz = faixaFrequenciaHz;
     }
 
-    public Double getSensibilidadeDb() {
+    public Integer getSensibilidadeDb() {
         return sensibilidadeDb;
     }
 
-    public void setSensibilidadeDb(Double sensibilidadeDb) {
+    public void setSensibilidadeDb(Integer sensibilidadeDb) {
         this.sensibilidadeDb = sensibilidadeDb;
     }
 
@@ -163,16 +133,35 @@ public class AltoFalante {
         this.descricao = descricao;
     }
 
-    public String getCategoriaId() {
-        return categoriaId;
+    public Double getPreco() {
+        return preco;
     }
 
-    public void setCategoriaId(String categoriaId) {
-        this.categoriaId = categoriaId;
+    public void setPreco(Double preco) {
+        this.preco = preco;
     }
 
-    public Double getPreco() { return preco;}
+    public CategoriaComponente getCategoria() {
+        return categoria;
+    }
 
-    public void setPreco(Double preco) { this.preco = preco;}
+    public void setCategoria(CategoriaComponente categoria) {
+        this.categoria = categoria;
+    }
+
+    public ModuloAmplificador getModulo() {
+        return modulo;
+    }
+
+    public void setModulo(ModuloAmplificador modulo) {
+        this.modulo = modulo;
+    }
+
+    public Crossover getCrossover() {
+        return crossover;
+    }
+
+    public void setCrossover(Crossover crossover) {
+        this.crossover = crossover;
+    }
 }
-

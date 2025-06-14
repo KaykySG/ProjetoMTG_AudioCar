@@ -1,6 +1,7 @@
 package com.vpk.backapimtgaudiocar.model;
 
 import jakarta.persistence.*;
+import java.util.Set;
 
 @Entity
 @Table(name = "crossovers")
@@ -11,47 +12,23 @@ public class Crossover {
     private String id;
 
     private String tipo;
-
-    @Column(name = "numero_vias")
     private Integer numeroVias;
-
-    @Column(name = "frequencias_corte_hz")
     private String frequenciasCorteHz;
-
-    @Column(name = "atenuacao_db_por_oitava")
     private Integer atenuacaoDbPorOitava;
-
-    @Column(name = "uso_recomendado")
     private String usoRecomendado;
-
-    @Column(name = "imagem_url")
     private String imagemUrl;
-
     private String descricao;
-
-    @Column(name = "categoria_id")
-    private String categoriaId;
-
-    @Column(nullable = true)
     private Double preco;
 
-    //Constructor
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "categoria_id")
+    private CategoriaComponente categoria;
 
-    public Crossover() {
-    }
+    @OneToMany(mappedBy = "crossover", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<AltoFalante> altoFalantes;
 
-    public Crossover(String id, String tipo, Integer numeroVias, String frequenciasCorteHz, Integer atenuacaoDbPorOitava, String usoRecomendado, String imagemUrl, String descricao, String categoriaId, Double preco) {
-        this.id = id;
-        this.tipo = tipo;
-        this.numeroVias = numeroVias;
-        this.frequenciasCorteHz = frequenciasCorteHz;
-        this.atenuacaoDbPorOitava = atenuacaoDbPorOitava;
-        this.usoRecomendado = usoRecomendado;
-        this.imagemUrl = imagemUrl;
-        this.descricao = descricao;
-        this.categoriaId = categoriaId;
-        this.preco = preco;
-    }
+    @OneToMany(mappedBy = "crossover", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<Subwoofer> subwoofers;
 
     // Getters e Setters
 
@@ -119,15 +96,35 @@ public class Crossover {
         this.descricao = descricao;
     }
 
-    public String getCategoriaId() {
-        return categoriaId;
+    public Double getPreco() {
+        return preco;
     }
 
-    public void setCategoriaId(String categoriaId) {
-        this.categoriaId = categoriaId;
+    public void setPreco(Double preco) {
+        this.preco = preco;
     }
 
-    public Double getPreco() { return preco;}
+    public CategoriaComponente getCategoria() {
+        return categoria;
+    }
 
-    public void setPreco(Double preco) { this.preco = preco;}
+    public void setCategoria(CategoriaComponente categoria) {
+        this.categoria = categoria;
+    }
+
+    public Set<AltoFalante> getAltoFalantes() {
+        return altoFalantes;
+    }
+
+    public void setAltoFalantes(Set<AltoFalante> altoFalantes) {
+        this.altoFalantes = altoFalantes;
+    }
+
+    public Set<Subwoofer> getSubwoofers() {
+        return subwoofers;
+    }
+
+    public void setSubwoofers(Set<Subwoofer> subwoofers) {
+        this.subwoofers = subwoofers;
+    }
 }

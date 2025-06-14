@@ -12,68 +12,30 @@ public class Subwoofer {
 
     private String modelo;
     private String marca;
-
-    @Column(name = "potencia_rms_w")
     private Integer potenciaRmsW;
-
-    @Column(name = "potencia_maxima_w")
     private Integer potenciaMaximaW;
-
-    @Column(name = "impedancia_ohms")
     private Integer impedanciaOhms;
-
-    @Column(name = "tipo_bobina")
     private String tipoBobina;
-
-    @Column(name = "sensibilidade_db")
     private Double sensibilidadeDb;
-
-    @Column(name = "faixa_frequencia_hz")
     private String faixaFrequenciaHz;
-
-    @Column(name = "tipo_caixa_ideal")
     private String tipoCaixaIdeal;
-
-    @Column(name = "volume_caixa_litros")
     private Double volumeCaixaLitros;
-
-    @Column(name = "diametro_polegadas")
     private Double diametroPolegadas;
-
-    @Column(name = "imagem_url")
     private String imagemUrl;
-
     private String descricao;
-
-    @Column(name = "categoria_id")
-    private String categoriaId;
-
-    @Column(nullable = true)
     private Double preco;
 
-    //Constructor
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "categoria_id")
+    private CategoriaComponente categoria;
 
-    public Subwoofer() {
-    }
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "modulo_id")
+    private ModuloAmplificador modulo;
 
-    public Subwoofer(String id, String modelo, String marca, Integer potenciaRmsW, Integer potenciaMaximaW, Integer impedanciaOhms, String tipoBobina, Double sensibilidadeDb, String faixaFrequenciaHz, String tipoCaixaIdeal, Double volumeCaixaLitros, Double diametroPolegadas, String imagemUrl, String descricao, String categoriaId, Double preco) {
-        this.id = id;
-        this.modelo = modelo;
-        this.marca = marca;
-        this.potenciaRmsW = potenciaRmsW;
-        this.potenciaMaximaW = potenciaMaximaW;
-        this.impedanciaOhms = impedanciaOhms;
-        this.tipoBobina = tipoBobina;
-        this.sensibilidadeDb = sensibilidadeDb;
-        this.faixaFrequenciaHz = faixaFrequenciaHz;
-        this.tipoCaixaIdeal = tipoCaixaIdeal;
-        this.volumeCaixaLitros = volumeCaixaLitros;
-        this.diametroPolegadas = diametroPolegadas;
-        this.imagemUrl = imagemUrl;
-        this.descricao = descricao;
-        this.categoriaId = categoriaId;
-        this.preco = preco;
-    }
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "crossover_id")
+    private Crossover crossover;
 
     // Getters e Setters
 
@@ -189,15 +151,35 @@ public class Subwoofer {
         this.descricao = descricao;
     }
 
-    public String getCategoriaId() {
-        return categoriaId;
+    public Double getPreco() {
+        return preco;
     }
 
-    public void setCategoriaId(String categoriaId) {
-        this.categoriaId = categoriaId;
+    public void setPreco(Double preco) {
+        this.preco = preco;
     }
 
-    public Double getPreco() { return preco;}
+    public CategoriaComponente getCategoria() {
+        return categoria;
+    }
 
-    public void setPreco(Double preco) { this.preco = preco;}
+    public void setCategoria(CategoriaComponente categoria) {
+        this.categoria = categoria;
+    }
+
+    public ModuloAmplificador getModulo() {
+        return modulo;
+    }
+
+    public void setModulo(ModuloAmplificador modulo) {
+        this.modulo = modulo;
+    }
+
+    public Crossover getCrossover() {
+        return crossover;
+    }
+
+    public void setCrossover(Crossover crossover) {
+        this.crossover = crossover;
+    }
 }
