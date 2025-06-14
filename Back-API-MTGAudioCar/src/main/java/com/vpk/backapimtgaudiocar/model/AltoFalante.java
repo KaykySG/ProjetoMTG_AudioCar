@@ -40,12 +40,15 @@ public class AltoFalante {
     @Column(name = "categoria_id")
     private String categoriaId;
 
+    @Column(nullable = true, name = "preco")
+    private Double preco;
+
     //Constructor
 
     public AltoFalante() {
     }
 
-    public AltoFalante(String id, String tipo, String modelo, String marca, Integer potenciaRmsW, Integer impedanciaOhms, String faixaFrequenciaHz, Double sensibilidadeDb, Double diametroPolegadas, String tipoInstalacao, String imagemUrl, String descricao, String categoriaId) {
+    public AltoFalante(String id, String tipo, String modelo, String marca, Integer potenciaRmsW, Integer impedanciaOhms, String faixaFrequenciaHz, Double sensibilidadeDb, Double diametroPolegadas, String tipoInstalacao, String imagemUrl, String descricao, String categoriaId, Double preco) {
         this.id = id;
         this.tipo = tipo;
         this.modelo = modelo;
@@ -59,8 +62,8 @@ public class AltoFalante {
         this.imagemUrl = imagemUrl;
         this.descricao = descricao;
         this.categoriaId = categoriaId;
+        this.preco = preco;
     }
-
 
     // Getters e Setters
 
@@ -167,5 +170,9 @@ public class AltoFalante {
     public void setCategoriaId(String categoriaId) {
         this.categoriaId = categoriaId;
     }
+
+    public Double getPreco() { return preco;}
+
+    public void setPreco(Double preco) { this.preco = preco;}
 }
 

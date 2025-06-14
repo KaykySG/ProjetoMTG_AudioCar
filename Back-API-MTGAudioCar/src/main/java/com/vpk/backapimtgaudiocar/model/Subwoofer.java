@@ -48,12 +48,15 @@ public class Subwoofer {
     @Column(name = "categoria_id")
     private String categoriaId;
 
+    @Column(nullable = true, name = "preco")
+    private Double preco;
+
     //Constructor
 
     public Subwoofer() {
     }
 
-    public Subwoofer(String id, String modelo, String marca, Integer potenciaRmsW, Integer potenciaMaximaW, Integer impedanciaOhms, String tipoBobina, Double sensibilidadeDb, String faixaFrequenciaHz, String tipoCaixaIdeal, Double volumeCaixaLitros, Double diametroPolegadas, String imagemUrl, String descricao, String categoriaId) {
+    public Subwoofer(String id, String modelo, String marca, Integer potenciaRmsW, Integer potenciaMaximaW, Integer impedanciaOhms, String tipoBobina, Double sensibilidadeDb, String faixaFrequenciaHz, String tipoCaixaIdeal, Double volumeCaixaLitros, Double diametroPolegadas, String imagemUrl, String descricao, String categoriaId, Double preco) {
         this.id = id;
         this.modelo = modelo;
         this.marca = marca;
@@ -69,6 +72,7 @@ public class Subwoofer {
         this.imagemUrl = imagemUrl;
         this.descricao = descricao;
         this.categoriaId = categoriaId;
+        this.preco = preco;
     }
 
     // Getters e Setters
@@ -192,4 +196,8 @@ public class Subwoofer {
     public void setCategoriaId(String categoriaId) {
         this.categoriaId = categoriaId;
     }
+
+    public Double getPreco() { return preco;}
+
+    public void setPreco(Double preco) { this.preco = preco;}
 }

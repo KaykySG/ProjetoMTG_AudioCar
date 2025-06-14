@@ -32,12 +32,15 @@ public class Crossover {
     @Column(name = "categoria_id")
     private String categoriaId;
 
+    @Column(nullable = true, name = "preco")
+    private Double preco;
+
     //Constructor
 
     public Crossover() {
     }
 
-    public Crossover(String id, String tipo, Integer numeroVias, String frequenciasCorteHz, Integer atenuacaoDbPorOitava, String usoRecomendado, String imagemUrl, String descricao, String categoriaId) {
+    public Crossover(String id, String tipo, Integer numeroVias, String frequenciasCorteHz, Integer atenuacaoDbPorOitava, String usoRecomendado, String imagemUrl, String descricao, String categoriaId, Double preco) {
         this.id = id;
         this.tipo = tipo;
         this.numeroVias = numeroVias;
@@ -47,6 +50,7 @@ public class Crossover {
         this.imagemUrl = imagemUrl;
         this.descricao = descricao;
         this.categoriaId = categoriaId;
+        this.preco = preco;
     }
 
     // Getters e Setters
@@ -122,4 +126,8 @@ public class Crossover {
     public void setCategoriaId(String categoriaId) {
         this.categoriaId = categoriaId;
     }
+
+    public Double getPreco() { return preco;}
+
+    public void setPreco(Double preco) { this.preco = preco;}
 }
