@@ -1,15 +1,55 @@
 <div class="login-container">
-  <p-card header="MG AudioCar Login" styleClass="login-card">
+  <p-card styleClass="login-card">
+    <ng-template pTemplate="header">
+      <div class="login-header">
+        <i class="pi pi-user login-icon"></i>
+      </div>
+    </ng-template>
+
     <div class="p-fluid">
-      <div class="field">
-        <label for="username">Username</label>
-        <input id="username" type="text" pInputText [(ngModel)]="username">
+      <!-- Usuário -->
+      <div class="field input-icon-group">
+        <i class="pi pi-user input-icon"></i>
+        <input
+          id="username"
+          type="text"
+          pInputText
+          [(ngModel)]="username"
+          placeholder="Digite seu usuário"
+          class="input-with-icon"
+        />
       </div>
-      <div class="field">
-        <label for="password">Password</label>
-        <p-password id="password" [(ngModel)]="password" [toggleMask]="true"></p-password>
+
+      <!-- Senha -->
+      <div class="field input-icon-group">
+        <i class="pi pi-lock input-icon"></i>
+        <p-password
+          [(ngModel)]="password"
+          id="password"
+          placeholder="Digite sua senha"
+          [toggleMask]="true"
+          [feedback]="true"
+          inputStyleClass="input-with-icon w-full"
+        ></p-password>
       </div>
-      <button pButton label="Login" (click)="login()" class="mt-3"></button>
+
+      <!-- Botão -->
+      <div class="p-field">
+        <div style="width: 100%;">
+          <button
+            pButton
+            label="Entrar"
+            (click)="login()"
+            style="width: 100%;"
+            class="p-button-rounded p-button-success"
+          ></button>
+        </div>
+      </div>
+
+      <!-- Esqueceu a senha -->
+      <div class="forgot-password">
+          <a href="#">Esqueceu a senha?</a>
+      </div>
     </div>
   </p-card>
 </div>

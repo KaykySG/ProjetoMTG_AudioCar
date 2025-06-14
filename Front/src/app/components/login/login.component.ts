@@ -6,6 +6,8 @@ import { CardModule } from 'primeng/card';
 import { InputTextModule } from 'primeng/inputtext';
 import { PasswordModule } from 'primeng/password';
 import { ButtonModule } from 'primeng/button';
+import { HttpClient } from '@angular/common/http';
+
 
 @Component({
   selector: 'app-login',
@@ -23,12 +25,26 @@ export class LoginComponent {
   username: string = '';
   password: string = '';
 
-  constructor(private router: Router) {}
+  constructor(private router: Router, private http: HttpClient) {
+  }
 
   login() {
-    console.log('Login attempt with:', this.username);
-    // In a real app, this would call an authentication service
-    // For now, just navigate to home
-    this.router.navigate(['/home']);
+    const loginData = {
+      username: this.username,
+      password: this.password
+    };
+
+    this.http.post<any>('http://localhost:3000/login', loginData)
+      .subscribe({
+        next: (response) => {
+          localStorage.setItem('token', response.token); // Armazena o token
+          this.router.navigate(['/home']); // Redireciona após login
+        },
+        error: (err) => {
+          console.error('Erro de login:', err);
+          alert('Usuário ou senha inválidos!');
+
+        }
+      });
   }
 }
