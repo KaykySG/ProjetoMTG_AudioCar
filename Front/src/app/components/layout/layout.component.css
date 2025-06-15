@@ -58,7 +58,7 @@
   color: #333333;
   border: none;
   border-radius: 8px;
-  border-bottom: 3px solid #7c20ff;
+  border-bottom: 3px solid #7c20ff; /* Existing purple bottom border */
   padding: 12px 16px;
   text-align: left;
   display: flex;
@@ -68,7 +68,24 @@
   margin-bottom: 0;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
   transition: all 0.3s ease;
+
+  /* --- ADDED / MODIFIED START --- */
+  outline: none !important; /* Remove outline on focus/active */
 }
+
+/* Ensure no border/outline on focus for PrimeNG buttons */
+:host ::ng-deep .p-button:focus {
+  box-shadow: none !important; /* Remove PrimeNG's default focus shadow */
+  outline: none !important; /* Ensure no outline */
+}
+
+/* Ensure no border/outline on hover if it's coming from PrimeNG */
+:host ::ng-deep .p-button:hover {
+  outline: none !important;
+  border-color: transparent !important; /* Ensure no unwanted border on hover */
+}
+/* --- ADDED / MODIFIED END --- */
+
 
 .nav-button .p-button-icon {
   color: #7c20ff;
@@ -78,10 +95,20 @@
 
 /* Hover para botões brancos - ROXO */
 .nav-button:hover {
-  background-color: #7c20ff;
+  background-color: #7c20ff; /* Purple background on hover */
   color: white;
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(124, 32, 255, 0.3);
+  border-bottom: 3px solid #7c20ff; /* Set border to purple on hover */
+}
+
+.nav-button.montagem-button:hover {
+  background-color: #6a1ab2;
+
+}
+
+.submenu-button:hover {
+  background-color: #9559e0;
 }
 
 .nav-button:hover .p-button-icon {
@@ -111,6 +138,8 @@
   background-color: #8a3fef;
   transform: translateY(-2px);
   box-shadow: 0 6px 16px rgba(138, 63, 239, 0.4);
+  /* The border-bottom for montagem-button on hover can also be explicitly set if different behavior is desired */
+  border-bottom: 1px solid #8a3fef; /* Keep or change as desired for hover */
 }
 
 /* Submenu */
@@ -137,6 +166,7 @@
   justify-content: flex-start;
   width: 100%;
   transition: all 0.3s ease;
+  outline: none !important; /* Ensure no outline */
 }
 
 .submenu-button .p-button-icon {
@@ -147,6 +177,7 @@
   background-color: #b57cff;
   transform: translateX(4px);
   box-shadow: 0 2px 8px rgba(181, 124, 255, 0.3);
+  border-bottom: 1px solid #b57cff; /* Set border to a lighter purple on hover */
 }
 
 /* Botões do rodapé */
@@ -154,11 +185,12 @@
   background-color: white;
   color: #333333;
   border: none;
-  border-bottom: 2px solid #7c20ff;
+  border-bottom: 2px solid #7c20ff; /* Existing purple bottom border */
   border-radius: 8px;
   padding: 8px 12px;
   text-align: left;
   transition: all 0.3s ease;
+  outline: none !important; /* Ensure no outline */
 }
 
 .footer-button .p-button-icon {
@@ -167,10 +199,11 @@
 }
 
 .footer-button:hover {
-  background-color: #7c20ff;
+  background-color: #7c20ff; /* Purple background on hover */
   color: white;
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(124, 32, 255, 0.3);
+  border-bottom: 2px solid #7c20ff; /* Set border to purple on hover */
 }
 
 .footer-button:hover .p-button-icon {
@@ -181,12 +214,13 @@
   background-color: white;
   color: #333333;
   border: none;
-  border-bottom: 2px solid #7c20ff;
+  border-bottom: 2px solid #7c20ff; /* Existing purple bottom border */
   border-radius: 8px;
   width: 36px;
   height: 36px;
   padding: 0;
   transition: all 0.3s ease;
+  outline: none !important; /* Ensure no outline */
 }
 
 .footer-button-icon .p-button-icon {
@@ -195,10 +229,11 @@
 }
 
 .footer-button-icon:hover {
-  background-color: #7c20ff;
+  background-color: #7c20ff; /* Purple background on hover */
   color: white;
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(124, 32, 255, 0.3);
+  border-bottom: 2px solid #7c20ff; /* Set border to purple on hover */
 }
 
 .footer-button-icon:hover .p-button-icon {

@@ -77,7 +77,10 @@
 /* Status Indicators */
 .status-indicators {
   position: absolute;
-  left: 32px;
+  /* CHANGE START */
+  right: 32px; /* Changed from 'left' to 'right' */
+  left: auto; /* Ensure 'left' property is reset if it was set before */
+  /* CHANGE END */
   bottom: 32px;
   background-color: rgba(24, 24, 24, 0.8);
   padding: 16px;
@@ -103,14 +106,14 @@
 
 /* Right Side Buttons */
 .right-sidebar-buttons {
-  width: 200px; /* Aumentado ligeiramente para melhor espaçamento */
+  width: 200px;
   background-color: #fcfcfc;
   border-radius: 24px;
   padding: 16px;
   display: flex;
   flex-direction: column;
   margin: 16px; /* Mesma margem que o main-content */
-  height: calc(100vh - 32px); /* Ocupa a altura total menos as margens */
+  height: 300px; /* Ocupa a altura total menos as margens */
   flex-shrink: 0;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }

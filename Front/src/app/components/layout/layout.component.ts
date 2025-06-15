@@ -28,16 +28,11 @@ export class LayoutComponent {
       label: 'Montagem',
       icon: 'pi pi-wrench',
       children: [
-        { label: 'Sub Montagem', icon: '' },
-        { label: 'Sub Montagem', icon: '' },
-        { label: 'Sub Montagem', icon: '' }
+        { label: 'Montagem Personalizada', icon: '' },
+        { label: 'Montagem Predefinida', icon: '' }
       ]
     },
-    {
-      label: 'Predefinições',
-      icon: 'pi pi-file',
-      route: '/predefinicoes'
-    },
+
     {
       label: 'Projetos',
       icon: 'pi pi-folder',
@@ -48,11 +43,7 @@ export class LayoutComponent {
       icon: 'pi pi-shopping-cart',
       route: '/loja'
     },
-    {
-      label: 'Configurações',
-      icon: 'pi pi-cog',
-      route: '/configuracoes'
-    },
+
     {
       label: 'Home',
       icon: 'pi pi-home',
