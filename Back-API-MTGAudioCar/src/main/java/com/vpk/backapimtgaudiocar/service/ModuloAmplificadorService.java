@@ -37,7 +37,7 @@ public class ModuloAmplificadorService {
             modulo.setEntradaRca(atualizado.getEntradaRca());
             modulo.setImagemUrl(atualizado.getImagemUrl());
             modulo.setDescricao(atualizado.getDescricao());
-            modulo.setCategoriaId(atualizado.getCategoriaId());
+            modulo.setCategoria(atualizado.getCategoria());
             return moduloRepository.save(modulo);
         }).orElseGet(() -> {
             atualizado.setId(id);

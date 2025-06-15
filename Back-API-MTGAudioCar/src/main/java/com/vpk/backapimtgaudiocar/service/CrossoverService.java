@@ -35,7 +35,7 @@ public class CrossoverService {
             c.setUsoRecomendado(atualizado.getUsoRecomendado());
             c.setImagemUrl(atualizado.getImagemUrl());
             c.setDescricao(atualizado.getDescricao());
-            c.setCategoriaId(atualizado.getCategoriaId());
+            c.setCategoria(atualizado.getCategoria());
             return crossoverRepository.save(c);
         }).orElseGet(() -> {
             atualizado.setId(id);

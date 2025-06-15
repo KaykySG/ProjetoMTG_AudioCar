@@ -1,5 +1,6 @@
 package com.vpk.backapimtgaudiocar.dto;
 
+import com.vpk.backapimtgaudiocar.model.CategoriaComponente;
 import com.vpk.backapimtgaudiocar.model.Subwoofer;
 
 public class SubwooferDTO {
@@ -18,7 +19,7 @@ public class SubwooferDTO {
     private Double diametroPolegadas;
     private String imagemUrl;
     private String descricao;
-    private String categoriaId;
+    private CategoriaComponente categoria;
 
     // Construtor padrão
     public SubwooferDTO() {
@@ -40,7 +41,7 @@ public class SubwooferDTO {
         this.diametroPolegadas = subwoofer.getDiametroPolegadas();
         this.imagemUrl = subwoofer.getImagemUrl();
         this.descricao = subwoofer.getDescricao();
-        this.categoriaId = subwoofer.getCategoriaId();
+        this.categoria = subwoofer.getCategoria();
     }
 
 
@@ -157,11 +158,11 @@ public class SubwooferDTO {
         this.descricao = descricao;
     }
 
-    public String getCategoriaId() {
-        return categoriaId;
+    public CategoriaComponente getCategoria() {
+        return categoria;
     }
 
-    public void setCategoriaId(String categoriaId) {
-        this.categoriaId = categoriaId;
+    public void setCategoriaId(CategoriaComponente categoria) {
+        this.categoria = categoria;
     }
 }

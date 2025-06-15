@@ -39,7 +39,7 @@ public class AltoFalanteService {
             af.setTipoInstalacao(atualizado.getTipoInstalacao());
             af.setImagemUrl(atualizado.getImagemUrl());
             af.setDescricao(atualizado.getDescricao());
-            af.setCategoriaId(atualizado.getCategoriaId());
+            af.setCategoria(atualizado.getCategoria());
             return altoFalanteRepository.save(af);
         }).orElseGet(() -> {
             atualizado.setId(id);

@@ -41,7 +41,7 @@ public class SubwooferService {
             subwoofer.setDiametroPolegadas(subwooferAtualizado.getDiametroPolegadas());
             subwoofer.setImagemUrl(subwooferAtualizado.getImagemUrl());
             subwoofer.setDescricao(subwooferAtualizado.getDescricao());
-            subwoofer.setCategoriaId(subwooferAtualizado.getCategoriaId());
+            subwoofer.setCategoria(subwooferAtualizado.getCategoria());
             return subwooferRepository.save(subwoofer);
         }).orElseGet(() -> {
             subwooferAtualizado.setId(id);

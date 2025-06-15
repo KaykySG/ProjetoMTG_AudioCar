@@ -1,6 +1,7 @@
 package com.vpk.backapimtgaudiocar.dto;
 
 import com.vpk.backapimtgaudiocar.model.AltoFalante;
+import com.vpk.backapimtgaudiocar.model.CategoriaComponente;
 
 public class AltoFalanteDTO {
 
@@ -11,12 +12,12 @@ public class AltoFalanteDTO {
     private Integer potenciaRmsW;
     private Integer impedanciaOhms;
     private String faixaFrequenciaHz;
-    private Double sensibilidadeDb;
+    private Integer sensibilidadeDb;
     private Double diametroPolegadas;
     private String tipoInstalacao;
     private String imagemUrl;
     private String descricao;
-    private String categoriaId;
+    private CategoriaComponente categoria;
 
     // Construtor padrão
     public AltoFalanteDTO() {
@@ -36,7 +37,7 @@ public class AltoFalanteDTO {
         this.tipoInstalacao = altoFalante.getTipoInstalacao();
         this.imagemUrl = altoFalante.getImagemUrl();
         this.descricao = altoFalante.getDescricao();
-        this.categoriaId = altoFalante.getCategoriaId();
+        this.categoria = altoFalante.getCategoria();
     }
 
     // Getters e Setters
@@ -96,11 +97,11 @@ public class AltoFalanteDTO {
         this.faixaFrequenciaHz = faixaFrequenciaHz;
     }
 
-    public Double getSensibilidadeDb() {
+    public Integer getSensibilidadeDb() {
         return sensibilidadeDb;
     }
 
-    public void setSensibilidadeDb(Double sensibilidadeDb) {
+    public void setSensibilidadeDb(Integer sensibilidadeDb) {
         this.sensibilidadeDb = sensibilidadeDb;
     }
 
@@ -136,11 +137,11 @@ public class AltoFalanteDTO {
         this.descricao = descricao;
     }
 
-    public String getCategoriaId() {
-        return categoriaId;
+    public CategoriaComponente getCategoria() {
+        return categoria;
     }
 
-    public void setCategoriaId(String categoriaId) {
-        this.categoriaId = categoriaId;
+    public void setCategoriaId(CategoriaComponente categoria) {
+        this.categoria = categoria;
     }
 }

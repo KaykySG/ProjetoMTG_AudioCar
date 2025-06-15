@@ -1,6 +1,7 @@
 package com.vpk.backapimtgaudiocar.dto;
 
 
+import com.vpk.backapimtgaudiocar.model.CategoriaComponente;
 import com.vpk.backapimtgaudiocar.model.Crossover;
 
 public class CrossoverDTO {
@@ -13,7 +14,7 @@ public class CrossoverDTO {
     private String usoRecomendado;
     private String imagemUrl;
     private String descricao;
-    private String categoriaId;
+    private CategoriaComponente categoria;
 
     // Construtor padrão
     public CrossoverDTO() {
@@ -29,7 +30,7 @@ public class CrossoverDTO {
         this.usoRecomendado = crossover.getUsoRecomendado();
         this.imagemUrl = crossover.getImagemUrl();
         this.descricao = crossover.getDescricao();
-        this.categoriaId = crossover.getCategoriaId();
+        this.categoria = crossover.getCategoria();
     }
 
     // Getters e Setters
@@ -97,11 +98,11 @@ public class CrossoverDTO {
         this.descricao = descricao;
     }
 
-    public String getCategoriaId() {
-        return categoriaId;
+    public CategoriaComponente getCategoria() {
+        return categoria;
     }
 
-    public void setCategoriaId(String categoriaId) {
-        this.categoriaId = categoriaId;
+    public void setCategoriaId(CategoriaComponente categoria) {
+        this.categoria = categoria;
     }
 }

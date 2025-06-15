@@ -1,5 +1,6 @@
 package com.vpk.backapimtgaudiocar.dto;
 
+import com.vpk.backapimtgaudiocar.model.CategoriaComponente;
 import com.vpk.backapimtgaudiocar.model.ModuloAmplificador;
 
 public class ModuloAmplificadorDTO {
@@ -14,7 +15,7 @@ public class ModuloAmplificadorDTO {
     private Boolean entradaRca;
     private String imagemUrl;
     private String descricao;
-    private String categoriaId;
+    private CategoriaComponente categoria;
 
     // Construtor padrão
     public ModuloAmplificadorDTO() {
@@ -32,7 +33,7 @@ public class ModuloAmplificadorDTO {
         this.entradaRca = modulo.getEntradaRca();
         this.imagemUrl = modulo.getImagemUrl();
         this.descricao = modulo.getDescricao();
-        this.categoriaId = modulo.getCategoriaId();
+        this.categoria = modulo.getCategoria();
     }
 
     // Getters e Setters
@@ -116,11 +117,11 @@ public class ModuloAmplificadorDTO {
         this.descricao = descricao;
     }
 
-    public String getCategoriaId() {
-        return categoriaId;
+    public CategoriaComponente getCategoria() {
+        return categoria;
     }
 
-    public void setCategoriaId(String categoriaId) {
-        this.categoriaId = categoriaId;
+    public void setCategoriaId(CategoriaComponente categoria) {
+        this.categoria = categoria;
     }
 }
