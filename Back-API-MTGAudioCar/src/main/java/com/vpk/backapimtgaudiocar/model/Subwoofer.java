@@ -14,16 +14,37 @@ public class Subwoofer {
 
     private String modelo;
     private String marca;
+
+    @Column(name = "potencia_rms_w")
     private Integer potenciaRmsW;
+
+    @Column(name = "potencia_maxima_w")
     private Integer potenciaMaximaW;
+
+    @Column(name = "impedancia_ohms")
     private Integer impedanciaOhms;
+
+    @Column(name = "tipo_bobina")
     private String tipoBobina;
+
+    @Column(name = "sensibilidade_db")
     private Double sensibilidadeDb;
+
+    @Column(name = "faixa_frequencia_hz")
     private String faixaFrequenciaHz;
+
+    @Column(name = "tipo_caixa_ideal")
     private String tipoCaixaIdeal;
+
+    @Column(name = "volume_caixa_litros")
     private Double volumeCaixaLitros;
+
+    @Column(name = "diametro_polegadas")
     private Double diametroPolegadas;
+
+    @Column(name = "imagem_url")
     private String imagemUrl;
+
     private String descricao;
     private Double preco;
 

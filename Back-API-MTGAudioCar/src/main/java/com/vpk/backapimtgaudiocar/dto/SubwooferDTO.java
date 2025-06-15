@@ -21,7 +21,7 @@ public class SubwooferDTO {
     private Double diametroPolegadas;
     private String imagemUrl;
     private String descricao;
-    private CategoriaComponente categoria;
+    private String categoria;
 
     // Construtor padrão
     public SubwooferDTO() {
@@ -43,7 +43,7 @@ public class SubwooferDTO {
         this.diametroPolegadas = subwoofer.getDiametroPolegadas();
         this.imagemUrl = subwoofer.getImagemUrl();
         this.descricao = subwoofer.getDescricao();
-        this.categoria = subwoofer.getCategoria();
+        this.categoria = subwoofer.getCategoria().getNome();
     }
 
 
@@ -160,11 +160,11 @@ public class SubwooferDTO {
         this.descricao = descricao;
     }
 
-    public CategoriaComponente getCategoria() {
+    public String getCategoria() {
         return categoria;
     }
 
-    public void setCategoriaId(CategoriaComponente categoria) {
+    public void setCategoriaId(String categoria) {
         this.categoria = categoria;
     }
 }
