@@ -1,5 +1,6 @@
 package com.vpk.backapimtgaudiocar.service;
 
+import com.vpk.backapimtgaudiocar.dto.CrossoverDTO;
 import com.vpk.backapimtgaudiocar.model.Crossover;
 import com.vpk.backapimtgaudiocar.repository.CrossoverRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,8 +16,11 @@ public class CrossoverService {
     @Autowired
     private CrossoverRepository crossoverRepository;
 
-    public List<Crossover> listarTodos() {
-        return crossoverRepository.findAll();
+    public List<CrossoverDTO> listarTodos() {
+        return crossoverRepository.findAll()
+                .stream()
+                .map(CrossoverDTO::new)
+                .toList();
     }
 
     public Optional<Crossover> buscarPorId(String id) {

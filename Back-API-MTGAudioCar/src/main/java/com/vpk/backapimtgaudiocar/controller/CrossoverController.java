@@ -1,5 +1,6 @@
 package com.vpk.backapimtgaudiocar.controller;
 
+import com.vpk.backapimtgaudiocar.dto.CrossoverDTO;
 import com.vpk.backapimtgaudiocar.model.Crossover;
 import com.vpk.backapimtgaudiocar.service.CrossoverService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,8 +17,9 @@ public class CrossoverController {
     private CrossoverService crossoverService;
 
     @GetMapping
-    public List<Crossover> listarTodos() {
-        return crossoverService.listarTodos();
+    public List<CrossoverDTO> listarTodos() {
+        List<CrossoverDTO> lista = crossoverService.listarTodos();
+        return ResponseEntity.ok(lista).getBody();
     }
 
     @GetMapping("/{id}")
