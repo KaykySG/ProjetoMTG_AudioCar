@@ -26,8 +26,9 @@ dependencies {
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'org.springframework.security:spring-security-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-	implementation 'org.postgresql:postgresql:42.6.0'
-}S
+	implementation 'org.postgresql:postgresql:42.7.7'
+	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.1.0'
+}
 
 tasks.named('test') {
 	useJUnitPlatform()
