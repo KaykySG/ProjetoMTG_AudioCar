@@ -1,7 +1,9 @@
 package com.vpk.backapimtgaudiocar.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import java.util.Set;
+import java.util.UUID;
 
 @Entity
 @Table(name = "crossovers")
@@ -9,7 +11,7 @@ public class Crossover {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    private String id;
+    private UUID id;
 
     private String tipo;
     private Integer numeroVias;
@@ -32,11 +34,11 @@ public class Crossover {
 
     // Getters e Setters
 
-    public String getId() {
+    public UUID getId() {
         return id;
     }
 
-    public void setId(String id) {
+    public void setId(UUID id) {
         this.id = id;
     }
 

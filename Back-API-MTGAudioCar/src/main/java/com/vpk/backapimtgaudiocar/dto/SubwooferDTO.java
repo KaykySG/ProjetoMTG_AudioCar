@@ -3,9 +3,11 @@ package com.vpk.backapimtgaudiocar.dto;
 import com.vpk.backapimtgaudiocar.model.CategoriaComponente;
 import com.vpk.backapimtgaudiocar.model.Subwoofer;
 
+import java.util.UUID;
+
 public class SubwooferDTO {
 
-    private String id;
+    private UUID id;
     private String modelo;
     private String marca;
     private Integer potenciaRmsW;
@@ -46,11 +48,11 @@ public class SubwooferDTO {
 
 
     // Getters e Setters
-    public String getId() {
+    public UUID getId() {
         return id;
     }
 
-    public void setId(String id) {
+    public void setId(UUID id) {
         this.id = id;
     }
 

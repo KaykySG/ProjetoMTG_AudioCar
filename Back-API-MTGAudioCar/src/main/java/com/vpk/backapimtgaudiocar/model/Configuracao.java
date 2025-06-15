@@ -3,14 +3,15 @@ package com.vpk.backapimtgaudiocar.model;
 import jakarta.persistence.*;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.UUID;
 
 @Entity
-@Table(name = "configuracoes")
+@Table(name = "configuracoes_usuario")
 public class Configuracao {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    private String id;
+    private UUID id;
 
     private String nomeConfiguracao;
     private String veiculo;
@@ -55,7 +56,7 @@ public class Configuracao {
     public Configuracao() {
     }
 
-    public Configuracao(String id, String nomeConfiguracao, String veiculo, Usuario usuario, Set<Subwoofer> subwoofers, Set<AltoFalante> altoFalantes, Set<ModuloAmplificador> modulos, Set<Crossover> crossovers) {
+    public Configuracao(UUID id, String nomeConfiguracao, String veiculo, Usuario usuario, Set<Subwoofer> subwoofers, Set<AltoFalante> altoFalantes, Set<ModuloAmplificador> modulos, Set<Crossover> crossovers) {
         this.id = id;
         this.nomeConfiguracao = nomeConfiguracao;
         this.veiculo = veiculo;
@@ -68,11 +69,11 @@ public class Configuracao {
 
     // Getters e Setters
 
-    public String getId() {
+    public UUID getId() {
         return id;
     }
 
-    public void setId(String id) {
+    public void setId(UUID id) {
         this.id = id;
     }
 

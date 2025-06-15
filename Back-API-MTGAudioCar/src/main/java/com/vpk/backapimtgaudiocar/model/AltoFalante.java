@@ -2,24 +2,41 @@ package com.vpk.backapimtgaudiocar.model;
 
 import jakarta.persistence.*;
 
+import java.util.UUID;
+
 @Entity
 @Table(name = "alto_falantes")
 public class AltoFalante {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    private String id;
+    private UUID id;
 
     private String tipo;
     private String modelo;
     private String marca;
+
+    @Column(name = "potencia_rms_w")
     private Integer potenciaRmsW;
+
+    @Column(name = "impedancia_ohms")
     private Integer impedanciaOhms;
+
+    @Column(name = "faixa_frequencia_hz")
     private String faixaFrequenciaHz;
+
+    @Column(name = "sensibilidade_db")
     private Integer sensibilidadeDb;
+
+    @Column(name = "diametro_polegadas")
     private Double diametroPolegadas;
+
+    @Column(name = "tipo_instalacao")
     private String tipoInstalacao;
+
+    @Column(name = "imagem_url")
     private String imagemUrl;
+
     private String descricao;
     private Double preco;
 
@@ -37,11 +54,11 @@ public class AltoFalante {
 
     // Getters e Setters
 
-    public String getId() {
+    public UUID getId() {
         return id;
     }
 
-    public void setId(String id) {
+    public void setId(UUID id) {
         this.id = id;
     }
 

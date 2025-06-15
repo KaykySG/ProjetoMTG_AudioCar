@@ -2,13 +2,15 @@ package com.vpk.backapimtgaudiocar.model;
 
 import jakarta.persistence.*;
 
+import java.util.UUID;
+
 @Entity
 @Table(name = "subwoofers")
 public class Subwoofer {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    private String id;
+    private UUID id;
 
     private String modelo;
     private String marca;
@@ -39,11 +41,11 @@ public class Subwoofer {
 
     // Getters e Setters
 
-    public String getId() {
+    public UUID getId() {
         return id;
     }
 
-    public void setId(String id) {
+    public void setId(UUID id) {
         this.id = id;
     }
 

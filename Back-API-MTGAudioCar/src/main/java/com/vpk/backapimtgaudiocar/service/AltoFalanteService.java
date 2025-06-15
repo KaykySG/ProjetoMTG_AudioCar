@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class AltoFalanteService {
@@ -42,7 +43,7 @@ public class AltoFalanteService {
             af.setCategoria(atualizado.getCategoria());
             return altoFalanteRepository.save(af);
         }).orElseGet(() -> {
-            atualizado.setId(id);
+            atualizado.setId(UUID.fromString(id));
             return altoFalanteRepository.save(atualizado);
         });
     }

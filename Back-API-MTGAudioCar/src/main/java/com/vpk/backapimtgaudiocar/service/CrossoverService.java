@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class CrossoverService {
@@ -38,7 +39,7 @@ public class CrossoverService {
             c.setCategoria(atualizado.getCategoria());
             return crossoverRepository.save(c);
         }).orElseGet(() -> {
-            atualizado.setId(id);
+            atualizado.setId(UUID.fromString(id));
             return crossoverRepository.save(atualizado);
         });
     }

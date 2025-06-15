@@ -3,9 +3,11 @@ package com.vpk.backapimtgaudiocar.dto;
 import com.vpk.backapimtgaudiocar.model.AltoFalante;
 import com.vpk.backapimtgaudiocar.model.CategoriaComponente;
 
+import java.util.UUID;
+
 public class AltoFalanteDTO {
 
-    private String id;
+    private UUID id;
     private String tipo;
     private String modelo;
     private String marca;
@@ -41,11 +43,11 @@ public class AltoFalanteDTO {
     }
 
     // Getters e Setters
-    public String getId() {
+    public UUID getId() {
         return id;
     }
 
-    public void setId(String id) {
+    public void setId(UUID id) {
         this.id = id;
     }
 

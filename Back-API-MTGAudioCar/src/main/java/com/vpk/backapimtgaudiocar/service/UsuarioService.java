@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class UsuarioService {
@@ -35,7 +36,7 @@ public class UsuarioService {
             usuario.setAutenticado(atualizado.getAutenticado());
             return usuarioRepository.save(usuario);
         }).orElseGet(() -> {
-            atualizado.setId(id);
+            atualizado.setId(UUID.fromString(id));
             return usuarioRepository.save(atualizado);
         });
     }

@@ -1,5 +1,6 @@
 package com.vpk.backapimtgaudiocar.controller;
 
+import com.vpk.backapimtgaudiocar.dto.ConfiguracaoDTO;
 import com.vpk.backapimtgaudiocar.model.Configuracao;
 import com.vpk.backapimtgaudiocar.service.ConfiguracaoService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,8 +17,9 @@ public class ConfiguracaoController {
     private ConfiguracaoService configuracaoService;
 
     @GetMapping
-    public List<Configuracao> listarTodas() {
-        return configuracaoService.listarTodas();
+    public ResponseEntity<List<ConfiguracaoDTO>> listarTodas() {
+        List<ConfiguracaoDTO> lista = configuracaoService.listarTodas();
+        return ResponseEntity.ok(lista);
     }
 
     @GetMapping("/{id}")

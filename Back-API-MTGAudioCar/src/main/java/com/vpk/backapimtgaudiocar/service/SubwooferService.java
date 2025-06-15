@@ -4,6 +4,7 @@ import com.vpk.backapimtgaudiocar.model.Subwoofer;
 import com.vpk.backapimtgaudiocar.repository.SubwooferRepository;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -44,7 +45,7 @@ public class SubwooferService {
             subwoofer.setCategoria(subwooferAtualizado.getCategoria());
             return subwooferRepository.save(subwoofer);
         }).orElseGet(() -> {
-            subwooferAtualizado.setId(id);
+            subwooferAtualizado.setId(UUID.fromString(id));
             return subwooferRepository.save(subwooferAtualizado);
         });
     }

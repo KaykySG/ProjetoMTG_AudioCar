@@ -3,9 +3,11 @@ package com.vpk.backapimtgaudiocar.dto;
 import com.vpk.backapimtgaudiocar.model.CategoriaComponente;
 import com.vpk.backapimtgaudiocar.model.ModuloAmplificador;
 
+import java.util.UUID;
+
 public class ModuloAmplificadorDTO {
 
-    private String id;
+    private UUID id;
     private String tipo;
     private Integer canais;
     private Integer potenciaPorCanalRms;
@@ -37,11 +39,11 @@ public class ModuloAmplificadorDTO {
     }
 
     // Getters e Setters
-    public String getId() {
+    public UUID getId() {
         return id;
     }
 
-    public void setId(String id) {
+    public void setId(UUID id) {
         this.id = id;
     }
 

@@ -2,6 +2,7 @@ package com.vpk.backapimtgaudiocar.model;
 
 import jakarta.persistence.*;
 import java.util.Set;
+import java.util.UUID;
 
 @Entity
 @Table(name = "modulos_amplificadores")
@@ -9,7 +10,7 @@ public class ModuloAmplificador {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    private String id;
+    private UUID id;
 
     private String tipo;
     private Integer canais;
@@ -34,11 +35,11 @@ public class ModuloAmplificador {
 
     // Getters e Setters
 
-    public String getId() {
+    public UUID getId() {
         return id;
     }
 
-    public void setId(String id) {
+    public void setId(UUID id) {
         this.id = id;
     }
 

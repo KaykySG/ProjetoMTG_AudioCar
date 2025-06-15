@@ -2,9 +2,11 @@ package com.vpk.backapimtgaudiocar.dto;
 
 import com.vpk.backapimtgaudiocar.model.Usuario;
 
+import java.util.UUID;
+
 public class UsuarioDTO {
 
-    private String id;
+    private UUID id;
     private String nome;
     private String email;
     private Boolean autenticado;
@@ -22,11 +24,11 @@ public class UsuarioDTO {
     }
 
     // Getters e Setters
-    public String getId() {
+    public UUID getId() {
         return id;
     }
 
-    public void setId(String id) {
+    public void setId(UUID id) {
         this.id = id;
     }
 

@@ -1,5 +1,6 @@
 package com.vpk.backapimtgaudiocar.service;
 
+import com.vpk.backapimtgaudiocar.dto.ConfiguracaoDTO;
 import com.vpk.backapimtgaudiocar.model.Configuracao;
 import com.vpk.backapimtgaudiocar.model.ModuloAmplificador;
 import com.vpk.backapimtgaudiocar.repository.ConfiguracaoRepository;
@@ -21,9 +22,13 @@ public class ConfiguracaoService {
     @Autowired
     private ConfiguracaoCompatibilidade compatibilidade;
 
-    public List<Configuracao> listarTodas() {
-        return configuracaoRepository.findAll();
+    public List<ConfiguracaoDTO> listarTodas() {
+        return configuracaoRepository.findAll()
+                .stream()
+                .map(ConfiguracaoDTO::new)
+                .toList();
     }
+
 
     public Optional<Configuracao> buscarPorId(String id) {
         return configuracaoRepository.findById(id);
