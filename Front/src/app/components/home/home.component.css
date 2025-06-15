@@ -1,10 +1,9 @@
 .home-container {
   display: flex;
-  height: 100vh; /* Ajuste para ocupar a altura total da viewport */
-  overflow: hidden; /* Evita scroll na tela principal */
+  height: 100vh;
+  overflow: hidden;
 }
 
-/* Main Content Styling */
 .main-content {
   flex: 1;
   background: linear-gradient(135deg, #7216f5 0%, #ff6b6b 100%);
@@ -14,12 +13,12 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center; /* Centraliza o conteúdo verticalmente */
-  margin: 16px; /* Adiciona uma margem ao redor do conteúdo principal */
+  justify-content: center;
+  margin: 16px;
 }
 
 .car-title {
-  font-family: 'Handwriting', cursive; /* Certifique-se que esta fonte está disponível ou use uma fallback */
+  font-family: 'Handwriting', cursive;
   color: white;
   font-size: 2.5rem;
   margin-bottom: 32px;
@@ -35,27 +34,45 @@
 }
 
 .car-image-container {
-  width: 400px;
-  height: 150px;
-  background-color: rgba(255, 255, 255, 0.5); /* Semi-transparente para o contraste */
-  border-radius: 75px;
+  width: 100%;
+  max-width: 600px;
+  height: 300px;
+  background: none;
   display: flex;
   justify-content: center;
   align-items: center;
-  border: 2px solid white; /* Borda branca para destacar */
+  border: none;
+  padding: 0;
+}
+
+#car-3d-container {
+  width: 100%;
+  height: 100%;
+  max-width: 500px;
+  max-height: 300px;
+  position: relative;
+}
+
+#car-3d-container canvas {
+  width: 100% !important;
+  height: 100% !important;
+  display: block;
+  margin: 0 auto;
+  background: transparent !important;
+  border-radius: 30px;
 }
 
 .navigation-button {
   background-color: rgba(255, 255, 255, 0.2);
   color: white;
   margin: 0 16px;
-  border: 1px solid rgba(255, 255, 255, 0.4); /* Borda sutil */
+  border: 1px solid rgba(255, 255, 255, 0.4);
 }
+
 .navigation-button:hover {
   background-color: rgba(255, 255, 255, 0.3);
   color: white;
 }
-
 
 .action-button-container {
   margin: 32px 0;
@@ -70,17 +87,15 @@
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   transition: background-color 0.3s ease;
 }
+
 .advance-button:hover {
   background-color: #6a1ac7;
 }
 
-/* Status Indicators */
 .status-indicators {
   position: absolute;
-  /* CHANGE START */
-  right: 32px; /* Changed from 'left' to 'right' */
-  left: auto; /* Ensure 'left' property is reset if it was set before */
-  /* CHANGE END */
+  right: 32px;
+  left: auto;
   bottom: 32px;
   background-color: rgba(24, 24, 24, 0.8);
   padding: 16px;
@@ -104,7 +119,6 @@
   background-color: #1aea74;
 }
 
-/* Right Side Buttons */
 .right-sidebar-buttons {
   width: 200px;
   background-color: #fcfcfc;
@@ -112,19 +126,18 @@
   padding: 16px;
   display: flex;
   flex-direction: column;
-  margin: 16px; /* Mesma margem que o main-content */
-  height: 300px; /* Ocupa a altura total menos as margens */
+  margin: 16px;
+  height: 300px;
   flex-shrink: 0;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
-/* Audio Components Buttons */
 .audio-components {
   display: flex;
   flex-direction: column;
-  gap: 12px; /* Aumentado o gap para melhor espaçamento */
-  height: 100%; /* Permite que os botões se espalhem verticalmente */
-  justify-content: center; /* Centraliza os botões verticalmente */
+  gap: 12px;
+  height: 100%;
+  justify-content: center;
 }
 
 .audio-component-button {
@@ -135,83 +148,80 @@
   text-align: center;
   width: 100%;
   font-weight: 600;
-  padding: 10px 15px; /* Ajuste o padding */
+  padding: 10px 15px;
   transition: all 0.3s ease;
 }
 
 .audio-component-button:hover {
   background-color: #7c20ff;
   color: white;
-  border-color: transparent; /* Remove a borda inferior ao hover */
-  transform: translateY(-2px); /* Efeito sutil ao passar o mouse */
+  border-color: transparent;
+  transform: translateY(-2px);
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 }
 
-/* Overlay Panel Content Styling */
 .overlay-panel-content {
-  padding: 20px; /* Mais padding para um visual mais limpo */
-  text-align: left; /* Ajuste para o conteúdo dos cards */
+  padding: 20px;
+  text-align: left;
   color: #333;
 }
 
 .overlay-title {
   margin-top: 0;
-  margin-bottom: 20px; /* Mais espaço abaixo do título */
-  font-size: 1.5rem; /* Título maior */
+  margin-bottom: 20px;
+  font-size: 1.5rem;
   color: #333;
   text-align: center;
   font-weight: bold;
 }
 
-/* Grid para os itens da loja */
 .store-items-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); /* 3 colunas responsivas */
-  gap: 20px; /* Espaço entre os cards */
-  max-height: 600px; /* Altura máxima para o scroll */
-  overflow-y: auto; /* Adiciona scroll se houver muitos itens */
-  padding-right: 10px; /* Espaço para a barra de rolagem */
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 20px;
+  max-height: 600px;
+  overflow-y: auto;
+  padding-right: 10px;
 }
 
 .no-items-message {
-  grid-column: 1 / -1; /* Ocupa todas as colunas */
+  grid-column: 1 / -1;
   text-align: center;
   padding: 30px;
   color: #777;
   font-style: italic;
 }
 
-/* Estilo individual do Card do item da loja */
 .store-item-card {
-  width: 100%; /* Ocupa a largura da coluna na grid */
+  width: 100%;
   cursor: pointer;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
   border-radius: 10px;
-  overflow: hidden; /* Garante que a imagem e tags respeitem o border-radius */
+  overflow: hidden;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
 .store-item-card:hover {
-  transform: translateY(-5px); /* Efeito de elevação ao passar o mouse */
+  transform: translateY(-5px);
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
 }
 
 .card-image-container {
   position: relative;
   width: 100%;
-  height: 150px; /* Altura fixa para as imagens */
+  height: 150px;
   overflow: hidden;
-  display: flex; /* Centraliza a imagem */
+  display: flex;
   justify-content: center;
   align-items: center;
-  background-color: #f0f0f0; /* Fundo para imagens que não preenchem */
+  background-color: #f0f0f0;
 }
 
 .card-image {
-  width: 100%; /* A imagem preenche a largura do container */
-  height: 100%; /* A imagem preenche a altura do container */
-  object-fit: contain; /* Garante que a imagem se ajuste sem cortar */
-  padding: 10px; /* Espaço dentro da imagem container */
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  padding: 10px;
 }
 
 .card-status-tag {
@@ -220,7 +230,7 @@
   left: 10px;
   padding: 5px 10px;
   font-size: 0.75rem;
-  z-index: 1; /* Garante que a tag fique acima da imagem */
+  z-index: 1;
 }
 
 .card-rating {
@@ -242,9 +252,8 @@
   color: gold;
 }
 
-/* PrimeNG Card Content Overrides */
 :host ::ng-deep .store-item-card .p-card-body {
-  padding: 1rem; /* Ajuste o padding interno do card */
+  padding: 1rem;
 }
 
 :host ::ng-deep .store-item-card .p-card-title {
@@ -252,7 +261,7 @@
   margin-bottom: 0.5rem;
   font-weight: 600;
   color: #333;
-  min-height: 2.5em; /* Garante que títulos longos tenham espaço */
+  min-height: 2.5em;
 }
 
 :host ::ng-deep .store-item-card .p-card-subtitle {
@@ -265,15 +274,14 @@
   font-size: 0.8rem;
   color: #777;
   line-height: 1.4;
-  height: 3.6em; /* Limita a altura da descrição para 3 linhas */
+  height: 3.6em;
   overflow: hidden;
   text-overflow: ellipsis;
   display: -webkit-box;
-  -webkit-line-clamp: 3; /* Número de linhas */
+  -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   margin-bottom: 1rem;
 }
-
 
 .card-footer-buttons {
   display: flex;
@@ -282,23 +290,12 @@
   margin-top: 1rem;
 }
 
-/* Ajustes para o posicionamento do OverlayPanel */
 :host ::ng-deep .p-overlaypanel {
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
   border-radius: 12px;
   background-color: #ffffff;
-  /* Largura e altura já definidas no HTML */
-  /* Remove a margem para controlarmos o posicionamento via transform */
-  margin: 0 !important; /* Importante remover margens padrão ou anteriores */
-
-  /* Adiciona transformação para mover o painel para a esquerda */
-  transform: translateX(-100%) translateX(-20px); /* Move 100% da sua própria largura + 20px extras */
-  /* Ajuste os 20px conforme a distância desejada dos botões */
-  /* Você pode ajustar o translateX com um valor fixo negativo, por exemplo:
-     transform: translateX(-400px);
-     Ou usar 'right' se ele estiver ancorado à direita:
-     right: calc(100% + 20px) !important;
-  */
+  transform: translateX(-100%) translateX(-20px);
+  margin: 0 !important;
 }
 
 :host ::ng-deep .p-overlaypanel .p-overlaypanel-close {
@@ -312,7 +309,6 @@
   padding: 0;
 }
 
-/* Scrollbar styling for store-items-grid */
 .store-items-grid::-webkit-scrollbar {
   width: 8px;
 }
@@ -332,10 +328,7 @@
 }
 
 :host ::ng-deep .p-overlaypanel {
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3); /* Sombra mais forte */
-  border-radius: 12px; /* Bordas mais arredondadas */
-  background-color: #ffffff; /* Fundo branco */
-  /* Largura e min-width são definidas no HTML [style] */
-  /* appendTo="body" também no HTML */
-  /* Removido quaisquer 'margin' ou 'transform' daqui */
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+  border-radius: 12px;
+  background-color: #ffffff;
 }
