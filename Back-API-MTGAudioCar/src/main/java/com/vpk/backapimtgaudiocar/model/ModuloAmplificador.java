@@ -14,10 +14,19 @@ public class ModuloAmplificador {
 
     private String tipo;
     private Integer canais;
+
+    @Column(name="potencia_por_canal_rms")
     private Integer potenciaPorCanalRms;
+
+    @Column(name="potencia_bridge_rms")
     private Integer potenciaBridgeRms;
+
+    @Column(name="impedancia_minima_ohms")
     private Integer impedanciaMinimaOhms;
+
+    @Column(name = "tensao_alimentacao_v")
     private Double tensaoAlimentacaoV;
+
     private Boolean entradaRca;
     private String imagemUrl;
     private String descricao;

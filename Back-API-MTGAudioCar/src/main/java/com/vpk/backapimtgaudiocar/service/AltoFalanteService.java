@@ -1,5 +1,6 @@
 package com.vpk.backapimtgaudiocar.service;
 
+import com.vpk.backapimtgaudiocar.dto.AltoFalanteDTO;
 import com.vpk.backapimtgaudiocar.model.AltoFalante;
 import com.vpk.backapimtgaudiocar.repository.AltoFalanteRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,8 +16,11 @@ public class AltoFalanteService {
     @Autowired
     private AltoFalanteRepository altoFalanteRepository;
 
-    public List<AltoFalante> listarTodos() {
-        return altoFalanteRepository.findAll();
+    public List<AltoFalanteDTO> listarTodos() {
+        return altoFalanteRepository.findAll()
+                .stream()
+                .map(AltoFalanteDTO::new)
+                .toList();
     }
 
     public Optional<AltoFalante> buscarPorId(String id) {

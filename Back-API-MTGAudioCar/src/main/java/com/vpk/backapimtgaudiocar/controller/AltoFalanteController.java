@@ -1,5 +1,6 @@
 package com.vpk.backapimtgaudiocar.controller;
 
+import com.vpk.backapimtgaudiocar.dto.AltoFalanteDTO;
 import com.vpk.backapimtgaudiocar.model.AltoFalante;
 import com.vpk.backapimtgaudiocar.service.AltoFalanteService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,8 +17,9 @@ public class AltoFalanteController {
     private AltoFalanteService altoFalanteService;
 
     @GetMapping
-    public List<AltoFalante> listarTodos() {
-        return altoFalanteService.listarTodos();
+    public ResponseEntity<List<AltoFalanteDTO>> listarTodos() {
+        List<AltoFalanteDTO> lista = altoFalanteService.listarTodos();
+        return ResponseEntity.ok(lista);
     }
 
     @GetMapping("/{id}")

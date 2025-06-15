@@ -19,7 +19,7 @@ public class AltoFalanteDTO {
     private String tipoInstalacao;
     private String imagemUrl;
     private String descricao;
-    private CategoriaComponente categoria;
+    private String categoria;
 
     // Construtor padrão
     public AltoFalanteDTO() {
@@ -39,7 +39,7 @@ public class AltoFalanteDTO {
         this.tipoInstalacao = altoFalante.getTipoInstalacao();
         this.imagemUrl = altoFalante.getImagemUrl();
         this.descricao = altoFalante.getDescricao();
-        this.categoria = altoFalante.getCategoria();
+        this.categoria = altoFalante.getCategoria().getNome();
     }
 
     // Getters e Setters
@@ -139,11 +139,11 @@ public class AltoFalanteDTO {
         this.descricao = descricao;
     }
 
-    public CategoriaComponente getCategoria() {
+    public String getCategoria() {
         return categoria;
     }
 
-    public void setCategoriaId(CategoriaComponente categoria) {
+    public void setCategoriaId(String categoria) {
         this.categoria = categoria;
     }
 }

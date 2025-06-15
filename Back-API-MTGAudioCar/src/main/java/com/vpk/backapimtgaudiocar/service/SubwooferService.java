@@ -1,5 +1,7 @@
 package com.vpk.backapimtgaudiocar.service;
 
+import com.vpk.backapimtgaudiocar.dto.AltoFalanteDTO;
+import com.vpk.backapimtgaudiocar.dto.SubwooferDTO;
 import com.vpk.backapimtgaudiocar.model.Subwoofer;
 import com.vpk.backapimtgaudiocar.repository.SubwooferRepository;
 import java.util.List;
@@ -15,8 +17,11 @@ public class SubwooferService {
     @Autowired
     private SubwooferRepository subwooferRepository;
 
-    public List<Subwoofer> listarTodos() {
-        return subwooferRepository.findAll();
+    public List<SubwooferDTO> listarTodos() {
+        return subwooferRepository.findAll()
+                .stream()
+                .map(SubwooferDTO::new)
+                .toList();
     }
 
     public Optional<Subwoofer> buscarPorId(String id) {
