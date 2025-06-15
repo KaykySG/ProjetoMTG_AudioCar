@@ -1,5 +1,7 @@
 package com.vpk.backapimtgaudiocar.controller;
 
+import com.vpk.backapimtgaudiocar.dto.ModuloAmplificadorDTO;
+import com.vpk.backapimtgaudiocar.dto.SubwooferDTO;
 import com.vpk.backapimtgaudiocar.model.ModuloAmplificador;
 import com.vpk.backapimtgaudiocar.service.ModuloAmplificadorService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,8 +18,9 @@ public class ModuloAmplificadorController {
     private ModuloAmplificadorService moduloService;
 
     @GetMapping
-    public List<ModuloAmplificador> listarTodos() {
-        return moduloService.listarTodos();
+    public ResponseEntity<List<ModuloAmplificadorDTO>> listarTodos() {
+        List<ModuloAmplificadorDTO> lista = moduloService.listarTodos();
+        return ResponseEntity.ok(lista);
     }
 
     @GetMapping("/{id}")
