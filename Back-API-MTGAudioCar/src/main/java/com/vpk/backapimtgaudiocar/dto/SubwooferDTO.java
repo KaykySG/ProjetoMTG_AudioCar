@@ -1,6 +1,6 @@
 package com.vpk.backapimtgaudiocar.dto;
 
-import com.vpk.backapimtgaudiocar.model.CategoriaComponente;
+
 import com.vpk.backapimtgaudiocar.model.Subwoofer;
 
 import java.util.UUID;

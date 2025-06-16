@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/altofalantes")
@@ -23,7 +24,7 @@ public class AltoFalanteController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<AltoFalante> buscarPorId(@PathVariable String id) {
+    public ResponseEntity<AltoFalanteDTO> buscarPorId(@PathVariable UUID id) {
         return altoFalanteService.buscarPorId(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
@@ -35,12 +36,12 @@ public class AltoFalanteController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<AltoFalante> atualizar(@PathVariable String id, @RequestBody AltoFalante altoFalante) {
+    public ResponseEntity<AltoFalante> atualizar(@PathVariable UUID id, @RequestBody AltoFalante altoFalante) {
         return ResponseEntity.ok(altoFalanteService.atualizar(id, altoFalante));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deletar(@PathVariable String id) {
+    public ResponseEntity<Void> deletar(@PathVariable UUID id) {
         altoFalanteService.deletar(id);
         return ResponseEntity.noContent().build();
     }

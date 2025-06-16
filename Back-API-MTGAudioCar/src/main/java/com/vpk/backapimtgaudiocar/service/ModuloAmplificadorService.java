@@ -1,7 +1,6 @@
 package com.vpk.backapimtgaudiocar.service;
 
 import com.vpk.backapimtgaudiocar.dto.ModuloAmplificadorDTO;
-import com.vpk.backapimtgaudiocar.dto.SubwooferDTO;
 import com.vpk.backapimtgaudiocar.model.ModuloAmplificador;
 import com.vpk.backapimtgaudiocar.repository.ModuloAmplificadorRepository;
 import org.springframework.beans.factory.annotation.Autowired;

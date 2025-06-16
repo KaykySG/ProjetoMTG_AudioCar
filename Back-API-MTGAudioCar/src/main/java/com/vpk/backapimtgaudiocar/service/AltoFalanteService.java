@@ -1,6 +1,7 @@
 package com.vpk.backapimtgaudiocar.service;
 
 import com.vpk.backapimtgaudiocar.dto.AltoFalanteDTO;
+import com.vpk.backapimtgaudiocar.dto.SubwooferDTO;
 import com.vpk.backapimtgaudiocar.model.AltoFalante;
 import com.vpk.backapimtgaudiocar.repository.AltoFalanteRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,15 +24,16 @@ public class AltoFalanteService {
                 .toList();
     }
 
-    public Optional<AltoFalante> buscarPorId(String id) {
-        return altoFalanteRepository.findById(id);
+    public Optional<AltoFalanteDTO> buscarPorId(UUID id) {
+        return altoFalanteRepository.findById(id)
+                .map(AltoFalanteDTO::new);
     }
 
     public AltoFalante salvar(AltoFalante altoFalante) {
         return altoFalanteRepository.save(altoFalante);
     }
 
-    public AltoFalante atualizar(String id, AltoFalante atualizado) {
+    public AltoFalante atualizar(UUID id, AltoFalante atualizado) {
         return altoFalanteRepository.findById(id).map(af -> {
             af.setTipo(atualizado.getTipo());
             af.setModelo(atualizado.getModelo());
@@ -47,12 +49,12 @@ public class AltoFalanteService {
             af.setCategoria(atualizado.getCategoria());
             return altoFalanteRepository.save(af);
         }).orElseGet(() -> {
-            atualizado.setId(UUID.fromString(id));
+            atualizado.setId(id);
             return altoFalanteRepository.save(atualizado);
         });
     }
 
-    public void deletar(String id) {
+    public void deletar(UUID id) {
         altoFalanteRepository.deleteById(id);
     }
 }
