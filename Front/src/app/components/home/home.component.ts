@@ -91,11 +91,37 @@ export class HomeComponent implements OnInit, AfterViewInit {
 
     const loader = new GLTFLoader();
     loader.load(
-      'assets/3Dmodels/nissan-skyline-r35-gtr-nismo-free/source/nissan_skyline_r35_gtr_nismo__free.glb',
+      'assets/3Dmodels/1999_volkswagen_gol_2000_gti_g2.glb',
       (gltf) => {
         gltf.scene.scale.set(1, 1, 1);
         gltf.scene.position.set(0, 0, 0);
+        gltf.scene.rotation.set(0, 135, 0);
+
         this.scene.add(gltf.scene);
+        const ambientLight = new THREE.AmbientLight(0xffffff, 1.5);
+        this.scene.add(ambientLight);
+
+        // Luzes direcionais simulando um ambiente de estúdio
+        const light1 = new THREE.DirectionalLight(0xffffff, 1);
+        light1.position.set(10, 10, 10);
+        this.scene.add(light1);
+
+        const light2 = new THREE.DirectionalLight(0xffffff, 1);
+        light2.position.set(-10, 10, -10);
+        this.scene.add(light2);
+
+        const light3 = new THREE.DirectionalLight(0xffffff, 0.6);
+        light3.position.set(0, -10, 0); // iluminação de baixo
+        this.scene.add(light3);
+
+        const light4 = new THREE.DirectionalLight(0xffffff, 0.8);
+        light4.position.set(0, 20, 0); // luz diretamente de cima
+        this.scene.add(light4);
+
+        // HemisphereLight (ilumina com cor do céu e do chão)
+        const hemiLight = new THREE.HemisphereLight(0xffffff, 0xffffff, 1);
+        hemiLight.position.set(0, 15, 0);
+        this.scene.add(hemiLight);
       },
       undefined,
       (error: any) => {
