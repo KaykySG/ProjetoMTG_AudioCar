@@ -1,0 +1,42 @@
+<div class="layout-container">
+  <div class="sidebar left-sidebar">
+    <div class="logo-container">
+
+      <img src="/assets/images/logo.png" class="logo" style="width: 180px; height: auto;">
+
+    </div>
+
+    <div class="nav-menu">
+      <div *ngFor="let item of navItems" class="nav-item-container">
+
+        <button pButton
+                [icon]="item.icon"
+                [label]="item.label"
+                [class.active]="isActive(item.route)"
+                class="nav-button"
+                [class.montagem-button]="item.label === 'Montagem'"  (click)="item.children ? toggleExpand(item.label) : navigateTo(item.route)">
+          <i *ngIf="item.children" class="pi" [ngClass]="isExpanded(item.label) ? 'pi-chevron-down' : 'pi-chevron-right'" style="margin-left: auto;"></i>
+        </button>
+
+        <div *ngIf="item.children && isExpanded(item.label)" class="submenu">
+          <button *ngFor="let child of item.children"
+                  pButton
+                  [icon]="child.icon"
+                  [label]="child.label"
+                  class="submenu-button"
+                  (click)="navigateTo(child.route)">
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="sidebar-footer">
+      <button pButton icon="pi pi-sign-out" label="Sair" class="footer-button" (click)="logout()"></button>
+
+    </div>
+  </div>
+
+  <div class="content-area">
+    <router-outlet></router-outlet>
+  </div>
+</div>

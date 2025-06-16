@@ -1,0 +1,109 @@
+<div class="home-container">
+  <div class="main-content">
+    <h1 class="car-title">Volkswagem Gol</h1>
+
+    <div class="car-display">
+      <button pButton icon="pi pi-chevron-left" class="p-button-rounded p-button-text navigation-button" (click)="previousCar()"></button>
+
+      <div class="car-image-container">
+      </div>
+
+      <button pButton icon="pi pi-chevron-right" class="p-button-rounded p-button-text navigation-button" (click)="nextCar()"></button>
+    </div>
+
+    <div class="action-button-container">
+      <button pButton label="Avançar" class="p-button-rounded advance-button" (click)="advance()"></button>
+    </div>
+
+    <div class="status-indicators">
+      <div *ngFor="let indicator of statusIndicators" class="indicator">
+        <label>{{indicator.label}}</label>
+        <p-progressBar [value]="indicator.value" styleClass="custom-progress-bar"></p-progressBar>
+      </div>
+    </div>
+  </div>
+
+  <div class="sidebar right-sidebar-buttons">
+    <div class="audio-components">
+      <button *ngFor="let component of audioComponents"
+              pButton
+              label="{{component}}"
+              class="p-button-outlined p-button-rounded audio-component-button"
+              (click)="toggleOverlayPanel($event, component)"> </button>
+    </div>
+  </div >
+
+  <p-overlayPanel #op [showCloseIcon]="true" [style]="{'width': 'auto', 'min-width': '700px'}" appendTo="body">
+    <ng-template pTemplate="content">
+      <div class="overlay-panel-content" >
+        <h3 class="overlay-title">{{ selectedComponentType }} Disponíveis</h3>
+
+        <div class="store-items-grid">
+          <p-card *ngFor="let item of filteredStoreItems" class="store-item-card" (click)="selectStoreItem(item)">
+            <ng-template pTemplate="header">
+              <div class="card-image-container">
+                <img [src]="item.imageUrl" [alt]="item.name" class="card-image"/>
+              </div>
+            </ng-template>
+            <ng-template pTemplate="title">
+              {{ item.name }}
+            </ng-template>
+            <ng-template pTemplate="subtitle">
+              R$ {{ item.price | number:'1.2-2' }}
+            </ng-template>
+            <ng-template pTemplate="content">
+              <p class="item-description">{{ item.description }}</p>
+            </ng-template>
+            <ng-template pTemplate="footer">
+              <div class="card-footer-buttons">
+                <button pButton label="Adicionar" icon="pi pi-plus" class="p-button-sm p-button-secondary add-button" (click)="selectStoreItem(item)"></button>
+              </div>
+            </ng-template>
+          </p-card>
+
+          <div *ngIf="filteredStoreItems.length === 0" class="no-items-message">
+            <p>Nenhum {{ selectedComponentType ? selectedComponentType.toLowerCase() : 'item' }} disponível no momento.</p>
+          </div>
+        </div>
+      </div>
+    </ng-template>
+  </p-overlayPanel>
+
+  <p-toast></p-toast>
+
+  <p-confirmDialog [style]="{width: '50vw'}" acceptLabel="Salvar" rejectLabel="Não Salvar"></p-confirmDialog>
+
+  <p-dialog header="Produtos Escolhidos" [(visible)]="displaySelectedProductsDialog" [modal]="true" [style]="{width: '70vw'}" [draggable]="false" [resizable]="false">
+    <p-table [value]="selectedProducts" [columns]="cols" [tableStyle]="{'min-width': '50rem'}">
+      <ng-template pTemplate="header" let-columns>
+        <tr>
+          <th *ngFor="let col of columns">
+            {{ col.header }}
+          </th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-product let-columns="columns">
+        <tr>
+          <td *ngFor="let col of columns">
+            <ng-container *ngIf="col.field === 'price'; else otherColumns">
+              R$ {{ product[col.field] | number:'1.2-2' }}
+            </ng-container>
+            <ng-template #otherColumns>
+              {{ product[col.field] }}
+            </ng-template>
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td [attr.colspan]="cols.length" style="text-align: center;">Nenhum produto foi selecionado ainda.</td>
+        </tr>
+      </ng-template>
+    </p-table>
+
+    <ng-template pTemplate="footer">
+      <p-button icon="pi pi-check" (click)="displaySelectedProductsDialog=false" label="Ok" styleClass="p-button-text"></p-button>
+    </ng-template>
+  </p-dialog>
+
+</div>
