@@ -14,6 +14,9 @@ import { ToastModule } from 'primeng/toast';
 import { DialogModule } from 'primeng/dialog';
 import { TableModule } from 'primeng/table';
 
+import { modulosService } from '../../services/modulos.service';
+
+
 interface StoreItem {
   id: string;
   name: string;
@@ -72,7 +75,8 @@ export class HomeComponent implements OnInit {
 
   constructor(
     private confirmationService: ConfirmationService,
-    private messageService: MessageService
+    private messageService: MessageService,
+    private modulosService: modulosService
   ) {}
 
   ngOnInit() {
@@ -86,48 +90,15 @@ export class HomeComponent implements OnInit {
   }
 
   loadStoreItems() {
-    this.storeItems = [
-      {
-        id: 'amp-1',
-        name: 'Amplificador Profissional 2000W',
-        type: 'Amplificador',
-        price: 1299.99,
-        imageUrl: '/assets/images/amplificador.jpg',
-        status: 'Em Estoque',
-        rating: 4.8,
-        description: 'Amplificador de potência profissional com 2000W RMS, ideal para eventos e shows...'
+    this.modulosService.obtermodulos().subscribe({
+      next: (response: StoreItem[]) => {
+        this.storeItems = response;
       },
-      {
-        id: 'amp-2',
-        name: 'Amplificador Compacto 800W',
-        type: 'Amplificador',
-        price: 799.99,
-        imageUrl: 'assets/stetsom_ir400.4.png',
-        status: 'Estoque Baixo',
-        rating: 4.2,
-        description: 'Amplificador compacto com 800W RMS, perfeito para pequenos eventos e estúdios. Design leve...'
-      },
-      {
-        id: 'speaker-1',
-        name: 'Alto-falante Coaxial 6.5"',
-        type: 'Alto-falante',
-        price: 350.00,
-        imageUrl: 'assets/speaker_example.png',
-        status: 'Em Estoque',
-        rating: 4.5,
-        description: 'Alto-falante coaxial de alta fidelidade para portas...'
-      },
-      {
-        id: 'sub-1',
-        name: 'Subwoofer Ativo 12"',
-        type: 'Subwoofer',
-        price: 950.00,
-        imageUrl: 'assets/subwoofer_example.png',
-        status: 'Em Estoque',
-        rating: 4.7,
-        description: 'Subwoofer potente para graves profundos e impactantes.'
+      error: (err) => {
+        console.error('Erro ao carregar dados da API', err);
+        this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Falha ao carregar os produtos da API.' });
       }
-    ];
+    });
   }
 
   previousCar() {
@@ -150,13 +121,11 @@ export class HomeComponent implements OnInit {
       acceptLabel: 'Salvar',
       rejectLabel: 'Não Salvar',
       accept: () => {
-
         this.messageService.add({ severity: 'success', summary: 'Salvo', detail: 'Seu projeto foi salvo com sucesso!' });
-        this.showSelectedProducts(); // A tabela aparece se o usuário SALVAR
+        this.showSelectedProducts();
       },
       reject: () => {
         this.messageService.add({ severity: 'info', summary: 'Não Salvo', detail: 'Projeto não foi salvo.' });
-
       }
     });
   }
@@ -164,7 +133,6 @@ export class HomeComponent implements OnInit {
   showSelectedProducts() {
     this.displaySelectedProductsDialog = true;
   }
-
 
   toggleOverlayPanel(event: Event, componentType: string) {
     this.selectedComponentType = componentType;
@@ -174,7 +142,6 @@ export class HomeComponent implements OnInit {
       this.overlayPanel.toggle(event);
     }
   }
-
 
   selectStoreItem(item: StoreItem) {
     console.log('Item selecionado:', item);
