@@ -68,23 +68,32 @@
   margin-bottom: 0;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
   transition: all 0.3s ease;
-
-  /* --- ADDED / MODIFIED START --- */
   outline: none !important; /* Remove outline on focus/active */
 }
 
-/* Ensure no border/outline on focus for PrimeNG buttons */
-:host ::ng-deep .p-button:focus {
-  box-shadow: none !important; /* Remove PrimeNG's default focus shadow */
+/* Explicitly target the p-button element inside nav-button for hover */
+.nav-button:hover, /* Your custom hover for nav-button */
+:host ::ng-deep .nav-button.p-button:hover { /* More specific PrimeNG override */
+  background-color: #7c20ff !important; /* Purple background on hover */
+  color: white !important;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(124, 32, 255, 0.3);
+  border-bottom: 3px solid #7c20ff !important; /* Set border to purple on hover */
   outline: none !important; /* Ensure no outline */
 }
 
-/* Ensure no border/outline on hover if it's coming from PrimeNG */
+/* Ensure no border/outline on focus for ALL PrimeNG buttons */
+:host ::ng-deep .p-button:focus {
+  box-shadow: none !important; /* Remove PrimeNG's default focus shadow */
+  outline: none !important; /* Ensure no outline */
+  border-color: transparent !important; /* Also reset border-color on focus */
+}
+
+/* General PrimeNG button hover overrides (less specific, but good as a fallback) */
 :host ::ng-deep .p-button:hover {
   outline: none !important;
   border-color: transparent !important; /* Ensure no unwanted border on hover */
 }
-/* --- ADDED / MODIFIED END --- */
 
 
 .nav-button .p-button-icon {
@@ -93,23 +102,6 @@
   transition: color 0.3s ease;
 }
 
-/* Hover para botões brancos - ROXO */
-.nav-button:hover {
-  background-color: #7c20ff; /* Purple background on hover */
-  color: white;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(124, 32, 255, 0.3);
-  border-bottom: 3px solid #7c20ff; /* Set border to purple on hover */
-}
-
-.nav-button.montagem-button:hover {
-  background-color: #6a1ab2;
-
-}
-
-.submenu-button:hover {
-  background-color: #9559e0;
-}
 
 .nav-button:hover .p-button-icon {
   color: white;
@@ -124,8 +116,11 @@
 .nav-button.montagem-button {
   background-color: #6a11cb;
   color: white;
+  border: none; /* Remove any default border here */
+  border-radius: 8px;
   border-bottom: 1px solid #8a3fef;
   box-shadow: 0 4px 8px rgba(106, 17, 203, 0.2);
+  outline: none !important;
 }
 
 .nav-button.montagem-button .p-button-icon,
@@ -134,12 +129,14 @@
   color: white;
 }
 
-.nav-button.montagem-button:hover {
-  background-color: #8a3fef;
+/* More specific hover for montagem-button */
+.nav-button.montagem-button:hover,
+:host ::ng-deep .nav-button.montagem-button.p-button:hover {
+  background-color: #8a3fef !important;
   transform: translateY(-2px);
   box-shadow: 0 6px 16px rgba(138, 63, 239, 0.4);
-  /* The border-bottom for montagem-button on hover can also be explicitly set if different behavior is desired */
-  border-bottom: 1px solid #8a3fef; /* Keep or change as desired for hover */
+  border-bottom: 1px solid #8a3fef !important;
+  outline: none !important;
 }
 
 /* Submenu */
@@ -173,11 +170,14 @@
   color: white;
 }
 
-.submenu-button:hover {
-  background-color: #b57cff;
+/* More specific hover for submenu-button */
+.submenu-button:hover,
+:host ::ng-deep .submenu-button.p-button:hover {
+  background-color: #b57cff !important;
   transform: translateX(4px);
   box-shadow: 0 2px 8px rgba(181, 124, 255, 0.3);
-  border-bottom: 1px solid #b57cff; /* Set border to a lighter purple on hover */
+  border-bottom: 1px solid #b57cff !important; /* Set border to a lighter purple on hover */
+  outline: none !important;
 }
 
 /* Botões do rodapé */
@@ -198,16 +198,15 @@
   transition: color 0.3s ease;
 }
 
-.footer-button:hover {
-  background-color: #7c20ff; /* Purple background on hover */
-  color: white;
+/* More specific hover for footer-button */
+.footer-button:hover,
+:host ::ng-deep .footer-button.p-button:hover {
+  background-color: #7c20ff !important; /* Purple background on hover */
+  color: white !important;
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(124, 32, 255, 0.3);
-  border-bottom: 2px solid #7c20ff; /* Set border to purple on hover */
-}
-
-.footer-button:hover .p-button-icon {
-  color: white;
+  border-bottom: 2px solid #7c20ff !important; /* Set border to purple on hover */
+  outline: none !important;
 }
 
 .footer-button-icon {
@@ -228,16 +227,15 @@
   transition: color 0.3s ease;
 }
 
-.footer-button-icon:hover {
-  background-color: #7c20ff; /* Purple background on hover */
-  color: white;
+/* More specific hover for footer-button-icon */
+.footer-button-icon:hover,
+:host ::ng-deep .footer-button-icon.p-button:hover {
+  background-color: #7c20ff !important; /* Purple background on hover */
+  color: white !important;
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(124, 32, 255, 0.3);
-  border-bottom: 2px solid #7c20ff; /* Set border to purple on hover */
-}
-
-.footer-button-icon:hover .p-button-icon {
-  color: white;
+  border-bottom: 2px solid #7c20ff !important; /* Set border to purple on hover */
+  outline: none !important;
 }
 
 /* Ícone de expansão à direita */

@@ -1,19 +1,23 @@
-import { Component, ViewChild, OnInit } from '@angular/core'; // Adicionado OnInit
+import { Component, ViewChild, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+
 import { ButtonModule } from 'primeng/button';
 import { ProgressBarModule } from 'primeng/progressbar';
-import { CommonModule } from '@angular/common';
 import { CardModule } from 'primeng/card';
 import { OverlayPanelModule } from 'primeng/overlaypanel';
 import { OverlayPanel } from 'primeng/overlaypanel';
+import { TagModule } from 'primeng/tag';
 
-// Adicionar importações para o estilo de cards (se necessário)
-import { TagModule } from 'primeng/tag'; // Para "Em Estoque", "Estoque Baixo"
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { ConfirmationService, MessageService } from 'primeng/api';
+import { ToastModule } from 'primeng/toast';
+import { DialogModule } from 'primeng/dialog';
+import { TableModule } from 'primeng/table';
 
-// Interface para os itens da loja
 interface StoreItem {
   id: string;
   name: string;
-  type: string; // Ex: 'Amplificador', 'Alto-falante', 'Subwoofer'
+  type: string;
   price: number;
   imageUrl: string;
   status: 'Em Estoque' | 'Estoque Baixo' | 'Sem Estoque';
@@ -24,19 +28,30 @@ interface StoreItem {
 @Component({
   selector: 'app-home',
   templateUrl: './home.component.html',
-  // Certifique-se de que esses módulos estejam importados aqui também, se usados no template
   imports: [
+    CommonModule,
     ButtonModule,
     ProgressBarModule,
-    CommonModule,
     CardModule,
     OverlayPanelModule,
-    TagModule // Adicionado TagModule
+    TagModule,
+    ConfirmDialogModule,
+    ToastModule,
+    DialogModule,
+    TableModule
   ],
-  styleUrls: ['./home.component.css']
+  styleUrls: ['./home.component.css'],
+  providers: [ConfirmationService, MessageService]
 })
-export class HomeComponent implements OnInit { // Implementa OnInit
+export class HomeComponent implements OnInit {
   @ViewChild('op') overlayPanel: OverlayPanel | undefined;
+
+  displaySaveConfirmation: boolean = false;
+  displaySelectedProductsDialog: boolean = false;
+
+  selectedProducts: any[] = [];
+
+  cols: any[] = [];
 
   audioComponents: string[] = [
     'Amplificador',
@@ -51,25 +66,33 @@ export class HomeComponent implements OnInit { // Implementa OnInit
     { label: 'Custo Financeiro', value: 25 }
   ];
 
-  selectedComponentType: string | null = null; // Renomeado para evitar conflito com 'componentName'
-  filteredStoreItems: StoreItem[] = []; // Itens que serão mostrados no OverlayPanel
-
-  // Dados de exemplo da loja
+  selectedComponentType: string | null = null;
+  filteredStoreItems: StoreItem[] = [];
   storeItems: StoreItem[] = [];
+
+  constructor(
+    private confirmationService: ConfirmationService,
+    private messageService: MessageService
+  ) {}
 
   ngOnInit() {
     this.loadStoreItems();
+
+    this.cols = [
+      { field: 'name', header: 'Nome do Produto' },
+      { field: 'type', header: 'Tipo' },
+      { field: 'price', header: 'Preço' },
+    ];
   }
 
   loadStoreItems() {
-    // Populando com dados baseados na imagem image_5ef717.png
     this.storeItems = [
       {
         id: 'amp-1',
         name: 'Amplificador Profissional 2000W',
         type: 'Amplificador',
         price: 1299.99,
-        imageUrl: '/assets/images/amplificador.jpg', // Substitua pelo caminho real da sua imagem
+        imageUrl: '/assets/images/amplificador.jpg',
         status: 'Em Estoque',
         rating: 4.8,
         description: 'Amplificador de potência profissional com 2000W RMS, ideal para eventos e shows...'
@@ -79,27 +102,17 @@ export class HomeComponent implements OnInit { // Implementa OnInit
         name: 'Amplificador Compacto 800W',
         type: 'Amplificador',
         price: 799.99,
-        imageUrl: 'assets/stetsom_ir400.4.png', // Substitua pelo caminho real da sua imagem
+        imageUrl: 'assets/stetsom_ir400.4.png',
         status: 'Estoque Baixo',
         rating: 4.2,
         description: 'Amplificador compacto com 800W RMS, perfeito para pequenos eventos e estúdios. Design leve...'
-      },
-      {
-        id: 'amp-3',
-        name: 'Amplificador Valvulvado Vintage',
-        type: 'Amplificador',
-        price: 2499.99,
-        imageUrl: 'assets/stetsom_ir400.4.png', // Substitua pelo caminho real da sua imagem
-        status: 'Sem Estoque',
-        rating: 4.9,
-        description: 'Amplificador valvulado com som vintage e caloroso. Ideal para guitarristas que buscam...'
       },
       {
         id: 'speaker-1',
         name: 'Alto-falante Coaxial 6.5"',
         type: 'Alto-falante',
         price: 350.00,
-        imageUrl: 'assets/speaker_example.png', // Substitua pelo caminho real
+        imageUrl: 'assets/speaker_example.png',
         status: 'Em Estoque',
         rating: 4.5,
         description: 'Alto-falante coaxial de alta fidelidade para portas...'
@@ -109,12 +122,11 @@ export class HomeComponent implements OnInit { // Implementa OnInit
         name: 'Subwoofer Ativo 12"',
         type: 'Subwoofer',
         price: 950.00,
-        imageUrl: 'assets/subwoofer_example.png', // Substitua pelo caminho real
+        imageUrl: 'assets/subwoofer_example.png',
         status: 'Em Estoque',
         rating: 4.7,
         description: 'Subwoofer potente para graves profundos e impactantes.'
       }
-      // Adicione mais itens conforme necessário para outros tipos de componentes
     ];
   }
 
@@ -127,12 +139,35 @@ export class HomeComponent implements OnInit { // Implementa OnInit
   }
 
   advance() {
-    console.log('Advance to next step');
+    this.confirmSaveProject();
   }
+
+  confirmSaveProject() {
+    this.confirmationService.confirm({
+      message: 'Deseja salvar as configurações do seu projeto atual?',
+      header: 'Confirmar Salvar Projeto',
+      icon: 'pi pi-exclamation-triangle',
+      acceptLabel: 'Salvar',
+      rejectLabel: 'Não Salvar',
+      accept: () => {
+
+        this.messageService.add({ severity: 'success', summary: 'Salvo', detail: 'Seu projeto foi salvo com sucesso!' });
+        this.showSelectedProducts(); // A tabela aparece se o usuário SALVAR
+      },
+      reject: () => {
+        this.messageService.add({ severity: 'info', summary: 'Não Salvo', detail: 'Projeto não foi salvo.' });
+
+      }
+    });
+  }
+
+  showSelectedProducts() {
+    this.displaySelectedProductsDialog = true;
+  }
+
 
   toggleOverlayPanel(event: Event, componentType: string) {
     this.selectedComponentType = componentType;
-    // Filtra os itens da loja com base no tipo de componente selecionado
     this.filteredStoreItems = this.storeItems.filter(item => item.type === componentType);
 
     if (this.overlayPanel) {
@@ -140,28 +175,23 @@ export class HomeComponent implements OnInit { // Implementa OnInit
     }
   }
 
-  // Novo método para selecionar um item dentro do pop-up
+
   selectStoreItem(item: StoreItem) {
     console.log('Item selecionado:', item);
-    // Aqui você pode adicionar a lógica para adicionar o item ao carro,
-    // fechar o pop-up, atualizar o status, etc.
+    this.selectedProducts.push(item);
+    this.messageService.add({severity:'success', summary:'Adicionado!', detail:`${item.name} foi adicionado à sua lista.`});
+
     if (this.overlayPanel) {
-      this.overlayPanel.hide(); // Oculta o painel após a seleção
+      this.overlayPanel.hide();
     }
-    // Exemplo: this.messageService.add({severity:'info', summary:'Item Adicionado', detail:`${item.name} adicionado ao seu setup!`});
   }
 
-  // Helper para obter a classe de cor do tag de status
   getStatusSeverity(status: string): string {
     switch (status) {
-      case 'Em Estoque':
-        return 'success';
-      case 'Estoque Baixo':
-        return 'warn';
-      case 'Sem Estoque':
-        return 'danger';
-      default:
-        return 'info';
+      case 'Em Estoque': return 'success';
+      case 'Estoque Baixo': return 'warn';
+      case 'Sem Estoque': return 'danger';
+      default: return 'info';
     }
   }
 }

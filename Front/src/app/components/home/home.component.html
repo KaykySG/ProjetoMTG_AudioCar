@@ -43,8 +43,6 @@
             <ng-template pTemplate="header">
               <div class="card-image-container">
                 <img [src]="item.imageUrl" [alt]="item.name" class="card-image"/>
-
-
               </div>
             </ng-template>
             <ng-template pTemplate="title">
@@ -58,8 +56,7 @@
             </ng-template>
             <ng-template pTemplate="footer">
               <div class="card-footer-buttons">
-                <button pButton label="Comprar" icon="pi pi-shopping-cart" class="p-button-sm p-button-secondary"></button>
-                <button pButton icon="pi pi-heart" class="p-button-sm p-button-outlined"></button>
+                <button pButton label="Adicionar" icon="pi pi-plus" class="p-button-sm p-button-secondary add-button" (click)="selectStoreItem(item)"></button>
               </div>
             </ng-template>
           </p-card>
@@ -71,4 +68,42 @@
       </div>
     </ng-template>
   </p-overlayPanel>
+
+  <p-toast></p-toast>
+
+  <p-confirmDialog [style]="{width: '50vw'}" acceptLabel="Salvar" rejectLabel="Não Salvar"></p-confirmDialog>
+
+  <p-dialog header="Produtos Escolhidos" [(visible)]="displaySelectedProductsDialog" [modal]="true" [style]="{width: '70vw'}" [draggable]="false" [resizable]="false">
+    <p-table [value]="selectedProducts" [columns]="cols" [tableStyle]="{'min-width': '50rem'}">
+      <ng-template pTemplate="header" let-columns>
+        <tr>
+          <th *ngFor="let col of columns">
+            {{ col.header }}
+          </th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-product let-columns="columns">
+        <tr>
+          <td *ngFor="let col of columns">
+            <ng-container *ngIf="col.field === 'price'; else otherColumns">
+              R$ {{ product[col.field] | number:'1.2-2' }}
+            </ng-container>
+            <ng-template #otherColumns>
+              {{ product[col.field] }}
+            </ng-template>
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td [attr.colspan]="cols.length" style="text-align: center;">Nenhum produto foi selecionado ainda.</td>
+        </tr>
+      </ng-template>
+    </p-table>
+
+    <ng-template pTemplate="footer">
+      <p-button icon="pi pi-check" (click)="displaySelectedProductsDialog=false" label="Ok" styleClass="p-button-text"></p-button>
+    </ng-template>
+  </p-dialog>
+
 </div>
