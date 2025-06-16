@@ -66,12 +66,13 @@ export class HomeComponent implements OnInit, AfterViewInit {
 
   initThreeJS(): void {
     this.scene = new THREE.Scene();
-    this.scene.background = new THREE.Color(0xf2f2f2);
+
 
     this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
     this.camera.position.set(0, 1.5, 5);
 
-    this.renderer = new THREE.WebGLRenderer({ antialias: true });
+    this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true }); // permite fundo transparente
+    this.renderer.setClearColor(0x000000, 0); // define fundo transparente
     this.renderer.setSize(window.innerWidth, window.innerHeight);
 
     const container = document.getElementById('car-3d-container');
