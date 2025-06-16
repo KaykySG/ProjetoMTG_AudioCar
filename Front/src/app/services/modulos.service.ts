@@ -11,7 +11,7 @@ export class modulosService {
 
   constructor(private http: HttpClient) { }
 
-  obtermoduloses(moduloses: any): Observable<any> {
-    return this.http.post(this.url, moduloses);
+  obtermodulos(modulos: any): Observable<any> {
+    return this.http.post(this.url, modulos);
   }
 }
