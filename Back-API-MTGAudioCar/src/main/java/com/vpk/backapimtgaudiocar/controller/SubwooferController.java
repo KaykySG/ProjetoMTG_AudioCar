@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/subwoofers")
@@ -24,7 +25,7 @@ public class SubwooferController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Subwoofer> buscarPorId(@PathVariable String id) {
+    public ResponseEntity<SubwooferDTO> buscarPorId(@PathVariable UUID id) {
         return subwooferService.buscarPorId(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
@@ -36,12 +37,12 @@ public class SubwooferController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Subwoofer> atualizar(@PathVariable String id, @RequestBody Subwoofer subwoofer) {
+    public ResponseEntity<Subwoofer> atualizar(@PathVariable UUID id, @RequestBody Subwoofer subwoofer) {
         return ResponseEntity.ok(subwooferService.atualizar(id, subwoofer));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deletar(@PathVariable String id) {
+    public ResponseEntity<Void> deletar(@PathVariable UUID id) {
         subwooferService.deletar(id);
         return ResponseEntity.noContent().build();
     }

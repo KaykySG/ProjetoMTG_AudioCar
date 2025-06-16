@@ -24,15 +24,16 @@ public class SubwooferService {
                 .toList();
     }
 
-    public Optional<Subwoofer> buscarPorId(String id) {
-        return subwooferRepository.findById(id);
+    public Optional<SubwooferDTO> buscarPorId(UUID id) {
+        return subwooferRepository.findById(id)
+                .map(SubwooferDTO::new);
     }
 
     public Subwoofer salvar(Subwoofer subwoofer) {
         return subwooferRepository.save(subwoofer);
     }
 
-    public Subwoofer atualizar(String id, Subwoofer subwooferAtualizado) {
+    public Subwoofer atualizar(UUID id, Subwoofer subwooferAtualizado) {
         return subwooferRepository.findById(id).map(subwoofer -> {
             subwoofer.setModelo(subwooferAtualizado.getModelo());
             subwoofer.setMarca(subwooferAtualizado.getMarca());
@@ -50,12 +51,12 @@ public class SubwooferService {
             subwoofer.setCategoria(subwooferAtualizado.getCategoria());
             return subwooferRepository.save(subwoofer);
         }).orElseGet(() -> {
-            subwooferAtualizado.setId(UUID.fromString(id));
+            subwooferAtualizado.setId(id);
             return subwooferRepository.save(subwooferAtualizado);
         });
     }
 
-    public void deletar(String id) {
+    public void deletar(UUID id) {
         subwooferRepository.deleteById(id);
     }
 }

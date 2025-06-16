@@ -1,10 +1,12 @@
 package com.vpk.backapimtgaudiocar.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import java.util.Set;
 import java.util.UUID;
 
+//@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 @Entity
 @Table(name = "categorias_componentes")
 public class CategoriaComponente {
