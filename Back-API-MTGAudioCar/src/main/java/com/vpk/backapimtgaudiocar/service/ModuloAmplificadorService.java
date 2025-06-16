@@ -1,5 +1,6 @@
 package com.vpk.backapimtgaudiocar.service;
 
+import com.vpk.backapimtgaudiocar.dto.AltoFalanteDTO;
 import com.vpk.backapimtgaudiocar.dto.ModuloAmplificadorDTO;
 import com.vpk.backapimtgaudiocar.model.ModuloAmplificador;
 import com.vpk.backapimtgaudiocar.repository.ModuloAmplificadorRepository;
@@ -23,15 +24,16 @@ public class ModuloAmplificadorService {
                 .toList();
     }
 
-    public Optional<ModuloAmplificador> buscarPorId(String id) {
-        return moduloRepository.findById(id);
+    public Optional<ModuloAmplificadorDTO> buscarPorId(UUID id) {
+        return moduloRepository.findById(id)
+                .map(ModuloAmplificadorDTO::new);
     }
 
     public ModuloAmplificador salvar(ModuloAmplificador modulo) {
         return moduloRepository.save(modulo);
     }
 
-    public ModuloAmplificador atualizar(String id, ModuloAmplificador atualizado) {
+    public ModuloAmplificador atualizar(UUID id, ModuloAmplificador atualizado) {
         return moduloRepository.findById(id).map(modulo -> {
             modulo.setTipo(atualizado.getTipo());
             modulo.setCanais(atualizado.getCanais());
@@ -45,12 +47,12 @@ public class ModuloAmplificadorService {
             modulo.setCategoria(atualizado.getCategoria());
             return moduloRepository.save(modulo);
         }).orElseGet(() -> {
-            atualizado.setId(UUID.fromString(id));
+            atualizado.setId(id);
             return moduloRepository.save(atualizado);
         });
     }
 
-    public void deletar(String id) {
+    public void deletar(UUID id) {
         moduloRepository.deleteById(id);
     }
 }
