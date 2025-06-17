@@ -1,9 +1,6 @@
 package com.vpk.backapimtgaudiocar.service;
 
-import com.vpk.backapimtgaudiocar.model.AltoFalante;
-import com.vpk.backapimtgaudiocar.model.Crossover;
-import com.vpk.backapimtgaudiocar.model.ModuloAmplificador;
-import com.vpk.backapimtgaudiocar.model.Subwoofer;
+import com.vpk.backapimtgaudiocar.model.*;
 import com.vpk.backapimtgaudiocar.repository.ConfiguracaoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -18,10 +15,8 @@ public class ConfiguracaoCompatibilidade {
     @Autowired
     private ConfiguracaoRepository configuracaoRepository;
 
-    public List<String> validarCompatibilidade(UUID id) {
+    public List<String> validarCompatibilidade(Configuracao cfg) {
         List<String> mensagens = new ArrayList<>();
-
-        configuracaoRepository.findById(id).ifPresent(cfg -> {
 
             for (Subwoofer sub : cfg.getSubwoofers()) {
                 for (ModuloAmplificador mod : cfg.getModulos()) {
@@ -67,8 +62,7 @@ public class ConfiguracaoCompatibilidade {
             if (mensagens.isEmpty()) {
                 mensagens.add("Todos os componentes estão compatíveis.");
             }
-        });
 
-        return mensagens;
-    }
+            return mensagens;
+        }
 }

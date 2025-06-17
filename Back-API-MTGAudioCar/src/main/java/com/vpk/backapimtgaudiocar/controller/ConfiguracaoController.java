@@ -53,8 +53,10 @@ public class ConfiguracaoController {
         return ResponseEntity.ok(configuracaoService.calcularConsumoTotal(id));
     }
 
-    @GetMapping("/{id}/validacoes")
-    public ResponseEntity<List<String>> validarCompatibilidade(@PathVariable UUID id) {
-        return ResponseEntity.ok(configuracaoService.validarCompatibilidade(id));
+    @PostMapping("/validacoes")
+    public ResponseEntity<List<String>> validarCompatibilidadeDireta(@RequestBody ConfiguracaoRequestDTO dto) {
+        Configuracao configMontada = configuracaoService.montarConfiguracaoSemSalvar(dto);
+        List<String> mensagens = configuracaoService.validarCompatibilidadeDireta(configMontada);
+        return ResponseEntity.ok(mensagens);
     }
 }

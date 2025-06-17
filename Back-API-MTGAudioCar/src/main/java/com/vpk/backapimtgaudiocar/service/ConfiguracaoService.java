@@ -72,10 +72,6 @@ public class ConfiguracaoService {
         }).orElse(0.0);
     }
 
-    public List<String> validarCompatibilidade(UUID id) {
-        return compatibilidade.validarCompatibilidade(id);
-    }
-
     @Autowired
     private UsuarioRepository usuarioRepository;
 
@@ -132,5 +128,41 @@ public class ConfiguracaoService {
         configuracao.setOrcamentoTotal(orcamento); // ← novo
 
         return configuracaoRepository.save(configuracao);
+    }
+
+    public Configuracao montarConfiguracaoSemSalvar(ConfiguracaoRequestDTO dto) {
+        Configuracao configuracao = new Configuracao();
+        configuracao.setNomeConfiguracao(dto.getNome());
+        configuracao.setVeiculo(dto.getVeiculo());
+        configuracao.setRelatorioPdf(dto.getRelatorioPdf());
+
+        usuarioRepository.findById(dto.getUsuarioId()).ifPresent(configuracao::setUsuario);
+
+        if (dto.getAltoFalanteIds() != null) {
+            dto.getAltoFalanteIds().forEach(id ->
+                    altoFalanteRepository.findById(id).ifPresent(configuracao.getAltoFalantes()::add)
+            );
+        }
+        if (dto.getSubwooferIds() != null) {
+            dto.getSubwooferIds().forEach(id ->
+                    subwooferRepository.findById(id).ifPresent(configuracao.getSubwoofers()::add)
+            );
+        }
+        if (dto.getModuloIds() != null) {
+            dto.getModuloIds().forEach(id ->
+                    moduloRepository.findById(id).ifPresent(configuracao.getModulos()::add)
+            );
+        }
+        if (dto.getCrossoverIds() != null) {
+            dto.getCrossoverIds().forEach(id ->
+                    crossoverRepository.findById(id).ifPresent(configuracao.getCrossovers()::add)
+            );
+        }
+
+        return configuracao;
+    }
+
+    public List<String> validarCompatibilidadeDireta(Configuracao configuracao) {
+        return compatibilidade.validarCompatibilidade(configuracao);
     }
 }
