@@ -1,8 +1,8 @@
 package com.vpk.backapimtgaudiocar.model;
 
 import jakarta.persistence.*;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -18,7 +18,6 @@ public class Configuracao {
     private String relatorioPdf;
     private Double orcamentoTotal;
 
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "usuario_id")
     private Usuario usuario;
@@ -29,7 +28,7 @@ public class Configuracao {
             joinColumns = @JoinColumn(name = "configuracao_id"),
             inverseJoinColumns = @JoinColumn(name = "subwoofer_id")
     )
-    private Set<Subwoofer> subwoofers = new HashSet<>();
+    private List<Subwoofer> subwoofers = new ArrayList<>();
 
     @ManyToMany
     @JoinTable(
@@ -37,7 +36,7 @@ public class Configuracao {
             joinColumns = @JoinColumn(name = "configuracao_id"),
             inverseJoinColumns = @JoinColumn(name = "alto_falante_id")
     )
-    private Set<AltoFalante> altoFalantes = new HashSet<>();
+    private List<AltoFalante> altoFalantes = new ArrayList<>();
 
     @ManyToMany
     @JoinTable(
@@ -45,7 +44,7 @@ public class Configuracao {
             joinColumns = @JoinColumn(name = "configuracao_id"),
             inverseJoinColumns = @JoinColumn(name = "modulo_id")
     )
-    private Set<ModuloAmplificador> modulos = new HashSet<>();
+    private List<ModuloAmplificador> modulos = new ArrayList<>();
 
     @ManyToMany
     @JoinTable(
@@ -53,13 +52,12 @@ public class Configuracao {
             joinColumns = @JoinColumn(name = "configuracao_id"),
             inverseJoinColumns = @JoinColumn(name = "crossover_id")
     )
-    private Set<Crossover> crossovers = new HashSet<>();
+    private List<Crossover> crossovers = new ArrayList<>();
 
-    //Constructor
     public Configuracao() {
     }
 
-    public Configuracao(UUID id, String nomeConfiguracao, String veiculo, String relatorioPdf, Double orcamentoTotal, Usuario usuario, Set<Subwoofer> subwoofers, Set<AltoFalante> altoFalantes, Set<ModuloAmplificador> modulos, Set<Crossover> crossovers) {
+    public Configuracao(UUID id, String nomeConfiguracao, String veiculo, String relatorioPdf, Double orcamentoTotal, Usuario usuario, List<Subwoofer> subwoofers, List<AltoFalante> altoFalantes, List<ModuloAmplificador> modulos, List<Crossover> crossovers) {
         this.id = id;
         this.nomeConfiguracao = nomeConfiguracao;
         this.veiculo = veiculo;
@@ -71,8 +69,6 @@ public class Configuracao {
         this.orcamentoTotal = orcamentoTotal;
         this.relatorioPdf = relatorioPdf;
     }
-
-    // Getters e Setters
 
     public UUID getId() {
         return id;
@@ -106,35 +102,35 @@ public class Configuracao {
         this.usuario = usuario;
     }
 
-    public Set<Subwoofer> getSubwoofers() {
+    public List<Subwoofer> getSubwoofers() {
         return subwoofers;
     }
 
-    public void setSubwoofers(Set<Subwoofer> subwoofers) {
+    public void setSubwoofers(List<Subwoofer> subwoofers) {
         this.subwoofers = subwoofers;
     }
 
-    public Set<AltoFalante> getAltoFalantes() {
+    public List<AltoFalante> getAltoFalantes() {
         return altoFalantes;
     }
 
-    public void setAltoFalantes(Set<AltoFalante> altoFalantes) {
+    public void setAltoFalantes(List<AltoFalante> altoFalantes) {
         this.altoFalantes = altoFalantes;
     }
 
-    public Set<ModuloAmplificador> getModulos() {
+    public List<ModuloAmplificador> getModulos() {
         return modulos;
     }
 
-    public void setModulos(Set<ModuloAmplificador> modulos) {
+    public void setModulos(List<ModuloAmplificador> modulos) {
         this.modulos = modulos;
     }
 
-    public Set<Crossover> getCrossovers() {
+    public List<Crossover> getCrossovers() {
         return crossovers;
     }
 
-    public void setCrossovers(Set<Crossover> crossovers) {
+    public void setCrossovers(List<Crossover> crossovers) {
         this.crossovers = crossovers;
     }
 
