@@ -1,5 +1,6 @@
 package com.vpk.backapimtgaudiocar.service;
 
+import com.vpk.backapimtgaudiocar.dto.BalancoAudioDTO;
 import com.vpk.backapimtgaudiocar.dto.ConfiguracaoDTO;
 import com.vpk.backapimtgaudiocar.dto.ConfiguracaoRequestDTO;
 import com.vpk.backapimtgaudiocar.dto.ValidacaoCompatibilidadeDTO;
@@ -202,5 +203,34 @@ public class ConfiguracaoService {
     public List<ValidacaoCompatibilidadeDTO> validarCompatibilidadeInterna(ConfiguracaoRequestDTO dto) {
         Configuracao configuracao = montarConfiguracaoSemSalvar(dto);
         return compatibilidade.validarCompatibilidade(configuracao);
+    }
+
+    public BalancoAudioDTO calcularBalancoAudio(ConfiguracaoRequestDTO dto) {
+        Configuracao cfg = montarConfiguracaoSemSalvar(dto);
+
+        int totalGrave = cfg.getSubwoofers().stream()
+                .filter(s -> s.getPotenciaRmsW() != null)
+                .mapToInt(Subwoofer::getPotenciaRmsW)
+                .sum();
+
+        int totalVoz = cfg.getAltoFalantes().stream()
+                .filter(a -> a.getPotenciaRmsW() != null)
+                .mapToInt(AltoFalante::getPotenciaRmsW)
+                .sum();
+
+        int somaTotal = totalGrave + totalVoz;
+
+        System.out.println("\n\n\n\n\nsomatotal"+somaTotal+"\n\n\n\n\n\n\n");
+
+        double percGrave = somaTotal > 0 ? (totalGrave * 100.0) / somaTotal : 0;
+        double percVoz = somaTotal > 0 ? (totalVoz * 100.0) / somaTotal : 0;
+
+        BalancoAudioDTO resposta = new BalancoAudioDTO();
+        resposta.setPotenciaGraveTotal(totalGrave);
+        resposta.setPotenciaVozTotal(totalVoz);
+        resposta.setPercentualGrave(percGrave);
+        resposta.setPercentualVoz(percVoz);
+
+        return resposta;
     }
 }

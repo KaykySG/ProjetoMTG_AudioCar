@@ -1,5 +1,6 @@
 package com.vpk.backapimtgaudiocar.controller;
 
+import com.vpk.backapimtgaudiocar.dto.BalancoAudioDTO;
 import com.vpk.backapimtgaudiocar.dto.ConfiguracaoDTO;
 import com.vpk.backapimtgaudiocar.dto.ConfiguracaoRequestDTO;
 import com.vpk.backapimtgaudiocar.dto.ValidacaoCompatibilidadeDTO;
@@ -57,5 +58,10 @@ public class ConfiguracaoController {
     @PostMapping("/validar")
     public ResponseEntity<List<ValidacaoCompatibilidadeDTO>> validarCompatibilidadeInterna(@RequestBody ConfiguracaoRequestDTO dto) {
         return ResponseEntity.ok(configuracaoService.validarCompatibilidadeInterna(dto));
+    }
+
+    @PostMapping("/balanco-audio")
+    public ResponseEntity<BalancoAudioDTO> calcularBalancoAudio(@RequestBody ConfiguracaoRequestDTO dto) {
+        return ResponseEntity.ok(configuracaoService.calcularBalancoAudio(dto));
     }
 }
