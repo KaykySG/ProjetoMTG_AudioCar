@@ -24,8 +24,11 @@ public class ConfiguracaoCompatibilidade {
 
         double potenciaTotalModulos = configuracao.getModulos().stream()
                 .filter(m -> m.getPotenciaPorCanalRms() != null)
-                .mapToDouble(ModuloAmplificador::getPotenciaPorCanalRms)
+                .mapToDouble(m -> m.getPotenciaPorCanalRms() * (m.getCanais() != null ? m.getCanais() : 1))
                 .sum();
+
+
+        // System.out.println("\n\n\n\n canal"+QuantidadeCanalModulos+"\n\n\n\n\n");
 
         System.out.println("\n\n\n\n modulo"+potenciaTotalModulos+"\n\n\n\n\n");
 
