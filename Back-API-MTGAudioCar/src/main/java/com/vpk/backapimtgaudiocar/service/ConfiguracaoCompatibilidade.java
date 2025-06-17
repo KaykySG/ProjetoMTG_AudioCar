@@ -84,7 +84,7 @@ public class ConfiguracaoCompatibilidade {
                             .orElse(null);
                     mensagens.add(new ValidacaoCompatibilidadeDTO(
                             msg,
-                            sugestao != null ? sugestao.getTipo() : "Nenhum módulo compatível encontrado",
+                            sugestao != null ? sugestao.getDescricao() : "Nenhum módulo compatível encontrado",
                             sugestao != null ? sugestao.getId() : null
                     ));
                 }
@@ -103,7 +103,7 @@ public class ConfiguracaoCompatibilidade {
                             .orElse(null);
                     mensagens.add(new ValidacaoCompatibilidadeDTO(
                             msg,
-                            sugestao != null ? sugestao.getTipo() : "Nenhum módulo compatível encontrado",
+                            sugestao != null ? sugestao.getDescricao() : "Nenhum módulo compatível encontrado",
                             sugestao != null ? sugestao.getId() : null
                     ));
                 }

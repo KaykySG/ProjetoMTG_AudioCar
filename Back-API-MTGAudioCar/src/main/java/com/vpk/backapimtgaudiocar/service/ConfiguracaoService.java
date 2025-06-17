@@ -236,7 +236,7 @@ public class ConfiguracaoService {
         resposta.setPotenciaVozTotal(totalVoz);
         resposta.setPercentualGrave(percGrave);
         resposta.setPercentualVoz(percVoz);
-        resposta.setConsumo(somaTotal);
+        resposta.setConsumo(potenciaTotalModulos);
 
         return resposta;
     }
