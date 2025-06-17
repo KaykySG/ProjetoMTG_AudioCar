@@ -1,10 +1,11 @@
 package com.vpk.backapimtgaudiocar.service;
 
 import com.vpk.backapimtgaudiocar.dto.ConfiguracaoDTO;
+import com.vpk.backapimtgaudiocar.dto.ConfiguracaoRequestDTO;
 import com.vpk.backapimtgaudiocar.dto.CrossoverDTO;
 import com.vpk.backapimtgaudiocar.model.Configuracao;
 import com.vpk.backapimtgaudiocar.model.ModuloAmplificador;
-import com.vpk.backapimtgaudiocar.repository.ConfiguracaoRepository;
+import com.vpk.backapimtgaudiocar.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -65,4 +66,57 @@ public class ConfiguracaoService {
     public List<String> validarCompatibilidade(UUID id) {
         return compatibilidade.validarCompatibilidade(id);
     }
+
+    @Autowired
+    private UsuarioRepository usuarioRepository;
+
+    @Autowired
+    private AltoFalanteRepository altoFalanteRepository;
+
+    @Autowired
+    private SubwooferRepository subwooferRepository;
+
+    @Autowired
+    private ModuloAmplificadorRepository moduloRepository;
+
+    @Autowired
+    private CrossoverRepository crossoverRepository;
+
+    public Configuracao salvarComRelacionamentos(ConfiguracaoRequestDTO dto) {
+        Configuracao configuracao = new Configuracao();
+        configuracao.setNomeConfiguracao(dto.getNome());
+
+        usuarioRepository.findById(dto.getUsuarioId()).ifPresent(configuracao::setUsuario);
+
+        // Alto-falantes
+        if (dto.getAltoFalanteIds() != null) {
+            dto.getAltoFalanteIds().forEach(id ->
+                    altoFalanteRepository.findById(id).ifPresent(configuracao.getAltoFalantes()::add)
+            );
+        }
+
+        // Subwoofers
+        if (dto.getSubwooferIds() != null) {
+            dto.getSubwooferIds().forEach(id ->
+                    subwooferRepository.findById(id).ifPresent(configuracao.getSubwoofers()::add)
+            );
+        }
+
+        // Módulos
+        if (dto.getModuloIds() != null) {
+            dto.getModuloIds().forEach(id ->
+                    moduloRepository.findById(id).ifPresent(configuracao.getModulos()::add)
+            );
+        }
+
+        // Crossovers
+        if (dto.getCrossoverIds() != null) {
+            dto.getCrossoverIds().forEach(id ->
+                    crossoverRepository.findById(id).ifPresent(configuracao.getCrossovers()::add)
+            );
+        }
+
+        return configuracaoRepository.save(configuracao);
+    }
+
 }

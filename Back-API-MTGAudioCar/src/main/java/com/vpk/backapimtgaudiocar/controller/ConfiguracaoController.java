@@ -1,6 +1,7 @@
 package com.vpk.backapimtgaudiocar.controller;
 
 import com.vpk.backapimtgaudiocar.dto.ConfiguracaoDTO;
+import com.vpk.backapimtgaudiocar.dto.ConfiguracaoRequestDTO;
 import com.vpk.backapimtgaudiocar.model.Configuracao;
 import com.vpk.backapimtgaudiocar.service.ConfiguracaoService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,8 +32,9 @@ public class ConfiguracaoController {
     }
 
     @PostMapping
-    public ResponseEntity<Configuracao> criar(@RequestBody Configuracao configuracao) {
-        return ResponseEntity.ok(configuracaoService.salvar(configuracao));
+    public ResponseEntity<ConfiguracaoDTO> criar(@RequestBody ConfiguracaoRequestDTO configuracao) {
+        Configuracao nova = configuracaoService.salvarComRelacionamentos(configuracao);
+        return ResponseEntity.ok(new ConfiguracaoDTO(nova));
     }
 
     @DeleteMapping("/{id}")
