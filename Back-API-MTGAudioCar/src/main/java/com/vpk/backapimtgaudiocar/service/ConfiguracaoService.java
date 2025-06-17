@@ -57,6 +57,15 @@ public class ConfiguracaoService {
         }).orElse(0.0);
     }
 
+    public double calcularOrcamentoTotalInterno(Configuracao cfg) {
+        double total = 0;
+        total += cfg.getSubwoofers().stream().mapToDouble(s -> s.getPreco() != null ? s.getPreco() : 0).sum();
+        total += cfg.getAltoFalantes().stream().mapToDouble(a -> a.getPreco() != null ? a.getPreco() : 0).sum();
+        total += cfg.getModulos().stream().mapToDouble(m -> m.getPreco() != null ? m.getPreco() : 0).sum();
+        total += cfg.getCrossovers().stream().mapToDouble(c -> c.getPreco() != null ? c.getPreco() : 0).sum();
+        return total;
+    }
+
     public double calcularConsumoTotal(UUID id) {
         return configuracaoRepository.findById(id).map(cfg -> {
             return cfg.getModulos().stream().mapToDouble(ModuloAmplificador::getPotenciaPorCanalRms).sum();
@@ -85,6 +94,8 @@ public class ConfiguracaoService {
     public Configuracao salvarComRelacionamentos(ConfiguracaoRequestDTO dto) {
         Configuracao configuracao = new Configuracao();
         configuracao.setNomeConfiguracao(dto.getNome());
+        configuracao.setVeiculo(dto.getVeiculo()); // ← novo
+        configuracao.setRelatorioPdf(dto.getRelatorioPdf()); // ← novo
 
         usuarioRepository.findById(dto.getUsuarioId()).ifPresent(configuracao::setUsuario);
 
@@ -116,7 +127,10 @@ public class ConfiguracaoService {
             );
         }
 
+        // Calcular orcamento total e setar
+        double orcamento = calcularOrcamentoTotalInterno(configuracao); // ← novo
+        configuracao.setOrcamentoTotal(orcamento); // ← novo
+
         return configuracaoRepository.save(configuracao);
     }
-
 }

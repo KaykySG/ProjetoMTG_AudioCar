@@ -15,6 +15,9 @@ public class Configuracao {
 
     private String nomeConfiguracao;
     private String veiculo;
+    private String relatorioPdf;
+    private Double orcamentoTotal;
+
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "usuario_id")
@@ -56,7 +59,7 @@ public class Configuracao {
     public Configuracao() {
     }
 
-    public Configuracao(UUID id, String nomeConfiguracao, String veiculo, Usuario usuario, Set<Subwoofer> subwoofers, Set<AltoFalante> altoFalantes, Set<ModuloAmplificador> modulos, Set<Crossover> crossovers) {
+    public Configuracao(UUID id, String nomeConfiguracao, String veiculo, String relatorioPdf, Double orcamentoTotal, Usuario usuario, Set<Subwoofer> subwoofers, Set<AltoFalante> altoFalantes, Set<ModuloAmplificador> modulos, Set<Crossover> crossovers) {
         this.id = id;
         this.nomeConfiguracao = nomeConfiguracao;
         this.veiculo = veiculo;
@@ -65,6 +68,8 @@ public class Configuracao {
         this.altoFalantes = altoFalantes;
         this.modulos = modulos;
         this.crossovers = crossovers;
+        this.orcamentoTotal = orcamentoTotal;
+        this.relatorioPdf = relatorioPdf;
     }
 
     // Getters e Setters
@@ -131,5 +136,21 @@ public class Configuracao {
 
     public void setCrossovers(Set<Crossover> crossovers) {
         this.crossovers = crossovers;
+    }
+
+    public String getRelatorioPdf() {
+        return relatorioPdf;
+    }
+
+    public void setRelatorioPdf(String relatorioPdf) {
+        this.relatorioPdf = relatorioPdf;
+    }
+
+    public Double getOrcamentoTotal() {
+        return orcamentoTotal;
+    }
+
+    public void setOrcamentoTotal(Double orcamentoTotal) {
+        this.orcamentoTotal = orcamentoTotal;
     }
 }

@@ -9,6 +9,9 @@ import java.util.stream.Collectors;
 public class ConfiguracaoDTO {
     private UUID id;
     private String nomeConfiguracao;
+    private String veiculo;
+    private String relatorioPdf;
+    private Double orcamentoTotal;
     private UUID usuarioId;
     private List<UUID> subwoofers;
     private List<UUID> altoFalantes;
@@ -23,6 +26,9 @@ public class ConfiguracaoDTO {
         this.altoFalantes = configuracao.getAltoFalantes().stream().map(a -> a.getId()).toList();
         this.modulos = configuracao.getModulos().stream().map(m -> m.getId()).toList();
         this.crossovers = configuracao.getCrossovers().stream().map(c -> c.getId()).toList();
+        this.orcamentoTotal = configuracao.getOrcamentoTotal();
+        this.relatorioPdf = configuracao.getRelatorioPdf();
+        this.veiculo = configuracao.getVeiculo();
     }
 
 
@@ -81,5 +87,29 @@ public class ConfiguracaoDTO {
 
     public void setCrossovers(List<UUID> crossovers) {
         this.crossovers = crossovers;
+    }
+
+    public String getVeiculo() {
+        return veiculo;
+    }
+
+    public void setVeiculo(String veiculo) {
+        this.veiculo = veiculo;
+    }
+
+    public String getRelatorioPdf() {
+        return relatorioPdf;
+    }
+
+    public void setRelatorioPdf(String relatorioPdf) {
+        this.relatorioPdf = relatorioPdf;
+    }
+
+    public Double getOrcamentoTotal() {
+        return orcamentoTotal;
+    }
+
+    public void setOrcamentoTotal(Double orcamentoTotal) {
+        this.orcamentoTotal = orcamentoTotal;
     }
 }
