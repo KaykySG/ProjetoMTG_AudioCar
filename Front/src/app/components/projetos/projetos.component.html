@@ -1,0 +1,124 @@
+<!-- projetos.component.html -->
+<div class="main-content-wrapper-custom">
+  <div class="container-custom mx-auto-custom px-6-custom py-8-custom">
+    <div class="mb-8-custom">
+      <h1 class="text-4xl-custom font-bold-custom text-slate-900-custom mb-2-custom">Meus Projetos</h1>
+      <p class="text-slate-600-custom text-lg-custom">Gerencie seus projetos salvos</p>
+    </div>
+
+    <p-tabView class="custom-tabview">
+      <p-tabPanel header="Projetos" [selected]="true">
+        <ng-template pTemplate="content">
+          <div class="p-6-custom" style="background-color: white;">
+            <h2 class="text-xl-custom font-semibold-custom text-slate-800-custom mb-4-custom">Projetos salvos</h2>
+
+            <p-table [value]="projetos()" [paginator]="true" [rows]="5" class="custom-table">
+              <ng-template pTemplate="header">
+                <tr>
+                  <th>Nome</th>
+                  <th>Preço</th>
+                  <th>Ações</th>
+                </tr>
+              </ng-template>
+              <ng-template pTemplate="body" let-project>
+                <tr>
+                  <td class="project-name-cell" (click)="abrirDetalhesProjeto(project)">
+                    {{ project.name }}
+                  </td>
+                  <td>{{ project.price | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}</td>
+                  <td>
+                    <div class="flex-custom gap-2-custom">
+                      <button pButton icon="pi pi-pencil" class="p-button-rounded p-button-secondary p-button-sm" (click)="confirmEdit(project)"></button>
+                      <button pButton icon="pi pi-times" class="p-button-rounded p-button-danger p-button-sm" (click)="confirmDelete(project)"></button>
+                    </div>
+                  </td>
+                </tr>
+              </ng-template>
+              <ng-template pTemplate="emptyMessage">
+                <tr>
+                  <td colspan="3" class="text-center text-slate-600">Nenhum projeto encontrado.</td>
+                </tr>
+              </ng-template>
+            </p-table>
+          </div>
+        </ng-template>
+      </p-tabPanel>
+    </p-tabView>
+  </div>
+</div>
+
+<p-dialog
+  [(visible)]="displayDialog"
+  [modal]="true"
+  [style]="{ width: '75vw' }"
+  [closable]="true"
+  [dismissableMask]="true"
+  header="Detalhes do Projeto"
+>
+  <ng-template pTemplate="header">
+    <h3>{{ selectedProject?.name }}</h3>
+  </ng-template>
+
+  <p-table
+    #table
+    [value]="selectedProjectItems"
+    [expandedRowKeys]="expandedRows"
+    dataKey="id"
+    (onRowExpand)="onRowExpand($event)"
+    (onRowCollapse)="onRowCollapse($event)"
+  >
+    <ng-template pTemplate="header">
+      <tr>
+        <th style="width: 3rem"></th>
+        <th>Nome</th>
+        <th>Tipo</th>
+        <th>Preço</th>
+      </tr>
+    </ng-template>
+
+    <ng-template pTemplate="body" let-item let-expanded="expanded">
+      <tr>
+        <td>
+          <p-button
+            type="button"
+            pRipple
+            [pRowToggler]="item"
+            [icon]="expanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'"
+            text
+            rounded
+            styleClass="p-button-text p-button-rounded"
+          ></p-button>
+        </td>
+        <td>{{ item.descricao }}</td>
+        <td>{{ item.categoria }}</td>
+        <td>{{ item.preco | currency: 'BRL' }}</td>
+      </tr>
+    </ng-template>
+
+    <ng-template pTemplate="rowexpansion" let-item>
+      <tr>
+        <td colspan="4">
+          <div style="padding: 1rem">
+            <strong>Potência por Canal RMS:</strong> {{ item.potenciaPorCanalRms ?? 'N/A' }}<br />
+            <strong>Potência Bridge RMS:</strong> {{ item.potenciaBridgeRms ?? 'N/A' }}<br />
+            <strong>Impedância Mínima (Ohms):</strong> {{ item.impedanciaMinimaOhms ?? 'N/A' }}<br />
+            <strong>Tensão de Alimentação (V):</strong> {{ item.tensaoAlimentacaoV ?? 'N/A' }}
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="4" class="text-center">Nenhum item encontrado.</td>
+      </tr>
+    </ng-template>
+  </p-table>
+
+  <ng-template pTemplate="footer">
+    <p-button label="Fechar" icon="pi pi-times" (click)="displayDialog = false" class="p-button-text"></p-button>
+  </ng-template>
+</p-dialog>
+
+<p-toast key="toastMessage"></p-toast>
+<p-confirmDialog key="confirmDialog"></p-confirmDialog>

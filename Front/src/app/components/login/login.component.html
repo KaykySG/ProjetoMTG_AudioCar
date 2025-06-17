@@ -1,0 +1,56 @@
+<div class="login-container">
+  <p-card styleClass="login-card">
+    <ng-template pTemplate="header">
+      <div class="login-header">
+        <i class="pi pi-user login-icon"></i>
+      </div>
+    </ng-template>
+
+    <div class="p-fluid">
+      <!-- E-mail -->
+      <div class="field input-icon-group">
+        <i class="pi pi-envelope input-icon"></i>
+        <input
+          id="username"
+          type="text"
+          pInputText
+          [(ngModel)]="username"
+          placeholder="Digite seu e-mail"
+          class="input-with-icon"
+        />
+      </div>
+
+      <!-- Senha -->
+      <div class="field input-icon-group">
+        <i class="pi pi-lock input-icon"></i>
+        <p-password
+          [(ngModel)]="password"
+          id="password"
+          placeholder="Digite sua senha"
+          [toggleMask]="true"
+          [feedback]="false"
+          inputStyleClass="input-with-icon w-full"
+        ></p-password>
+      </div>
+
+      <!-- Botão -->
+      <div class="p-field">
+        <div style="width: 100%;">
+          <button
+            pButton
+            label="Entrar"
+            (click)="login()"
+            style="width: 100%;"
+            class="p-button-rounded p-button-success"
+          ></button>
+        </div>
+      </div>
+
+
+      <!-- Link para registro -->
+      <div class="register-link" style="text-align: center; margin-top: 0.5rem;">
+        <a (click)="goToRegister()" style="cursor: pointer;">Não tem conta? Cadastre-se</a>
+      </div>
+    </div>
+  </p-card>
+</div>

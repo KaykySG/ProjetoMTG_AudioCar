@@ -1,0 +1,247 @@
+.layout-container {
+  display: flex;
+  height: 100vh;
+  background-image: linear-gradient(135deg, #7216f5 0%, #ff6b6b 100%);
+  padding: 8px;
+}
+
+/* Sidebar Styling */
+.sidebar {
+  width: 200px;
+  background-color: #f5f5f5;
+  border-radius: 24px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  margin: 0 8px;
+}
+
+.logo-container {
+  margin-bottom: 24px;
+  text-align: center;
+}
+
+.logo {
+  max-width: 530px;
+  height: fit-content;
+}
+
+.sidebar-footer {
+  margin-top: auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Content Area */
+.content-area {
+  flex: 1;
+  margin: 0 8px;
+  overflow: hidden;
+}
+
+/* Menu de navegação */
+.nav-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.nav-item-container {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Estilo dos botões de navegação - BRANCOS */
+.nav-button {
+  background-color: white;
+  color: #333333;
+  border: none;
+  border-radius: 8px;
+  border-bottom: 3px solid #7c20ff; /* Existing purple bottom border */
+  padding: 12px 16px;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  width: 100%;
+  margin-bottom: 0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+  outline: none !important; /* Remove outline on focus/active */
+}
+
+/* Explicitly target the p-button element inside nav-button for hover */
+.nav-button:hover, /* Your custom hover for nav-button */
+:host ::ng-deep .nav-button.p-button:hover { /* More specific PrimeNG override */
+  background-color: #7c20ff !important; /* Purple background on hover */
+  color: white !important;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(124, 32, 255, 0.3);
+  border-bottom: 3px solid #7c20ff !important; /* Set border to purple on hover */
+  outline: none !important; /* Ensure no outline */
+}
+
+/* Ensure no border/outline on focus for ALL PrimeNG buttons */
+:host ::ng-deep .p-button:focus {
+  box-shadow: none !important; /* Remove PrimeNG's default focus shadow */
+  outline: none !important; /* Ensure no outline */
+  border-color: transparent !important; /* Also reset border-color on focus */
+}
+
+/* General PrimeNG button hover overrides (less specific, but good as a fallback) */
+:host ::ng-deep .p-button:hover {
+  outline: none !important;
+  border-color: transparent !important; /* Ensure no unwanted border on hover */
+}
+
+
+.nav-button .p-button-icon {
+  color: #7c20ff;
+  margin-right: 8px;
+  transition: color 0.3s ease;
+}
+
+
+.nav-button:hover .p-button-icon {
+  color: white;
+}
+
+.nav-button:hover .pi-chevron-down,
+.nav-button:hover .pi-chevron-right {
+  color: white;
+}
+
+/* Estilo especial para o botão Montagem - ROXO */
+.nav-button.montagem-button {
+  background-color: #6a11cb;
+  color: white;
+  border: none; /* Remove any default border here */
+  border-radius: 8px;
+  border-bottom: 1px solid #8a3fef;
+  box-shadow: 0 4px 8px rgba(106, 17, 203, 0.2);
+  outline: none !important;
+}
+
+.nav-button.montagem-button .p-button-icon,
+.nav-button.montagem-button .pi-chevron-down,
+.nav-button.montagem-button .pi-chevron-right {
+  color: white;
+}
+
+/* More specific hover for montagem-button */
+.nav-button.montagem-button:hover,
+:host ::ng-deep .nav-button.montagem-button.p-button:hover {
+  background-color: #8a3fef !important;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(138, 63, 239, 0.4);
+  border-bottom: 1px solid #8a3fef !important;
+  outline: none !important;
+}
+
+/* Submenu */
+.submenu {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 4px;
+  margin-bottom: 40px;
+  padding-left: 8px;
+}
+
+/* Estilo para os subitens de Montagem - ROXO MAIS CLARO */
+.submenu-button {
+  background-color: #a66bff;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  border-bottom: 1px solid #c29fff;
+  padding: 10px 16px;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  width: 100%;
+  transition: all 0.3s ease;
+  outline: none !important; /* Ensure no outline */
+}
+
+.submenu-button .p-button-icon {
+  color: white;
+}
+
+/* More specific hover for submenu-button */
+.submenu-button:hover,
+:host ::ng-deep .submenu-button.p-button:hover {
+  background-color: #b57cff !important;
+  transform: translateX(4px);
+  box-shadow: 0 2px 8px rgba(181, 124, 255, 0.3);
+  border-bottom: 1px solid #b57cff !important; /* Set border to a lighter purple on hover */
+  outline: none !important;
+}
+
+/* Botões do rodapé */
+.footer-button {
+  background-color: white;
+  color: #333333;
+  border: none;
+  border-bottom: 2px solid #7c20ff; /* Existing purple bottom border */
+  border-radius: 8px;
+  padding: 8px 12px;
+  text-align: left;
+  transition: all 0.3s ease;
+  outline: none !important; /* Ensure no outline */
+}
+
+.footer-button .p-button-icon {
+  color: #7c20ff;
+  transition: color 0.3s ease;
+}
+
+/* More specific hover for footer-button */
+.footer-button:hover,
+:host ::ng-deep .footer-button.p-button:hover {
+  background-color: #7c20ff !important; /* Purple background on hover */
+  color: white !important;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(124, 32, 255, 0.3);
+  border-bottom: 2px solid #7c20ff !important; /* Set border to purple on hover */
+  outline: none !important;
+}
+
+.footer-button-icon {
+  background-color: white;
+  color: #333333;
+  border: none;
+  border-bottom: 2px solid #7c20ff; /* Existing purple bottom border */
+  border-radius: 8px;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  transition: all 0.3s ease;
+  outline: none !important; /* Ensure no outline */
+}
+
+.footer-button-icon .p-button-icon {
+  color: #7c20ff;
+  transition: color 0.3s ease;
+}
+
+/* More specific hover for footer-button-icon */
+.footer-button-icon:hover,
+:host ::ng-deep .footer-button-icon.p-button:hover {
+  background-color: #7c20ff !important; /* Purple background on hover */
+  color: white !important;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(124, 32, 255, 0.3);
+  border-bottom: 2px solid #7c20ff !important; /* Set border to purple on hover */
+  outline: none !important;
+}
+
+/* Ícone de expansão à direita */
+.nav-button .pi-chevron-down,
+.nav-button .pi-chevron-right {
+  margin-left: auto;
+  color: #333333;
+  transition: color 0.3s ease;
+}

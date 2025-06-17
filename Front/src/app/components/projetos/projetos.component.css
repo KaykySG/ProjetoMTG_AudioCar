@@ -1,0 +1,270 @@
+/* Estilos Gerais */
+.main-content-wrapper-custom {
+  background-color: white;
+  border-radius: 1.5rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  width: calc(100% - 2rem);
+  min-height: calc(100vh - 4rem);
+  padding: 1rem;
+  box-sizing: border-box;
+  overflow: hidden;
+  margin: 2rem 1rem 2rem 1rem;
+}
+
+.container-custom {
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+  padding-top: 2rem;
+  padding-bottom: 2rem;
+}
+
+.mb-8-custom {
+  margin-bottom: 2rem;
+}
+
+.text-4xl-custom {
+  font-size: 2.25rem;
+  line-height: 2.5rem;
+  color: #1e293b;
+}
+
+.font-bold-custom {
+  font-weight: 700;
+}
+
+.text-slate-800-custom {
+  color: #1e293b;
+}
+
+.text-lg-custom {
+  font-size: 1.125rem;
+  line-height: 1.75rem;
+  color: #475569;
+}
+
+.text-slate-600-custom {
+  color: #475569;
+}
+
+.p-6-custom {
+  padding: 1.5rem;
+
+}
+
+.text-xl-custom {
+  font-size: 1.25rem;
+  line-height: 1.75rem;
+  color: #1e293b;
+}
+
+.font-semibold-custom {
+  font-weight: 600;
+}
+
+.mb-4-custom {
+  margin-bottom: 1rem;
+}
+
+.flex-custom {
+  display: flex;
+}
+
+.gap-2-custom {
+  gap: 0.5rem;
+}
+
+
+/* PrimeNG TabView Customization */
+::ng-deep .custom-tabview .p-tabview-nav {
+  background: white !important; /* Força o fundo branco */
+  border: none;
+  padding: 1rem; /* Adiciona padding para melhor aparência */
+  margin-bottom: 0; /* Remove margem inferior */
+  justify-content: flex-start;
+  display: flex; /* Muda de 'none' para 'flex' para mostrar as abas */
+  border-radius: 1rem 1rem 0 0; /* Arredonda os cantos superiores */
+}
+
+/* Os estilos abaixo para p-tabview-nav-link, p-highlight, etc., não serão visíveis
+   enquanto p-tabview-nav estiver com display: none.
+   Mas é bom mantê-los para o caso de você decidir reexibir as abas no futuro. */
+::ng-deep .custom-tabview .p-tabview-nav-link {
+  background: transparent;
+  border: none;
+  padding: 0.75rem 1.25rem;
+  font-weight: 600;
+  color: #64748b;
+  transition: all 0.2s ease-in-out;
+  border-radius: 0.5rem 0.5rem 0 0;
+}
+
+::ng-deep .custom-tabview .p-tabview-nav-link:not(.p-highlight):hover {
+  color: #1e293b;
+  background-color: #f1f5f9;
+}
+
+::ng-deep .custom-tabview .p-tabview-nav-link.p-highlight {
+  color: #6d28d9;
+  background-color: #fff;
+  border-bottom: 2px solid #6d28d9;
+  box-shadow: none;
+}
+
+::ng-deep .custom-tabview .p-tabview-selected-indicator {
+  display: none;
+}
+
+::ng-deep .custom-tabview .p-tabview-panels {
+  background: white; /* Garante que o fundo do painel de conteúdo da aba seja branco */
+  border-radius: 1rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  padding: 1.5rem;
+  flex-grow: 1;
+}
+
+::ng-deep .custom-tabview {
+  background: white !important;
+  border-radius: 1rem;
+  overflow: hidden;
+}
+
+
+/* PrimeNG Table Customization */
+::ng-deep .custom-table .p-datatable {
+  border: 1px solid #e2e8f0;
+  border-radius: 0.75rem;
+  overflow: hidden;
+  background-color: white; /* Garante que o fundo da tabela seja branco */
+}
+
+::ng-deep .custom-table .p-datatable-header {
+  background-color: white; /* Fundo do cabeçalho da tabela branco */
+  color: #334155;
+  font-weight: 600;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+::ng-deep .custom-table .p-datatable-thead > tr > th {
+  background-color: white; /* Fundo do cabeçalho das colunas branco */
+  color: #334155;
+  font-weight: 600;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #e2e8f0;
+  text-align: left;
+}
+
+::ng-deep .custom-table .p-datatable-tbody > tr > td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #e2e8f0;
+  color: #475569;
+  background-color: white; /* Fundo das células da tabela branco */
+}
+
+::ng-deep .custom-table .p-datatable-tbody > tr:last-child > td {
+  border-bottom: none;
+}
+
+::ng-deep .custom-table .p-datatable-row-odd {
+  background-color: white; /* Fundo para linhas ímpares branco */
+}
+
+/* Estilos para o Paginator da Tabela */
+::ng-deep .custom-table .p-paginator {
+  background: white; /* Fundo do paginator branco */
+  border: 1px solid #e2e8f0;
+  border-top: none;
+  border-radius: 0 0 0.75rem 0.75rem;
+  padding: 0.75rem 1.5rem;
+  display: flex;
+  justify-content: flex-end;
+}
+
+::ng-deep .custom-table .p-paginator .p-paginator-pages .p-paginator-page {
+  min-width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 50%;
+  margin: 0 0.25rem;
+  color: #64748b;
+  font-weight: 500;
+}
+
+::ng-deep .custom-table .p-paginator .p-paginator-pages .p-paginator-page.p-highlight {
+  background: #6d28d9;
+  color: white;
+}
+
+::ng-deep .custom-table .p-paginator .p-paginator-pages .p-paginator-page:not(.p-highlight):hover {
+  background: #ede9fe;
+  color: #6d28d9;
+}
+
+::ng-deep .custom-table .p-paginator .p-paginator-first,
+::ng-deep .custom-table .p-paginator .p-paginator-prev,
+::ng-deep .custom-table .p-paginator .p-paginator-next,
+::ng-deep .custom-table .p-paginator .p-paginator-last {
+  min-width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 50%;
+  color: #64748b;
+}
+
+::ng-deep .custom-table .p-paginator .p-paginator-first:not(.p-disabled):hover,
+::ng-deep .custom-table .p-paginator .p-paginator-prev:not(.p-disabled):hover,
+::ng-deep .custom-table .p-paginator .p-paginator-next:not(.p-disabled):hover,
+::ng-deep .custom-table .p-paginator .p-paginator-last:not(.p-disabled):hover {
+  background: #ede9fe;
+  color: #6d28d9;
+}
+
+
+/* Estilos para os botões de ação na tabela */
+.p-button-sm.p-button-rounded {
+  width: 2.2rem;
+  height: 2.2rem;
+  padding: 0.5rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.875rem;
+}
+
+/* Cor do botão de Editar (lápis) */
+.p-button-secondary {
+  background-color: #64748b !important; /* slate-500 */
+  border-color: #64748b !important;
+  color: white !important;
+}
+.p-button-secondary:hover {
+  background-color: #475569 !important; /* slate-600 */
+  border-color: #475569 !important;
+}
+
+/* Cor do botão de Deletar (X) */
+.p-button-danger {
+  background-color: #ef4444 !important; /* red-500 */
+  border-color: #ef4444 !important;
+  color: white !important;
+}
+.p-button-danger:hover {
+  background-color: #dc2626 !important; /* red-600 */
+  border-color: #dc2626 !important;
+}
+
+/* Estilo para a célula do nome do projeto clicável */
+.project-name-cell {
+  cursor: pointer;
+  color: #3b82f6;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.2s ease-in-out;
+}
+
+.project-name-cell:hover {
+  color: #2563eb;
+  text-decoration: underline;
+}

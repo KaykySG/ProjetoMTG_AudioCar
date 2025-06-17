@@ -1,0 +1,134 @@
+<div class="min-h-screen-custom bg-gradient-custom">
+  <div class="container-custom mx-auto-custom px-6-custom py-8-custom">
+    <div class="mb-8-custom">
+      <h1 class="text-4xl-custom font-bold-custom text-slate-800-custom mb-2-custom">Loja de Equipamentos</h1>
+    </div>
+
+    <div class="bg-white-custom rounded-2xl-custom shadow-sm-custom border-slate-200-custom p-6-custom mb-8-custom">
+      <div class="flex-custom justify-between-custom items-center-custom">
+        <h2 class="text-xl-custom font-semibold-custom text-slate-800-custom">Empresas Parceiras</h2>
+        <p-selectbutton
+          [(ngModel)]="layout"
+          [options]="options"
+          optionLabel="icon"
+          [allowEmpty]="false"
+          styleClass="custom-selectbutton">
+          <ng-template #item let-item>
+            <i class="pi text-slate-600-custom" [ngClass]="{ 'pi-bars': item === 'list', 'pi-table': item === 'grid' }"></i>
+          </ng-template>
+        </p-selectbutton>
+      </div>
+    </div>
+
+    <div class="bg-white-custom rounded-2xl-custom shadow-sm-custom border-slate-200-custom p-6-custom">
+      <p-dataview
+        [value]="products()"
+        [layout]="layout"
+        [rows]="5"
+        [paginator]="true"
+        styleClass="custom-dataview">
+
+        <!-- LIST VIEW -->
+        <!-- ... início do seu template mantido ... -->
+
+        <!-- LIST VIEW -->
+        <ng-template #list let-items>
+          <div class="space-y-6-custom">
+            <div *ngFor="let item of items; let first = first"
+                 class="bg-white-custom rounded-xl-custom overflow-hidden-custom"
+                 [ngClass]="{'border-t-custom border-slate-200-custom pt-6-custom': !first}">
+              <div class="flex-custom flex-col-sm-custom gap-6-custom">
+                <div class="lg-w-80-custom flex-shrink-0-custom relative-custom p-4-custom">
+                  <div class="image-container relative-custom h-64-custom bg-gradient-custom-inner rounded-lg-custom overflow-hidden-custom flex-custom items-center-custom justify-center-custom">
+                    <img
+                      class="image-fill-parent"
+                      [src]="'assets/images/' + item.image"
+                      [alt]="item.name"
+                    />
+                  </div>
+                </div>
+
+                <div class="flex-1-custom flex-custom flex-col-md-custom justify-between-custom gap-6-custom">
+                  <div class="flex-custom flex-col-custom justify-between-custom">
+                    <div>
+                      <span class="text-slate-500-custom text-sm-custom font-medium-custom uppercase-custom tracking-wide-custom">{{ item.category }}</span>
+                      <h3 class="text-xl-custom font-bold-custom text-slate-900-custom mt-1-custom mb-2-custom">{{ item.name }}</h3>
+                      <p class="text-slate-600-custom line-clamp-2-custom">{{ item.description }}</p>
+                    </div>
+
+                    <div class="bg-slate-100-custom rounded-full-custom px-3-custom py-1-custom flex-custom items-center-custom gap-1-custom w-fit-custom mt-4-custom">
+                      <span class="text-slate-700-custom text-sm-custom font-semibold-custom">{{ item.rating }}</span>
+                      <i class="pi pi-star-fill text-amber-400-custom text-sm-custom"></i>
+                    </div>
+                  </div>
+
+                  <div class="flex-custom gap-2-custom mt-4-custom">
+                    <button
+                      pButton
+                      icon="pi pi-shopping-cart"
+                      label="Ver Serviços"
+                      class="button-primary-custom"
+                    ></button>
+                    <button
+                      pButton
+                      icon="pi pi-heart"
+                      [outlined]="true"
+                      class="button-outline-custom">
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </ng-template>
+
+        <!-- GRID VIEW -->
+        <ng-template #grid let-items>
+          <div class="grid-custom grid-cols-1-custom md-grid-cols-2-custom xl-grid-cols-3-custom gap-8-custom">
+            <div *ngFor="let product of items"
+                 class="bg-white-custom rounded-2xl-custom shadow-sm-custom border-slate-200-custom hover-shadow-lg-custom transition-all-custom duration-300-custom overflow-hidden-custom group-custom">
+
+              <div class="image-container relative-custom h-64-custom bg-gradient-custom-inner overflow-hidden-custom">
+                <img
+                  class="image-fill-parent group-hover-scale-105-custom transition-transform-custom duration-300-custom"
+                  [src]="'assets/images/' + product.image"
+                  [alt]="product.name"
+                />
+                <div class="absolute-custom top-4-custom right-4-custom z-10-custom">
+                  <div class="bg-white-90-custom backdrop-blur-sm-custom rounded-full-custom px-3-custom py-1-custom flex-custom items-center-custom gap-1-custom">
+                    <span class="text-slate-700-custom text-sm-custom font-semibold-custom">{{ product.rating }}</span>
+                    <i class="pi pi-star-fill text-amber-400-custom text-sm-custom"></i>
+                  </div>
+                </div>
+              </div>
+
+              <div class="p-6-custom">
+                <div class="mb-4-custom">
+                  <span class="text-slate-500-custom text-sm-custom font-medium-custom uppercase-custom tracking-wide-custom">{{ product.category }}</span>
+                  <h3 class="text-xl-custom font-bold-custom text-slate-900-custom mt-1-custom mb-2-custom leading-tight-custom">{{ product.name }}</h3>
+                  <p class="text-slate-600-custom text-sm-custom line-clamp-2-custom">{{ product.description }}</p>
+                </div>
+
+                <div class="flex-custom gap-2-custom">
+                  <button
+                    pButton
+                    icon="pi pi-shopping-cart"
+                    label="Ver Serviços"
+                    class="flex-1-custom button-primary-custom"
+                  ></button>
+                  <button
+                    pButton
+                    icon="pi pi-heart"
+                    [outlined]="true"
+                    class="button-outline-custom">
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </ng-template>
+
+      </p-dataview>
+    </div>
+  </div>
+</div>
