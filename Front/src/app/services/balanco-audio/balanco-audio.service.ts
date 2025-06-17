@@ -9,17 +9,20 @@ export interface BalancoAudioResponse {
   consumo: number;
 }
 
+
+import { RequisicaoCompatibilidade } from '../compatibilidade/compatibilidade.service';
+
 @Injectable({
   providedIn: 'root'
 })
 export class BalancoAudioService {
-  private url = `${environment.api}/configuracoes/balanco`;
+  private url = `${environment.api}/configuracoes/balanco-audio`;
 
   constructor(private http: HttpClient) {}
 
-  calcularBalanco(payload: any): Observable<BalancoAudioResponse> {
+  calcularBalanco(payload: RequisicaoCompatibilidade): Observable<BalancoAudioResponse> {
     const headers = new HttpHeaders({
-      Authorization: `Basic a2F5a3k6MTIzMzIx`,
+      Authorization: `Basic a2F5a3k6MTIzMzIh`,
       accept: `application/json`,
     });
 

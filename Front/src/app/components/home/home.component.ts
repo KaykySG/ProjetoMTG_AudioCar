@@ -13,6 +13,7 @@ import { ToastModule } from 'primeng/toast';
 import { DialogModule } from 'primeng/dialog';
 import { TableModule } from 'primeng/table';
 import { FormsModule } from '@angular/forms';
+import { InputTextModule } from 'primeng/inputtext';
 
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
@@ -24,7 +25,7 @@ import { subwoofersService } from '../../services/subwoofers/subwoofers.service'
 import { crossoversService } from '../../services/crossovers/crossovers.service';
 import { configuracoesService } from '../../services/configuracoes/configuracoes.service';
 import { CompatibilidadeService, RequisicaoCompatibilidade } from '../../services/compatibilidade/compatibilidade.service';
-import { BalancoAudioService } from '../../services/balanco-audio/balanco-audio.service';
+import { BalancoAudioService, BalancoAudioResponse } from '../../services/balanco-audio/balanco-audio.service';
 
 interface StoreItem {
   id: string;
@@ -51,7 +52,8 @@ interface StoreItem {
     ToastModule,
     DialogModule,
     TableModule,
-    FormsModule
+    FormsModule,
+    InputTextModule
   ],
   providers: [ConfirmationService, MessageService]
 })
@@ -73,47 +75,20 @@ export class HomeComponent implements OnInit {
   nomeProjeto: string = '';
   mostrarInputNomeProjeto: boolean = false;
 
+  // Defina o novo valor máximo de RMS para o consumo
+  readonly MAX_CONSUMO_RMS = 5000; // 5.000 RMS representa 100%
+
   statusIndicators: { label: string; value: number }[] = [
     { label: 'Voz', value: 0 },
     { label: 'Potência de Grave', value: 0 },
     { label: 'Consumo de Energia', value: 0 }
-
   ];
 
   audioComponents: string[] = ['Amplificador', 'Alto-falante', 'Subwoofer', 'Crossovers'];
 
-  atualizarBalancoAudio() {
-    const projetoPayload: RequisicaoCompatibilidade = {
-      nome: 'Prévia',
-      veiculo: 'Volkswagen Gol',
-      relatorioPdf: '',
-      usuarioId: '4f181b66-e602-4b31-b361-badaf4b5541d',
-      altoFalanteIds: this.getIdsByType('Alto-falante'),
-      subwooferIds: this.getIdsByType('Subwoofer'),
-      moduloIds: this.getIdsByType('Amplificador'),
-      crossoverIds: this.getIdsByType('Crossovers')
-    };
-
-    this.balancoAudioService.calcularBalanco(projetoPayload).subscribe({
-      next: (res) => {
-        this.statusIndicators = [
-          { label: 'Voz', value: Math.round(res.percentualVoz) },
-          { label: 'Potência de Grave', value: Math.round(res.percentualGrave) },
-          { label: 'Consumo de Energia', value: Math.round(res.consumo) }
-
-        ];
-      },
-      error: (err) => {
-        console.error('Erro ao calcular balanço de áudio:', err);
-      }
-    });
-  }
-
   selectedComponentType: string | null = null;
   filteredStoreItems: StoreItem[] = [];
   storeItems: StoreItem[] = [];
-
-  selectedComponentsByType: { [key: string]: StoreItem } = {};
 
   constructor(
     private confirmationService: ConfirmationService,
@@ -134,6 +109,7 @@ export class HomeComponent implements OnInit {
       { field: 'type', header: 'Tipo' },
       { field: 'price', header: 'Preço' },
     ];
+    this.atualizarBalancoAudio();
   }
 
   ngAfterViewInit(): void {
@@ -143,13 +119,11 @@ export class HomeComponent implements OnInit {
 
   initThreeJS(): void {
     this.scene = new THREE.Scene();
-
-
     this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
     this.camera.position.set(0, 1.5, 5);
 
-    this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true }); // permite fundo transparente
-    this.renderer.setClearColor(0x000000, 0); // define fundo transparente
+    this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    this.renderer.setClearColor(0x000000, 0);
     this.renderer.setSize(window.innerWidth, window.innerHeight);
 
     const container = document.getElementById('car-3d-container');
@@ -178,7 +152,6 @@ export class HomeComponent implements OnInit {
         const ambientLight = new THREE.AmbientLight(0xffffff, 1.5);
         this.scene.add(ambientLight);
 
-        // Luzes direcionais simulando um ambiente de estúdio
         const light1 = new THREE.DirectionalLight(0xffffff, 1);
         light1.position.set(10, 10, 10);
         this.scene.add(light1);
@@ -188,14 +161,13 @@ export class HomeComponent implements OnInit {
         this.scene.add(light2);
 
         const light3 = new THREE.DirectionalLight(0xffffff, 0.6);
-        light3.position.set(0, -10, 0); // iluminação de baixo
+        light3.position.set(0, -10, 0);
         this.scene.add(light3);
 
         const light4 = new THREE.DirectionalLight(0xffffff, 0.8);
-        light4.position.set(0, 20, 0); // luz diretamente de cima
+        light4.position.set(0, 20, 0);
         this.scene.add(light4);
 
-        // HemisphereLight (ilumina com cor do céu e do chão)
         const hemiLight = new THREE.HemisphereLight(0xffffff, 0xffffff, 1);
         hemiLight.position.set(0, 15, 0);
         this.scene.add(hemiLight);
@@ -225,27 +197,21 @@ export class HomeComponent implements OnInit {
         severity: 'warn',
         summary: 'Nome obrigatório',
         detail: 'Digite um nome para o projeto.'
-
       });
       return;
     }
 
     this.mostrarInputNomeProjeto = false;
 
-    const subwooferIDs = this.getIdsByType('Subwoofer');
-    const altofalantesIDs = this.getIdsByType('Alto-falante');
-    const crossoverIDs = this.getIdsByType('Crossovers');
-    const modulosIDs = this.getIdsByType('Amplificador');
-
     const projetoPayload: RequisicaoCompatibilidade = {
       nome: this.nomeProjeto,
       veiculo: 'Volkswagen Gol',
       relatorioPdf: 'Relatório da configuração em PDF',
       usuarioId: '4f181b66-e602-4b31-b361-badaf4b5541d',
-      altoFalanteIds: altofalantesIDs,
-      subwooferIds: subwooferIDs,
-      moduloIds: modulosIDs,
-      crossoverIds: crossoverIDs
+      altoFalanteIds: this.getIdsByType('Alto-falante'),
+      subwooferIds: this.getIdsByType('Subwoofer'),
+      moduloIds: this.getIdsByType('Amplificador'),
+      crossoverIds: this.getIdsByType('Crossovers')
     };
 
     this.compatibilidadeService.validarConfiguracao(projetoPayload).subscribe({
@@ -270,9 +236,9 @@ export class HomeComponent implements OnInit {
               severity: 'success',
               summary: 'Projeto salvo',
               detail: `O projeto "${this.nomeProjeto}" foi salvo com sucesso!`
-
             });
             this.displaySelectedProductsDialog = true;
+            this.atualizarBalancoAudio();
           },
           error: (err: any) => {
             this.messageService.add({
@@ -346,9 +312,7 @@ export class HomeComponent implements OnInit {
 
   selectStoreItem(item: StoreItem, event?: Event) {
     if (event) event.stopPropagation();
-    this.atualizarBalancoAudio();
 
-    // Garante que os campos usados na tabela estejam presentes e padronizados
     const normalizedItem: StoreItem = {
       ...item,
       name: item.name,
@@ -356,17 +320,15 @@ export class HomeComponent implements OnInit {
       price: item.price
     };
 
-    // Incrementa a quantidade
     if (!this.itemQuantidades) this.itemQuantidades = {};
     this.itemQuantidades[normalizedItem.id] = (this.itemQuantidades[normalizedItem.id] || 0) + 1;
 
-    // Adiciona o item apenas se ainda não estiver listado
     const existe = this.selectedProducts.find(p => p.id === normalizedItem.id);
     if (!existe) {
       this.selectedProducts.push(normalizedItem);
     }
     this.atualizarBalancoAudio();
-    // Mensagem de sucesso
+
     this.messageService.add({
       severity: 'success',
       summary: 'Adicionado',
@@ -377,22 +339,15 @@ export class HomeComponent implements OnInit {
       this.overlayPanel.hide();
     }
 
-
-    const subwooferIDs = this.getIdsByType('Subwoofer');
-    const altoFalantesIDs = this.getIdsByType('Alto-falante');
-    const crossoverIDs = this.getIdsByType('Crossovers');
-    const modulosIDs = this.getIdsByType('Amplificador');
-
-
     const projetoPayload: RequisicaoCompatibilidade = {
       nome: 'Prévia de Compatibilidade',
       veiculo: 'Volkswagen Gol',
       relatorioPdf: 'preview.pdf',
       usuarioId: '4f181b66-e602-4b31-b361-badaf4b5541d',
-      altoFalanteIds: altoFalantesIDs,
-      subwooferIds: subwooferIDs,
-      moduloIds: modulosIDs,
-      crossoverIds: crossoverIDs
+      altoFalanteIds: this.getIdsByType('Alto-falante'),
+      subwooferIds: this.getIdsByType('Subwoofer'),
+      moduloIds: this.getIdsByType('Amplificador'),
+      crossoverIds: this.getIdsByType('Crossovers')
     };
 
     this.compatibilidadeService.validarConfiguracao(projetoPayload).subscribe({
@@ -427,23 +382,19 @@ export class HomeComponent implements OnInit {
       this.selectedProducts = this.selectedProducts.filter(p => p.id !== item.id);
     }
 
-    // Reconstruir os arrays de IDs com base nas quantidades
-    const subwooferIDs = this.getIdsByType('Subwoofer');
-    const altoFalantesIDs = this.getIdsByType('Alto-falante');
-    const crossoverIDs = this.getIdsByType('Crossovers');
-    const modulosIDs = this.getIdsByType('Amplificador');
+    this.atualizarBalancoAudio();
 
     const projetoPayload: RequisicaoCompatibilidade = {
       nome: 'Prévia de Compatibilidade',
       veiculo: 'Volkswagen Gol',
       relatorioPdf: 'preview.pdf',
       usuarioId: '4f181b66-e602-4b31-b361-badaf4b5541d',
-      altoFalanteIds: altoFalantesIDs,
-      subwooferIds: subwooferIDs,
-      moduloIds: modulosIDs,
-      crossoverIds: crossoverIDs
+      altoFalanteIds: this.getIdsByType('Alto-falante'),
+      subwooferIds: this.getIdsByType('Subwoofer'),
+      moduloIds: this.getIdsByType('Amplificador'),
+      crossoverIds: this.getIdsByType('Crossovers')
     };
-    this.atualizarBalancoAudio();
+
     this.compatibilidadeService.validarConfiguracao(projetoPayload).subscribe({
       next: (res) => {
         const problemas = res.filter(p => p.mensagem !== 'Todos os componentes estão compatíveis.');
@@ -456,7 +407,6 @@ export class HomeComponent implements OnInit {
           });
         });
       },
-
       error: () => {
         this.messageService.add({
           severity: 'error',
@@ -468,10 +418,20 @@ export class HomeComponent implements OnInit {
   }
 
   getIdsByType(type: string): string[] {
-    return this.selectedProducts
-      .filter(p => p.type === type)
-      .flatMap(p => Array(this.itemQuantidades[p.id] || 1).fill(p.id));
+    const ids: string[] = [];
+    for (const productId in this.itemQuantidades) {
+      if (this.itemQuantidades.hasOwnProperty(productId)) {
+        const item = this.storeItems.find(si => si.id === productId && si.type === type);
+        if (item) {
+          for (let i = 0; i < this.itemQuantidades[productId]; i++) {
+            ids.push(productId);
+          }
+        }
+      }
+    }
+    return ids;
   }
+
 
   limparNomeProjeto() {
     this.nomeProjeto = '';
@@ -482,5 +442,37 @@ export class HomeComponent implements OnInit {
     this.selectedProducts = [];
     this.nomeProjeto = '';
     this.itemQuantidades = {};
+    this.atualizarBalancoAudio();
+  }
+
+  atualizarBalancoAudio() {
+    const projetoPayload: RequisicaoCompatibilidade = {
+      nome: 'Prévia',
+      veiculo: 'Volkswagen Gol',
+      relatorioPdf: '',
+      usuarioId: '4f181b66-e602-4b31-b361-badaf4b5541d',
+      altoFalanteIds: this.getIdsByType('Alto-falante'),
+      subwooferIds: this.getIdsByType('Subwoofer'),
+      moduloIds: this.getIdsByType('Amplificador'),
+      crossoverIds: this.getIdsByType('Crossovers')
+    };
+
+    this.balancoAudioService.calcularBalanco(projetoPayload).subscribe({
+      next: (res: BalancoAudioResponse) => {
+        // Calcular o valor do consumo em porcentagem com o novo limite
+        const consumoPercentual = (res.consumo / this.MAX_CONSUMO_RMS) * 100;
+        const consumoDisplay = Math.min(100, Math.round(consumoPercentual));
+
+        this.statusIndicators = [
+          { label: 'Voz', value: Math.round(res.percentualVoz) },
+          { label: 'Potência de Grave', value: Math.round(res.percentualGrave) },
+          { label: 'Consumo de Energia', value: consumoDisplay }
+        ];
+      },
+      error: (err) => {
+        console.error('Erro ao calcular balanço de áudio:', err);
+        this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Falha ao calcular balanço de áudio.' });
+      }
+    });
   }
 }
