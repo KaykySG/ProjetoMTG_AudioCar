@@ -2,12 +2,11 @@
   <div class="container-custom mx-auto-custom px-6-custom py-8-custom">
     <div class="mb-8-custom">
       <h1 class="text-4xl-custom font-bold-custom text-slate-800-custom mb-2-custom">Loja de Equipamentos</h1>
-
     </div>
 
     <div class="bg-white-custom rounded-2xl-custom shadow-sm-custom border-slate-200-custom p-6-custom mb-8-custom">
       <div class="flex-custom justify-between-custom items-center-custom">
-        <h2 class="text-xl-custom font-semibold-custom text-slate-800-custom">Produtos Disponíveis</h2>
+        <h2 class="text-xl-custom font-semibold-custom text-slate-800-custom">Empresas Parceiras</h2>
         <p-selectbutton
           [(ngModel)]="layout"
           [options]="options"
@@ -29,6 +28,10 @@
         [paginator]="true"
         styleClass="custom-dataview">
 
+        <!-- LIST VIEW -->
+        <!-- ... início do seu template mantido ... -->
+
+        <!-- LIST VIEW -->
         <ng-template #list let-items>
           <div class="space-y-6-custom">
             <div *ngFor="let item of items; let first = first"
@@ -39,14 +42,9 @@
                   <div class="image-container relative-custom h-64-custom bg-gradient-custom-inner rounded-lg-custom overflow-hidden-custom flex-custom items-center-custom justify-center-custom">
                     <img
                       class="image-fill-parent"
-                      [src]="'/assets/images/amplificador.jpg'"
+                      [src]="'assets/images/' + item.image"
                       [alt]="item.name"
                     />
-                    <div class="absolute-custom top-4-custom left-4-custom z-10-custom">
-                  <span class="inline-flex-custom items-center-custom px-3-custom py-1-custom rounded-full-custom text-sm-custom font-medium-custom bg-green-100-custom text-green-800-custom">
-                    {{ getStatusLabel(item.inventoryStatus) }}
-                  </span>
-                    </div>
                   </div>
                 </div>
 
@@ -64,27 +62,19 @@
                     </div>
                   </div>
 
-                  <div class="flex-custom flex-col-custom md-items-end-custom justify-between-custom">
-                    <div class="flex-custom flex-col-custom">
-                      <span class="text-2xl-custom font-bold-custom text-slate-900-custom">{{ item.price | currency: 'BRL':'symbol':'1.2-2':'pt-BR' }}</span>
-                      <span class="text-xs-custom text-slate-500-custom">À vista no PIX</span>
-                    </div>
-
-                    <div class="flex-custom gap-2-custom mt-4-custom">
-                      <button
-                        pButton
-                        icon="pi pi-shopping-cart"
-                        label="Comprar"
-                        [disabled]="item.inventoryStatus === 'OUTOFSTOCK'"
-                        class="button-primary-custom"
-                      ></button>
-                      <button
-                        pButton
-                        icon="pi pi-heart"
-                        [outlined]="true"
-                        class="button-outline-custom">
-                      </button>
-                    </div>
+                  <div class="flex-custom gap-2-custom mt-4-custom">
+                    <button
+                      pButton
+                      icon="pi pi-shopping-cart"
+                      label="Ver Serviços"
+                      class="button-primary-custom"
+                    ></button>
+                    <button
+                      pButton
+                      icon="pi pi-heart"
+                      [outlined]="true"
+                      class="button-outline-custom">
+                    </button>
                   </div>
                 </div>
               </div>
@@ -92,6 +82,7 @@
           </div>
         </ng-template>
 
+        <!-- GRID VIEW -->
         <ng-template #grid let-items>
           <div class="grid-custom grid-cols-1-custom md-grid-cols-2-custom xl-grid-cols-3-custom gap-8-custom">
             <div *ngFor="let product of items"
@@ -100,14 +91,9 @@
               <div class="image-container relative-custom h-64-custom bg-gradient-custom-inner overflow-hidden-custom">
                 <img
                   class="image-fill-parent group-hover-scale-105-custom transition-transform-custom duration-300-custom"
-                  [src]="'/assets/images/amplificador.jpg'"
+                  [src]="'assets/images/' + product.image"
                   [alt]="product.name"
                 />
-                <div class="absolute-custom top-4-custom left-4-custom z-10-custom">
-              <span class="inline-flex-custom items-center-custom px-3-custom py-1-custom rounded-full-custom text-sm-custom font-medium-custom bg-green-100-custom text-green-800-custom">
-                {{ getStatusLabel(product.inventoryStatus) }}
-              </span>
-                </div>
                 <div class="absolute-custom top-4-custom right-4-custom z-10-custom">
                   <div class="bg-white-90-custom backdrop-blur-sm-custom rounded-full-custom px-3-custom py-1-custom flex-custom items-center-custom gap-1-custom">
                     <span class="text-slate-700-custom text-sm-custom font-semibold-custom">{{ product.rating }}</span>
@@ -123,32 +109,25 @@
                   <p class="text-slate-600-custom text-sm-custom line-clamp-2-custom">{{ product.description }}</p>
                 </div>
 
-                <div class="space-y-4-custom">
-                  <div class="flex-custom flex-col-custom">
-                    <span class="text-2xl-custom font-bold-custom text-slate-900-custom">{{ product.price | currency: 'BRL':'symbol':'1.2-2':'pt-BR' }}</span>
-                    <span class="text-xs-custom text-slate-500-custom">À vista no PIX</span>
-                  </div>
-
-                  <div class="flex-custom gap-2-custom">
-                    <button
-                      pButton
-                      icon="pi pi-shopping-cart"
-                      label="Comprar"
-                      [disabled]="product.inventoryStatus === 'OUTOFSTOCK'"
-                      class="flex-1-custom button-primary-custom"
-                    ></button>
-                    <button
-                      pButton
-                      icon="pi pi-heart"
-                      [outlined]="true"
-                      class="button-outline-custom">
-                    </button>
-                  </div>
+                <div class="flex-custom gap-2-custom">
+                  <button
+                    pButton
+                    icon="pi pi-shopping-cart"
+                    label="Ver Serviços"
+                    class="flex-1-custom button-primary-custom"
+                  ></button>
+                  <button
+                    pButton
+                    icon="pi pi-heart"
+                    [outlined]="true"
+                    class="button-outline-custom">
+                  </button>
                 </div>
               </div>
             </div>
           </div>
         </ng-template>
+
       </p-dataview>
     </div>
   </div>
