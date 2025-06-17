@@ -202,10 +202,10 @@ export class HomeComponent implements OnInit {
 
     this.mostrarInputNomeProjeto = false;
 
-    const subwooferIDs = this.selectedProducts.filter(p => p.type === 'Subwoofer').map(p => p.id);
-    const altofalantesIDs = this.selectedProducts.filter(p => p.type === 'Alto-falante').map(p => p.id);
-    const crossoverIDs = this.selectedProducts.filter(p => p.type === 'Crossovers').map(p => p.id);
-    const modulosIDs = this.selectedProducts.filter(p => p.type === 'Amplificador').map(p => p.id);
+    const subwooferIDs = this.getIdsByType('Subwoofer');
+    const altofalantesIDs = this.getIdsByType('Alto-falante');
+    const crossoverIDs = this.getIdsByType('Crossovers');
+    const modulosIDs = this.getIdsByType('Amplificador');
 
     const projetoPayload: RequisicaoCompatibilidade = {
       nome: this.nomeProjeto,
@@ -346,11 +346,12 @@ export class HomeComponent implements OnInit {
       this.overlayPanel.hide();
     }
 
-    // Validação automática após adicionar
-    const subwooferIDs = this.selectedProducts.filter(p => p.type === 'Subwoofer').map(p => p.id);
-    const altoFalantesIDs = this.selectedProducts.filter(p => p.type === 'Alto-falante').map(p => p.id);
-    const crossoverIDs = this.selectedProducts.filter(p => p.type === 'Crossovers').map(p => p.id);
-    const modulosIDs = this.selectedProducts.filter(p => p.type === 'Amplificador').map(p => p.id);
+
+    const subwooferIDs = this.getIdsByType('Subwoofer');
+    const altoFalantesIDs = this.getIdsByType('Alto-falante');
+    const crossoverIDs = this.getIdsByType('Crossovers');
+    const modulosIDs = this.getIdsByType('Amplificador');
+
 
     const projetoPayload: RequisicaoCompatibilidade = {
       nome: 'Prévia de Compatibilidade',
@@ -448,5 +449,6 @@ export class HomeComponent implements OnInit {
   limparProdutosSelecionados() {
     this.selectedProducts = [];
     this.nomeProjeto = '';
+    this.itemQuantidades = {};
   }
 }
