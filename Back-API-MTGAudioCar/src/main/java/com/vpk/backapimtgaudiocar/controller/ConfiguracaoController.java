@@ -2,6 +2,7 @@ package com.vpk.backapimtgaudiocar.controller;
 
 import com.vpk.backapimtgaudiocar.dto.ConfiguracaoDTO;
 import com.vpk.backapimtgaudiocar.dto.ConfiguracaoRequestDTO;
+import com.vpk.backapimtgaudiocar.dto.ValidacaoCompatibilidadeDTO;
 import com.vpk.backapimtgaudiocar.model.Configuracao;
 import com.vpk.backapimtgaudiocar.service.ConfiguracaoService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,10 +54,8 @@ public class ConfiguracaoController {
         return ResponseEntity.ok(configuracaoService.calcularConsumoTotal(id));
     }
 
-    @PostMapping("/validacoes")
-    public ResponseEntity<List<String>> validarCompatibilidadeDireta(@RequestBody ConfiguracaoRequestDTO dto) {
-        Configuracao configMontada = configuracaoService.montarConfiguracaoSemSalvar(dto);
-        List<String> mensagens = configuracaoService.validarCompatibilidadeDireta(configMontada);
-        return ResponseEntity.ok(mensagens);
+    @PostMapping("/validar")
+    public ResponseEntity<List<ValidacaoCompatibilidadeDTO>> validarCompatibilidadeInterna(@RequestBody ConfiguracaoRequestDTO dto) {
+        return ResponseEntity.ok(configuracaoService.validarCompatibilidadeInterna(dto));
     }
 }

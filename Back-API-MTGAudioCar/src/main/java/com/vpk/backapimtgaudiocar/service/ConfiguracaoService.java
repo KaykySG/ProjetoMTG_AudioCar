@@ -2,13 +2,10 @@ package com.vpk.backapimtgaudiocar.service;
 
 import com.vpk.backapimtgaudiocar.dto.ConfiguracaoDTO;
 import com.vpk.backapimtgaudiocar.dto.ConfiguracaoRequestDTO;
-import com.vpk.backapimtgaudiocar.dto.CrossoverDTO;
+import com.vpk.backapimtgaudiocar.dto.ValidacaoCompatibilidadeDTO;
 import com.vpk.backapimtgaudiocar.model.Configuracao;
 import com.vpk.backapimtgaudiocar.model.ModuloAmplificador;
 import com.vpk.backapimtgaudiocar.repository.*;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -162,7 +159,8 @@ public class ConfiguracaoService {
         return configuracao;
     }
 
-    public List<String> validarCompatibilidadeDireta(Configuracao configuracao) {
+    public List<ValidacaoCompatibilidadeDTO> validarCompatibilidadeInterna(ConfiguracaoRequestDTO dto) {
+        Configuracao configuracao = montarConfiguracaoSemSalvar(dto);
         return compatibilidade.validarCompatibilidade(configuracao);
     }
 }
