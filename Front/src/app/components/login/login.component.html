@@ -7,15 +7,15 @@
     </ng-template>
 
     <div class="p-fluid">
-      <!-- Usuário -->
+      <!-- E-mail -->
       <div class="field input-icon-group">
-        <i class="pi pi-user input-icon"></i>
+        <i class="pi pi-envelope input-icon"></i>
         <input
           id="username"
           type="text"
           pInputText
           [(ngModel)]="username"
-          placeholder="Digite seu usuário"
+          placeholder="Digite seu e-mail"
           class="input-with-icon"
         />
       </div>
@@ -28,7 +28,7 @@
           id="password"
           placeholder="Digite sua senha"
           [toggleMask]="true"
-          [feedback]="true"
+          [feedback]="false"
           inputStyleClass="input-with-icon w-full"
         ></p-password>
       </div>
@@ -46,9 +46,10 @@
         </div>
       </div>
 
-      <!-- Esqueceu a senha -->
-      <div class="forgot-password">
-          <a href="#">Esqueceu a senha?</a>
+
+      <!-- Link para registro -->
+      <div class="register-link" style="text-align: center; margin-top: 0.5rem;">
+        <a (click)="goToRegister()" style="cursor: pointer;">Não tem conta? Cadastre-se</a>
       </div>
     </div>
   </p-card>

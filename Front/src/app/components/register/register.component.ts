@@ -6,7 +6,7 @@ import { CardModule } from 'primeng/card';
 import { InputTextModule } from 'primeng/inputtext';
 import { PasswordModule } from 'primeng/password';
 import { ButtonModule } from 'primeng/button';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 
 @Component({
   selector: 'app-register',
@@ -32,27 +32,39 @@ export class RegisterComponent {
   constructor(private router: Router, private http: HttpClient) {}
 
   register() {
+    // Validação de campos obrigatórios
+    if (!this.fullName || !this.email || !this.username || !this.password || !this.confirmPassword) {
+      alert('Preencha todos os campos antes de continuar.');
+      return;
+    }
+
+    // Validação de senha
     if (this.password !== this.confirmPassword) {
       alert('As senhas não coincidem!');
       return;
     }
 
-    const userData = {
-      fullName: this.fullName,
+    const payload = {
+      nome: this.fullName,
       email: this.email,
-      username: this.username,
-      password: this.password
+      senhaHash: this.password,
+      autenticado: true
     };
 
-    this.http.post<any>('http://localhost:3000/register', userData)
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+      'Authorization': 'Basic a2F5a3k6MTIzMzIx'
+    });
+
+    this.http.post('http://localhost:8080/api/usuarios', payload, { headers })
       .subscribe({
         next: () => {
-          alert('Usuário cadastrado com sucesso!');
+          alert('Cadastro realizado com sucesso!');
           this.router.navigate(['/login']);
         },
         error: (err) => {
           console.error('Erro ao cadastrar:', err);
-          alert('Erro ao cadastrar usuário.');
+          alert('Erro ao cadastrar usuário. Verifique os dados e tente novamente.');
         }
       });
   }
