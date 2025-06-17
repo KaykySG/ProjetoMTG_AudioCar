@@ -1,7 +1,6 @@
 package com.vpk.backapimtgaudiocar.service;
 
 import com.vpk.backapimtgaudiocar.dto.AltoFalanteDTO;
-import com.vpk.backapimtgaudiocar.dto.SubwooferDTO;
 import com.vpk.backapimtgaudiocar.model.AltoFalante;
 import com.vpk.backapimtgaudiocar.repository.AltoFalanteRepository;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -6,7 +6,8 @@ import java.util.UUID;
 
 public class ConfiguracaoRequestDTO  {
     private String nome;
-    private String descricao;
+    private String veiculo;
+    private String relatorioPdf;
     private UUID usuarioId;
     private List<UUID> altoFalanteIds;
     private List<UUID> subwooferIds;
@@ -16,14 +17,15 @@ public class ConfiguracaoRequestDTO  {
     public ConfiguracaoRequestDTO () {
     }
 
-    public ConfiguracaoRequestDTO (String nome, String descricao, UUID usuarioId, List<UUID> altoFalanteIds, List<UUID> subwooferIds, List<UUID> moduloIds, List<UUID> crossoverIds) {
+    public ConfiguracaoRequestDTO (String nome, String veiculo,String relatorioPdf, UUID usuarioId, List<UUID> altoFalanteIds, List<UUID> subwooferIds, List<UUID> moduloIds, List<UUID> crossoverIds) {
         this.nome = nome;
-        this.descricao = descricao;
         this.usuarioId = usuarioId;
         this.altoFalanteIds = altoFalanteIds;
         this.subwooferIds = subwooferIds;
         this.moduloIds = moduloIds;
         this.crossoverIds = crossoverIds;
+        this.veiculo = veiculo;
+        this.relatorioPdf =relatorioPdf;
     }
 
     // Getters e setters
@@ -46,4 +48,20 @@ public class ConfiguracaoRequestDTO  {
 
     public List<UUID> getCrossoverIds() { return crossoverIds; }
     public void setCrossoverIds(List<UUID> crossoverIds) { this.crossoverIds = crossoverIds; }
+
+    public String getVeiculo() {
+        return veiculo;
+    }
+
+    public void setVeiculo(String veiculo) {
+        this.veiculo = veiculo;
+    }
+
+    public String getRelatorioPdf() {
+        return relatorioPdf;
+    }
+
+    public void setRelatorioPdf(String relatorioPdf) {
+        this.relatorioPdf = relatorioPdf;
+    }
 }
