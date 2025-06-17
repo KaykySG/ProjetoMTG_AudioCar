@@ -61,8 +61,6 @@ export class HomeComponent implements OnInit {
   displaySaveConfirmation: boolean = false;
   displaySelectedProductsDialog: boolean = false;
 
-  selectedProducts: any[] = [];
-
   cols: any[] = [];
 
   ngAfterViewInit(): void {
@@ -178,6 +176,8 @@ export class HomeComponent implements OnInit {
     ];
   }
 
+  selectedComponentsByType: { [key: string]: StoreItem } = {};
+
   loadStoreItems() {
     // 1. Carrega os módulos primeiro, como no seu código original
     this.modulosService.obtermodulos().subscribe({
@@ -213,7 +213,7 @@ export class HomeComponent implements OnInit {
               id: item.id,
               name: item.modelo,
               type: 'Alto-falante',
-              price: item.potenciaRmsW || 0,
+              price: item.preco,
               imageUrl: item.imagemUrl,
               description: item.descricao || ''
             }));
@@ -236,7 +236,7 @@ export class HomeComponent implements OnInit {
               id: item.id,
               name: item.modelo,
               type: 'Subwoofer',
-              price: item.potenciaRms || 0,
+              price: item.preco,
               imageUrl: item.imagemUrl,
               description: item.descricao || ''
             }));
@@ -259,7 +259,7 @@ export class HomeComponent implements OnInit {
               id: item.id,
               name: item.tipo,
               type: 'Crossovers',
-              price: item.frequenciaCorte || 0,
+              price: item.preco,
               imageUrl: item.imagemUrl,
               description: item.descricao || ''
             }));
@@ -289,6 +289,26 @@ export class HomeComponent implements OnInit {
 
   advance() {
     this.confirmSaveProject();
+    this.confirmationService.confirm({
+      message: 'Deseja salvar as configurações do seu projeto atual?',
+      header: 'Confirmar Salvar Projeto',
+      icon: 'pi pi-exclamation-triangle',
+      acceptLabel: 'Salvar',
+      rejectLabel: 'Cancelar',
+      accept: () => {
+
+        this.displaySelectedProductsDialog = true;
+
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Projeto salvo',
+          detail: 'Os itens selecionados foram salvos com sucesso!'
+        });
+      },
+      reject: () => {
+        this.messageService.add({ severity: 'info', summary: 'Cancelado', detail: 'Projeto não foi salvo.' });
+      }
+    });
   }
 
   confirmSaveProject() {
@@ -321,22 +341,27 @@ export class HomeComponent implements OnInit {
     }
   }
 
-  selectStoreItem(item: StoreItem) {
-    console.log('Item selecionado:', item);
+  selectedProducts: StoreItem[] = [];
+
+  selectStoreItem(item: StoreItem, event?: Event) {
+    if (event) {
+      event.stopPropagation();
+    }
+
     this.selectedProducts.push(item);
-    this.messageService.add({severity:'success', summary:'Adicionado!', detail:`${item.name} foi adicionado à sua lista.`});
+
+    this.messageService.add({
+      severity: 'success',
+      summary: 'Adicionado',
+      detail: `${item.name} foi adicionado à sua lista.`
+    });
 
     if (this.overlayPanel) {
       this.overlayPanel.hide();
     }
   }
-
-  getStatusSeverity(status: string): string {
-    switch (status) {
-      case 'Em Estoque': return 'success';
-      case 'Estoque Baixo': return 'warn';
-      case 'Sem Estoque': return 'danger';
-      default: return 'info';
-    }
+  limparProdutosSelecionados() {
+    this.selectedProducts = [];
   }
+
 }

@@ -56,7 +56,7 @@
 
             <ng-template pTemplate="footer">
               <div class="card-footer-buttons">
-                <button pButton label="Adicionar" icon="pi pi-plus" class="p-button-sm p-button-secondary add-button" (click)="selectStoreItem(item)"></button>
+                <button pButton label="Adicionar" icon="pi pi-plus" class="p-button-sm p-button-secondary add-button" (click)="selectStoreItem(item, $event)"></button>
               </div>
             </ng-template>
           </p-card>
@@ -73,7 +73,7 @@
 
   <p-confirmDialog [style]="{width: '50vw'}" acceptLabel="Salvar" rejectLabel="Não Salvar"></p-confirmDialog>
 
-  <p-dialog header="Produtos Escolhidos" [(visible)]="displaySelectedProductsDialog" [modal]="true" [style]="{width: '70vw'}" [draggable]="false" [resizable]="false">
+  <p-dialog header="Produtos Escolhidos" [(visible)]="displaySelectedProductsDialog" [modal]="true" [style]="{width: '70vw'}" [draggable]="false" [resizable]="false" (onHide)="limparProdutosSelecionados()">
     <p-table [value]="selectedProducts" [columns]="cols" [tableStyle]="{'min-width': '50rem'}">
       <ng-template pTemplate="header" let-columns>
         <tr>
