@@ -24,6 +24,7 @@ import { subwoofersService } from '../../services/subwoofers/subwoofers.service'
 import { crossoversService } from '../../services/crossovers/crossovers.service';
 import { configuracoesService } from '../../services/configuracoes/configuracoes.service';
 import { CompatibilidadeService, RequisicaoCompatibilidade } from '../../services/compatibilidade/compatibilidade.service';
+import { BalancoAudioService } from '../../services/balanco-audio/balanco-audio.service';
 
 interface StoreItem {
   id: string;
@@ -72,13 +73,41 @@ export class HomeComponent implements OnInit {
   nomeProjeto: string = '';
   mostrarInputNomeProjeto: boolean = false;
 
+  statusIndicators: { label: string; value: number }[] = [
+    { label: 'Voz', value: 0 },
+    { label: 'Potência de Grave', value: 0 },
+    { label: 'Consumo de Energia', value: 0 }
+
+  ];
+
   audioComponents: string[] = ['Amplificador', 'Alto-falante', 'Subwoofer', 'Crossovers'];
 
-  statusIndicators = [
-    { label: 'Potência de Grave', value: 75 },
-    { label: 'Consumo de Energia', value: 50 },
-    { label: 'Custo Financeiro', value: 25 }
-  ];
+  atualizarBalancoAudio() {
+    const projetoPayload: RequisicaoCompatibilidade = {
+      nome: 'Prévia',
+      veiculo: 'Volkswagen Gol',
+      relatorioPdf: '',
+      usuarioId: '4f181b66-e602-4b31-b361-badaf4b5541d',
+      altoFalanteIds: this.getIdsByType('Alto-falante'),
+      subwooferIds: this.getIdsByType('Subwoofer'),
+      moduloIds: this.getIdsByType('Amplificador'),
+      crossoverIds: this.getIdsByType('Crossovers')
+    };
+
+    this.balancoAudioService.calcularBalanco(projetoPayload).subscribe({
+      next: (res) => {
+        this.statusIndicators = [
+          { label: 'Voz', value: Math.round(res.percentualVoz) },
+          { label: 'Potência de Grave', value: Math.round(res.percentualGrave) },
+          { label: 'Consumo de Energia', value: Math.round(res.consumo) }
+
+        ];
+      },
+      error: (err) => {
+        console.error('Erro ao calcular balanço de áudio:', err);
+      }
+    });
+  }
 
   selectedComponentType: string | null = null;
   filteredStoreItems: StoreItem[] = [];
@@ -94,7 +123,8 @@ export class HomeComponent implements OnInit {
     private subwoofersService: subwoofersService,
     private crossoversService: crossoversService,
     private configuracoesService: configuracoesService,
-    private compatibilidadeService: CompatibilidadeService
+    private compatibilidadeService: CompatibilidadeService,
+    private balancoAudioService: BalancoAudioService
   ) {}
 
   ngOnInit() {
@@ -316,6 +346,7 @@ export class HomeComponent implements OnInit {
 
   selectStoreItem(item: StoreItem, event?: Event) {
     if (event) event.stopPropagation();
+    this.atualizarBalancoAudio();
 
     // Garante que os campos usados na tabela estejam presentes e padronizados
     const normalizedItem: StoreItem = {
@@ -334,7 +365,7 @@ export class HomeComponent implements OnInit {
     if (!existe) {
       this.selectedProducts.push(normalizedItem);
     }
-
+    this.atualizarBalancoAudio();
     // Mensagem de sucesso
     this.messageService.add({
       severity: 'success',
@@ -412,7 +443,7 @@ export class HomeComponent implements OnInit {
       moduloIds: modulosIDs,
       crossoverIds: crossoverIDs
     };
-
+    this.atualizarBalancoAudio();
     this.compatibilidadeService.validarConfiguracao(projetoPayload).subscribe({
       next: (res) => {
         const problemas = res.filter(p => p.mensagem !== 'Todos os componentes estão compatíveis.');
@@ -425,6 +456,7 @@ export class HomeComponent implements OnInit {
           });
         });
       },
+
       error: () => {
         this.messageService.add({
           severity: 'error',
