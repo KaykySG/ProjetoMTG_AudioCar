@@ -7,13 +7,12 @@ import { CardModule } from 'primeng/card';
 import { OverlayPanelModule } from 'primeng/overlaypanel';
 import { OverlayPanel } from 'primeng/overlaypanel';
 import { TagModule } from 'primeng/tag';
-
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { ToastModule } from 'primeng/toast';
 import { DialogModule } from 'primeng/dialog';
 import { TableModule } from 'primeng/table';
-import {FormsModule} from '@angular/forms';
+import { FormsModule } from '@angular/forms';
 
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
@@ -24,7 +23,7 @@ import { altofalantesService } from '../../services/altofalantes/altofalantes.se
 import { subwoofersService } from '../../services/subwoofers/subwoofers.service';
 import { crossoversService } from '../../services/crossovers/crossovers.service';
 import { configuracoesService } from '../../services/configuracoes/configuracoes.service';
-
+import { CompatibilidadeService, RequisicaoCompatibilidade } from '../../services/compatibilidade/compatibilidade.service';
 
 interface StoreItem {
   id: string;
@@ -33,13 +32,13 @@ interface StoreItem {
   price: number;
   imageUrl: string;
   description: string;
-
 }
-
 
 @Component({
   selector: 'app-home',
   templateUrl: './home.component.html',
+  styleUrls: ['./home.component.css'],
+  standalone: true,
   imports: [
     CommonModule,
     ButtonModule,
@@ -53,7 +52,6 @@ interface StoreItem {
     TableModule,
     FormsModule
   ],
-  styleUrls: ['./home.component.css'],
   providers: [ConfirmationService, MessageService]
 })
 export class HomeComponent implements OnInit {
@@ -66,11 +64,47 @@ export class HomeComponent implements OnInit {
 
   displaySaveConfirmation: boolean = false;
   displaySelectedProductsDialog: boolean = false;
+  selectedProducts: StoreItem[] = [];
+  itemQuantidades: { [id: string]: number } = {};
 
   cols: any[] = [];
   orcamentoTotal: number = 0;
   nomeProjeto: string = '';
   mostrarInputNomeProjeto: boolean = false;
+
+  audioComponents: string[] = ['Amplificador', 'Alto-falante', 'Subwoofer', 'Crossovers'];
+
+  statusIndicators = [
+    { label: 'Potência de Grave', value: 75 },
+    { label: 'Consumo de Energia', value: 50 },
+    { label: 'Custo Financeiro', value: 25 }
+  ];
+
+  selectedComponentType: string | null = null;
+  filteredStoreItems: StoreItem[] = [];
+  storeItems: StoreItem[] = [];
+
+  selectedComponentsByType: { [key: string]: StoreItem } = {};
+
+  constructor(
+    private confirmationService: ConfirmationService,
+    private messageService: MessageService,
+    private modulosService: modulosService,
+    private altofalantesService: altofalantesService,
+    private subwoofersService: subwoofersService,
+    private crossoversService: crossoversService,
+    private configuracoesService: configuracoesService,
+    private compatibilidadeService: CompatibilidadeService
+  ) {}
+
+  ngOnInit() {
+    this.loadStoreItems();
+    this.cols = [
+      { field: 'name', header: 'Nome do Produto' },
+      { field: 'type', header: 'Tipo' },
+      { field: 'price', header: 'Preço' },
+    ];
+  }
 
   ngAfterViewInit(): void {
     this.initThreeJS();
@@ -149,158 +183,10 @@ export class HomeComponent implements OnInit {
     this.renderer.render(this.scene, this.camera);
   };
 
-  audioComponents: string[] = [
-    'Amplificador',
-    'Alto-falante',
-    'Subwoofer',
-    'Crossovers',
-  ];
-
-  statusIndicators = [
-    { label: 'Potência de Grave', value: 75 },
-    { label: 'Consumo de Energia', value: 50 },
-    { label: 'Custo Financeiro', value: 25 }
-  ];
-
-  selectedComponentType: string | null = null;
-  filteredStoreItems: StoreItem[] = [];
-  storeItems: StoreItem[] = [];
-
-  constructor(
-    private confirmationService: ConfirmationService,
-    private messageService: MessageService,
-    private modulosService: modulosService,
-    private altofalantesService: altofalantesService,
-    private subwoofersService: subwoofersService,
-    private crossoversService: crossoversService,
-    private configuracoesService: configuracoesService,
-  ) {}
-
-  ngOnInit() {
-    this.loadStoreItems();
-
-    this.cols = [
-      { field: 'name', header: 'Nome do Produto' },
-      { field: 'type', header: 'Tipo' },
-      { field: 'price', header: 'Preço' },
-    ];
-  }
-
-  selectedComponentsByType: { [key: string]: StoreItem } = {};
-
-  loadStoreItems() {
-    // 1. Carrega os módulos primeiro, como no seu código original
-    this.modulosService.obtermodulos().subscribe({
-      next: (response: any) => {
-        const rawData = Array.isArray(response) ? response : response?.data;
-
-        if (!Array.isArray(rawData)) {
-          console.error('Formato inesperado da API', response);
-          return;
-        }
-
-        // Lista base: apenas módulos
-        this.storeItems = rawData.map((item: any) => ({
-          id: item.id || '',
-          name: item.descricao,
-          type: 'Amplificador',
-          price: item.preco || 0,
-          imageUrl: item.imagemUrl || 'assets/images/default.png',
-          description: item.descricao || `Potência: ${item.potencia || 'N/A'}`
-        }));
-
-        // 2. Agora adiciona Alto-falantes
-        this.altofalantesService.obterAltofalantes().subscribe({
-          next: (falantes: any) => {
-            const data = Array.isArray(falantes) ? falantes : falantes?.data;
-
-            if (!Array.isArray(data)) {
-              console.error('Formato inesperado da API de alto-falantes:', falantes);
-              return;
-            }
-
-            const altofalantesList = data.map((item: any) => ({
-              id: item.id,
-              name: item.modelo,
-              type: 'Alto-falante',
-              price: item.preco,
-              imageUrl: item.imagemUrl,
-              description: item.descricao || ''
-            }));
-
-            this.storeItems = [...this.storeItems, ...altofalantesList];
-          }
-        });
-
-        // 3. Subwoofers
-        this.subwoofersService.obterSubwoofers().subscribe({
-          next: (subs: any) => {
-            const data = Array.isArray(subs) ? subs : subs?.data;
-
-            if (!Array.isArray(data)) {
-              console.error('Formato inesperado da API de subwoofers:', subs);
-              return;
-            }
-
-            const subwooferList = data.map((item: any) => ({
-              id: item.id,
-              name: item.modelo,
-              type: 'Subwoofer',
-              price: item.preco,
-              imageUrl: item.imagemUrl,
-              description: item.descricao || ''
-            }));
-
-            this.storeItems = [...this.storeItems, ...subwooferList];
-          }
-        });
-
-        // 4. Crossovers
-        this.crossoversService.obterCrossovers().subscribe({
-          next: (cross: any) => {
-            const data = Array.isArray(cross) ? cross : cross?.data;
-
-            if (!Array.isArray(data)) {
-              console.error('Formato inesperado da API de crossovers:', cross);
-              return;
-            }
-
-            const crossoverList = data.map((item: any) => ({
-              id: item.id,
-              name: item.tipo,
-              type: 'Crossovers',
-              price: item.preco,
-              imageUrl: item.imagemUrl,
-              description: item.descricao || ''
-            }));
-
-            this.storeItems = [...this.storeItems, ...crossoverList];
-          }
-        });
-      },
-      error: (err) => {
-        console.error('Erro ao carregar dados da API', err);
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Erro',
-          detail: 'Falha ao carregar os produtos da API.'
-        });
-      }
-    });
-  }
-
-  previousCar() {
-    console.log('Navigate to previous car');
-  }
-
-  nextCar() {
-    console.log('Navigate to next car');
-  }
-
+  previousCar() {}
+  nextCar() {}
   advance() {
-
-      this.mostrarInputNomeProjeto = true;
-
+    this.mostrarInputNomeProjeto = true;
   }
 
   confirmarNomeProjeto() {
@@ -309,54 +195,249 @@ export class HomeComponent implements OnInit {
         severity: 'warn',
         summary: 'Nome obrigatório',
         detail: 'Digite um nome para o projeto.'
+
       });
       return;
     }
 
     this.mostrarInputNomeProjeto = false;
 
-    // Filtrando IDs dos itens por tipo
     const subwooferIDs = this.selectedProducts.filter(p => p.type === 'Subwoofer').map(p => p.id);
     const altofalantesIDs = this.selectedProducts.filter(p => p.type === 'Alto-falante').map(p => p.id);
     const crossoverIDs = this.selectedProducts.filter(p => p.type === 'Crossovers').map(p => p.id);
     const modulosIDs = this.selectedProducts.filter(p => p.type === 'Amplificador').map(p => p.id);
 
-    // Monta o payload a ser enviado
-    const projetoPayload = {
+    const projetoPayload: RequisicaoCompatibilidade = {
       nome: this.nomeProjeto,
       veiculo: 'Volkswagen Gol',
       relatorioPdf: 'Relatório da configuração em PDF',
-      usuarioId: '4f181b66-e602-4b31-b361-badaf4b5541d', // fixo por enquanto
+      usuarioId: '4f181b66-e602-4b31-b361-badaf4b5541d',
       altoFalanteIds: altofalantesIDs,
       subwooferIds: subwooferIDs,
       moduloIds: modulosIDs,
       crossoverIds: crossoverIDs
     };
 
-    this.configuracoesService.salvarConfiguracoes(projetoPayload).subscribe({
-      next: (res: any) => {
-        console.log('✅ Projeto salvo na API:', res);
+    this.compatibilidadeService.validarConfiguracao(projetoPayload).subscribe({
+      next: (validacoes) => {
+        const problemas = validacoes.filter(v => v.mensagem !== 'Todos os componentes estão compatíveis.');
+        if (problemas.length > 0) {
+          problemas.forEach(msg => {
+            this.messageService.add({
+              severity: 'warn',
+              summary: 'Incompatibilidade',
+              detail: `${msg.mensagem}${msg.sugestao ? ' | Sugestão: ' + msg.sugestao : ''}`,
+              sticky: true
+            });
+          });
+          return;
+        }
 
-        // Salva o orçamento total retornado
-        this.orcamentoTotal = res.orcamentoTotal;
+        this.configuracoesService.salvarConfiguracoes(projetoPayload).subscribe({
+          next: (res: any) => {
+            this.orcamentoTotal = res.orcamentoTotal;
+            this.messageService.add({
+              severity: 'success',
+              summary: 'Projeto salvo',
+              detail: `O projeto "${this.nomeProjeto}" foi salvo com sucesso!`
 
-        this.messageService.add({
-          severity: 'success',
-          summary: 'Projeto salvo',
-          detail: `O projeto "${this.nomeProjeto}" foi salvo com sucesso!`
+            });
+            this.displaySelectedProductsDialog = true;
+          },
+          error: (err: any) => {
+            this.messageService.add({
+              severity: 'error',
+              summary: 'Erro',
+              detail: 'Erro ao salvar o projeto.',
+            });
+          }
         });
-
-        this.displaySelectedProductsDialog = true;
       },
-      error: (err: any) => {
-        console.error('❌ Erro ao salvar projeto na API:', err);
+      error: (err) => {
         this.messageService.add({
           severity: 'error',
-          summary: 'Erro',
-          detail: 'Não foi possível salvar o projeto no banco de dados.'
+          summary: 'Erro de compatibilidade',
+          detail: 'Falha ao validar compatibilidade.'
         });
       }
     });
+  }
+
+  loadStoreItems() {
+    this.modulosService.obtermodulos().subscribe({
+      next: (response: any) => {
+        const base = (Array.isArray(response) ? response : response?.data) ?? [];
+        this.storeItems = base.map((item: any) => ({
+          id: item.id, name: item.descricao, type: 'Amplificador',
+          price: item.preco, imageUrl: item.imagemUrl, description: item.descricao
+        }));
+
+        this.altofalantesService.obterAltofalantes().subscribe({
+          next: (data: any) => {
+            const af = Array.isArray(data) ? data : data?.data;
+            const map = af?.map((item: any) => ({
+              id: item.id, name: item.modelo, type: 'Alto-falante',
+              price: item.preco, imageUrl: item.imagemUrl, description: item.descricao
+            })) ?? [];
+            this.storeItems = [...this.storeItems, ...map];
+          }
+        });
+
+        this.subwoofersService.obterSubwoofers().subscribe({
+          next: (data: any) => {
+            const sw = Array.isArray(data) ? data : data?.data;
+            const map = sw?.map((item: any) => ({
+              id: item.id, name: item.modelo, type: 'Subwoofer',
+              price: item.preco, imageUrl: item.imagemUrl, description: item.descricao
+            })) ?? [];
+            this.storeItems = [...this.storeItems, ...map];
+          }
+        });
+
+        this.crossoversService.obterCrossovers().subscribe({
+          next: (data: any) => {
+            const cr = Array.isArray(data) ? data : data?.data;
+            const map = cr?.map((item: any) => ({
+              id: item.id, name: item.tipo, type: 'Crossovers',
+              price: item.preco, imageUrl: item.imagemUrl, description: item.descricao
+            })) ?? [];
+            this.storeItems = [...this.storeItems, ...map];
+          }
+        });
+      }
+    });
+  }
+
+  toggleOverlayPanel(event: Event, componentType: string) {
+    this.selectedComponentType = componentType;
+    this.filteredStoreItems = this.storeItems.filter(item => item.type === componentType);
+    this.overlayPanel?.toggle(event);
+  }
+
+  selectStoreItem(item: StoreItem, event?: Event) {
+    if (event) event.stopPropagation();
+
+    // Garante que os campos usados na tabela estejam presentes e padronizados
+    const normalizedItem: StoreItem = {
+      ...item,
+      name: item.name,
+      type: item.type || 'Desconhecido',
+      price: item.price
+    };
+
+    // Incrementa a quantidade
+    if (!this.itemQuantidades) this.itemQuantidades = {};
+    this.itemQuantidades[normalizedItem.id] = (this.itemQuantidades[normalizedItem.id] || 0) + 1;
+
+    // Adiciona o item apenas se ainda não estiver listado
+    const existe = this.selectedProducts.find(p => p.id === normalizedItem.id);
+    if (!existe) {
+      this.selectedProducts.push(normalizedItem);
+    }
+
+    // Mensagem de sucesso
+    this.messageService.add({
+      severity: 'success',
+      summary: 'Adicionado',
+      detail: `${normalizedItem.name} foi adicionado à sua lista.`
+    });
+
+    if (this.overlayPanel) {
+      this.overlayPanel.hide();
+    }
+
+    // Validação automática após adicionar
+    const subwooferIDs = this.selectedProducts.filter(p => p.type === 'Subwoofer').map(p => p.id);
+    const altoFalantesIDs = this.selectedProducts.filter(p => p.type === 'Alto-falante').map(p => p.id);
+    const crossoverIDs = this.selectedProducts.filter(p => p.type === 'Crossovers').map(p => p.id);
+    const modulosIDs = this.selectedProducts.filter(p => p.type === 'Amplificador').map(p => p.id);
+
+    const projetoPayload: RequisicaoCompatibilidade = {
+      nome: 'Prévia de Compatibilidade',
+      veiculo: 'Volkswagen Gol',
+      relatorioPdf: 'preview.pdf',
+      usuarioId: '4f181b66-e602-4b31-b361-badaf4b5541d',
+      altoFalanteIds: altoFalantesIDs,
+      subwooferIds: subwooferIDs,
+      moduloIds: modulosIDs,
+      crossoverIds: crossoverIDs
+    };
+
+    this.compatibilidadeService.validarConfiguracao(projetoPayload).subscribe({
+      next: (res) => {
+        const problemas = res.filter(p => p.mensagem !== 'Todos os componentes estão compatíveis.');
+        problemas.forEach(p => {
+          this.messageService.add({
+            severity: 'warn',
+            summary: 'Incompatibilidade',
+            detail: `${p.mensagem}${p.sugestao ? ' | Sugestão: ' + p.sugestao : ''}`,
+            sticky: true
+          });
+        });
+      },
+      error: () => {
+        this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Falha ao validar compatibilidade.' });
+      }
+    });
+  }
+
+  getItemCount(id: string): number {
+    return this.itemQuantidades?.[id] || 0;
+  }
+
+  removerQuantidade(item: StoreItem) {
+    const qtdAtual = this.itemQuantidades[item.id] || 0;
+
+    if (qtdAtual > 1) {
+      this.itemQuantidades[item.id] -= 1;
+    } else {
+      delete this.itemQuantidades[item.id];
+      this.selectedProducts = this.selectedProducts.filter(p => p.id !== item.id);
+    }
+
+    // Reconstruir os arrays de IDs com base nas quantidades
+    const subwooferIDs = this.getIdsByType('Subwoofer');
+    const altoFalantesIDs = this.getIdsByType('Alto-falante');
+    const crossoverIDs = this.getIdsByType('Crossovers');
+    const modulosIDs = this.getIdsByType('Amplificador');
+
+    const projetoPayload: RequisicaoCompatibilidade = {
+      nome: 'Prévia de Compatibilidade',
+      veiculo: 'Volkswagen Gol',
+      relatorioPdf: 'preview.pdf',
+      usuarioId: '4f181b66-e602-4b31-b361-badaf4b5541d',
+      altoFalanteIds: altoFalantesIDs,
+      subwooferIds: subwooferIDs,
+      moduloIds: modulosIDs,
+      crossoverIds: crossoverIDs
+    };
+
+    this.compatibilidadeService.validarConfiguracao(projetoPayload).subscribe({
+      next: (res) => {
+        const problemas = res.filter(p => p.mensagem !== 'Todos os componentes estão compatíveis.');
+        problemas.forEach(p => {
+          this.messageService.add({
+            severity: 'warn',
+            summary: 'Incompatibilidade',
+            detail: `${p.mensagem}${p.sugestao ? ' | Sugestão: ' + p.sugestao : ''}`,
+            sticky: true
+          });
+        });
+      },
+      error: () => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Erro',
+          detail: 'Falha ao validar compatibilidade.'
+        });
+      }
+    });
+  }
+
+  getIdsByType(type: string): string[] {
+    return this.selectedProducts
+      .filter(p => p.type === type)
+      .flatMap(p => Array(this.itemQuantidades[p.id] || 1).fill(p.id));
   }
 
   limparNomeProjeto() {
@@ -364,58 +445,8 @@ export class HomeComponent implements OnInit {
     this.mostrarInputNomeProjeto = false;
   }
 
-  confirmSaveProject() {
-    this.confirmationService.confirm({
-      message: 'Deseja salvar as configurações do seu projeto atual?',
-      header: 'Confirmar Salvar Projeto',
-      icon: 'pi pi-exclamation-triangle',
-      acceptLabel: 'Salvar',
-      rejectLabel: 'Não Salvar',
-      accept: () => {
-        this.messageService.add({ severity: 'success', summary: 'Salvo', detail: 'Seu projeto foi salvo com sucesso!' });
-        this.showSelectedProducts();
-      },
-      reject: () => {
-        this.messageService.add({ severity: 'info', summary: 'Não Salvo', detail: 'Projeto não foi salvo.' });
-      }
-    });
-  }
-
-  showSelectedProducts() {
-    this.displaySelectedProductsDialog = true;
-  }
-
-  toggleOverlayPanel(event: Event, componentType: string) {
-    this.selectedComponentType = componentType;
-    this.filteredStoreItems = this.storeItems.filter(item => item.type === componentType);
-
-    if (this.overlayPanel) {
-      this.overlayPanel.toggle(event);
-    }
-  }
-
-  selectedProducts: StoreItem[] = [];
-
-  selectStoreItem(item: StoreItem, event?: Event) {
-    if (event) {
-      event.stopPropagation();
-    }
-
-    this.selectedProducts.push(item);
-
-    this.messageService.add({
-      severity: 'success',
-      summary: 'Adicionado',
-      detail: `${item.name} foi adicionado à sua lista.`
-    });
-
-    if (this.overlayPanel) {
-      this.overlayPanel.hide();
-    }
-  }
   limparProdutosSelecionados() {
     this.selectedProducts = [];
     this.nomeProjeto = '';
   }
-
 }
