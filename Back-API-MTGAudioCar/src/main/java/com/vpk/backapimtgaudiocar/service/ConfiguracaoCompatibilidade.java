@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 public class ConfiguracaoCompatibilidade {
@@ -17,7 +18,7 @@ public class ConfiguracaoCompatibilidade {
     @Autowired
     private ConfiguracaoRepository configuracaoRepository;
 
-    public List<String> validarCompatibilidade(String id) {
+    public List<String> validarCompatibilidade(UUID id) {
         List<String> mensagens = new ArrayList<>();
 
         configuracaoRepository.findById(id).ifPresent(cfg -> {

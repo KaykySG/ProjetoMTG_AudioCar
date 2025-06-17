@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/crossovers")
@@ -23,7 +24,7 @@ public class CrossoverController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Crossover> buscarPorId(@PathVariable String id) {
+    public ResponseEntity<CrossoverDTO> buscarPorId(@PathVariable UUID id) {
         return crossoverService.buscarPorId(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
@@ -35,12 +36,12 @@ public class CrossoverController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Crossover> atualizar(@PathVariable String id, @RequestBody Crossover crossover) {
+    public ResponseEntity<Crossover> atualizar(@PathVariable UUID id, @RequestBody Crossover crossover) {
         return ResponseEntity.ok(crossoverService.atualizar(id, crossover));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deletar(@PathVariable String id) {
+    public ResponseEntity<Void> deletar(@PathVariable UUID id) {
         crossoverService.deletar(id);
         return ResponseEntity.noContent().build();
     }

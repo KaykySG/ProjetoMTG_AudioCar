@@ -1,6 +1,7 @@
 package com.vpk.backapimtgaudiocar.service;
 
 import com.vpk.backapimtgaudiocar.dto.CrossoverDTO;
+import com.vpk.backapimtgaudiocar.dto.ModuloAmplificadorDTO;
 import com.vpk.backapimtgaudiocar.model.Crossover;
 import com.vpk.backapimtgaudiocar.repository.CrossoverRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,15 +24,16 @@ public class CrossoverService {
                 .toList();
     }
 
-    public Optional<Crossover> buscarPorId(String id) {
-        return crossoverRepository.findById(id);
+    public Optional<CrossoverDTO> buscarPorId(UUID id) {
+        return crossoverRepository.findById(id)
+                .map(CrossoverDTO::new);
     }
 
     public Crossover salvar(Crossover crossover) {
         return crossoverRepository.save(crossover);
     }
 
-    public Crossover atualizar(String id, Crossover atualizado) {
+    public Crossover atualizar(UUID id, Crossover atualizado) {
         return crossoverRepository.findById(id).map(c -> {
             c.setTipo(atualizado.getTipo());
             c.setNumeroVias(atualizado.getNumeroVias());
@@ -43,12 +45,12 @@ public class CrossoverService {
             c.setCategoria(atualizado.getCategoria());
             return crossoverRepository.save(c);
         }).orElseGet(() -> {
-            atualizado.setId(UUID.fromString(id));
+            atualizado.setId(id);
             return crossoverRepository.save(atualizado);
         });
     }
 
-    public void deletar(String id) {
+    public void deletar(UUID id) {
         crossoverRepository.deleteById(id);
     }
 }

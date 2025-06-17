@@ -20,6 +20,7 @@ public class AltoFalanteDTO {
     private String imagemUrl;
     private String descricao;
     private String categoria;
+    private Double preco;
 
     // Construtor padrão
     public AltoFalanteDTO() {
@@ -40,6 +41,7 @@ public class AltoFalanteDTO {
         this.imagemUrl = altoFalante.getImagemUrl();
         this.descricao = altoFalante.getDescricao();
         this.categoria = altoFalante.getCategoria().getNome();
+        this.preco = altoFalante.getPreco();
     }
 
     // Getters e Setters
@@ -145,5 +147,13 @@ public class AltoFalanteDTO {
 
     public void setCategoriaId(String categoria) {
         this.categoria = categoria;
+    }
+
+    public Double getPreco() {
+        return preco;
+    }
+
+    public void setPreco(Double preco) {
+        this.preco = preco;
     }
 }
