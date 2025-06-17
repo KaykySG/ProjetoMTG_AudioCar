@@ -40,10 +40,7 @@ export class LoginComponent {
 
           // Teste de login sem token: apenas verifica se retornou e-mail
           if (response && response.email) {
-            // Armazena o usuário (opcional para uso futuro)
             localStorage.setItem('usuarioLogado', JSON.stringify(response));
-
-            // Redireciona para a home
             this.router.navigate(['/home']);
           } else {
             alert('Login falhou: resposta inválida.');
@@ -54,5 +51,9 @@ export class LoginComponent {
           alert('Usuário ou senha inválidos!');
         }
       });
+  }
+
+  goToRegister() {
+    this.router.navigate(['/register']);
   }
 }
