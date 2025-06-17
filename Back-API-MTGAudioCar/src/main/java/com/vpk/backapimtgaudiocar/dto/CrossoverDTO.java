@@ -17,6 +17,7 @@ public class CrossoverDTO {
     private String imagemUrl;
     private String descricao;
     private String categoria;
+    private Double preco;
 
     // Construtor padrão
     public CrossoverDTO() {
@@ -33,6 +34,7 @@ public class CrossoverDTO {
         this.imagemUrl = crossover.getImagemUrl();
         this.descricao = crossover.getDescricao();
         this.categoria = crossover.getCategoria().getNome();
+        this.preco = crossover.getPreco();
     }
 
     // Getters e Setters
@@ -106,5 +108,13 @@ public class CrossoverDTO {
 
     public void setCategoriaId(String categoria) {
         this.categoria = categoria;
+    }
+
+    public Double getPreco() {
+        return preco;
+    }
+
+    public void setPreco(Double preco) {
+        this.preco = preco;
     }
 }

@@ -18,6 +18,7 @@ public class ModuloAmplificadorDTO {
     private String imagemUrl;
     private String descricao;
     private String categoria;
+    private Double preco;
 
     // Construtor padrão
     public ModuloAmplificadorDTO() {
@@ -36,6 +37,7 @@ public class ModuloAmplificadorDTO {
         this.imagemUrl = modulo.getImagemUrl();
         this.descricao = modulo.getDescricao();
         this.categoria = modulo.getCategoria().getNome();
+        this.preco = modulo.getPreco();
     }
 
     // Getters e Setters
@@ -125,5 +127,13 @@ public class ModuloAmplificadorDTO {
 
     public void setCategoriaId(String categoria) {
         this.categoria = categoria;
+    }
+
+    public Double getPreco() {
+        return preco;
+    }
+
+    public void setPreco(Double preco) {
+        this.preco = preco;
     }
 }

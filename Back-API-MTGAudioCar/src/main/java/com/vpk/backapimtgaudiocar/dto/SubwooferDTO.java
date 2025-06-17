@@ -22,6 +22,7 @@ public class SubwooferDTO {
     private String imagemUrl;
     private String descricao;
     private String categoria;
+    private Double preco;
 
     // Construtor padrão
     public SubwooferDTO() {
@@ -44,6 +45,7 @@ public class SubwooferDTO {
         this.imagemUrl = subwoofer.getImagemUrl();
         this.descricao = subwoofer.getDescricao();
         this.categoria = subwoofer.getCategoria().getNome();
+        this.preco = subwoofer.getPreco();
     }
 
 
@@ -166,5 +168,13 @@ public class SubwooferDTO {
 
     public void setCategoriaId(String categoria) {
         this.categoria = categoria;
+    }
+
+    public Double getPreco() {
+        return preco;
+    }
+
+    public void setPreco(Double preco) {
+        this.preco = preco;
     }
 }
