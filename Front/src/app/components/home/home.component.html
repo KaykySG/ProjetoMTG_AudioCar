@@ -44,7 +44,7 @@
           <p-card *ngFor="let item of filteredStoreItems" class="store-item-card" (click)="selectStoreItem(item)">
             <ng-template pTemplate="header">
               <div class="card-image-container">
-                <img [src]="item.imageUrl" [alt]="item.name" class="card-image"/>
+                <img [src]="item.imageUrl"  class="card-image"/>
               </div>
             </ng-template>
             <ng-template pTemplate="title">
@@ -53,9 +53,7 @@
             <ng-template pTemplate="subtitle">
               R$ {{ item.price | number:'1.2-2' }}
             </ng-template>
-            <ng-template pTemplate="content">
-              <p class="item-description">{{ item.description }}</p>
-            </ng-template>
+
             <ng-template pTemplate="footer">
               <div class="card-footer-buttons">
                 <button pButton label="Adicionar" icon="pi pi-plus" class="p-button-sm p-button-secondary add-button" (click)="selectStoreItem(item)"></button>
