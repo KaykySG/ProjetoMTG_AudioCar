@@ -13,15 +13,18 @@ import { ConfirmationService, MessageService } from 'primeng/api';
 import { ToastModule } from 'primeng/toast';
 import { DialogModule } from 'primeng/dialog';
 import { TableModule } from 'primeng/table';
+import {FormsModule} from '@angular/forms';
 
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
 import { modulosService } from '../../services/modulos/modulos.service';
-import { autofalantesService } from '../../services/autofalantes/autofalantes.service';
+import { altofalantesService } from '../../services/altofalantes/altofalantes.service';
 import { subwoofersService } from '../../services/subwoofers/subwoofers.service';
 import { crossoversService } from '../../services/crossovers/crossovers.service';
+import { configuracoesService } from '../../services/configuracoes/configuracoes.service';
+
 
 interface StoreItem {
   id: string;
@@ -30,7 +33,9 @@ interface StoreItem {
   price: number;
   imageUrl: string;
   description: string;
+
 }
+
 
 @Component({
   selector: 'app-home',
@@ -45,7 +50,8 @@ interface StoreItem {
     ConfirmDialogModule,
     ToastModule,
     DialogModule,
-    TableModule
+    TableModule,
+    FormsModule
   ],
   styleUrls: ['./home.component.css'],
   providers: [ConfirmationService, MessageService]
@@ -62,6 +68,9 @@ export class HomeComponent implements OnInit {
   displaySelectedProductsDialog: boolean = false;
 
   cols: any[] = [];
+  orcamentoTotal: number = 0;
+  nomeProjeto: string = '';
+  mostrarInputNomeProjeto: boolean = false;
 
   ngAfterViewInit(): void {
     this.initThreeJS();
@@ -161,9 +170,10 @@ export class HomeComponent implements OnInit {
     private confirmationService: ConfirmationService,
     private messageService: MessageService,
     private modulosService: modulosService,
-    private altofalantesService: autofalantesService,
+    private altofalantesService: altofalantesService,
     private subwoofersService: subwoofersService,
-    private crossoversService: crossoversService
+    private crossoversService: crossoversService,
+    private configuracoesService: configuracoesService,
   ) {}
 
   ngOnInit() {
@@ -200,7 +210,7 @@ export class HomeComponent implements OnInit {
         }));
 
         // 2. Agora adiciona Alto-falantes
-        this.altofalantesService.obterAutofalantes().subscribe({
+        this.altofalantesService.obterAltofalantes().subscribe({
           next: (falantes: any) => {
             const data = Array.isArray(falantes) ? falantes : falantes?.data;
 
@@ -288,27 +298,70 @@ export class HomeComponent implements OnInit {
   }
 
   advance() {
-    this.confirmSaveProject();
-    this.confirmationService.confirm({
-      message: 'Deseja salvar as configurações do seu projeto atual?',
-      header: 'Confirmar Salvar Projeto',
-      icon: 'pi pi-exclamation-triangle',
-      acceptLabel: 'Salvar',
-      rejectLabel: 'Cancelar',
-      accept: () => {
 
-        this.displaySelectedProductsDialog = true;
+      this.mostrarInputNomeProjeto = true;
+
+  }
+
+  confirmarNomeProjeto() {
+    if (!this.nomeProjeto.trim()) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Nome obrigatório',
+        detail: 'Digite um nome para o projeto.'
+      });
+      return;
+    }
+
+    this.mostrarInputNomeProjeto = false;
+
+    // Filtrando IDs dos itens por tipo
+    const subwooferIDs = this.selectedProducts.filter(p => p.type === 'Subwoofer').map(p => p.id);
+    const altofalantesIDs = this.selectedProducts.filter(p => p.type === 'Alto-falante').map(p => p.id);
+    const crossoverIDs = this.selectedProducts.filter(p => p.type === 'Crossovers').map(p => p.id);
+    const modulosIDs = this.selectedProducts.filter(p => p.type === 'Amplificador').map(p => p.id);
+
+    // Monta o payload a ser enviado
+    const projetoPayload = {
+      nome: this.nomeProjeto,
+      veiculo: 'Volkswagen Gol',
+      relatorioPdf: 'Relatório da configuração em PDF',
+      usuarioId: '4f181b66-e602-4b31-b361-badaf4b5541d', // fixo por enquanto
+      altoFalanteIds: altofalantesIDs,
+      subwooferIds: subwooferIDs,
+      moduloIds: modulosIDs,
+      crossoverIds: crossoverIDs
+    };
+
+    this.configuracoesService.salvarConfiguracoes(projetoPayload).subscribe({
+      next: (res: any) => {
+        console.log('✅ Projeto salvo na API:', res);
+
+        // Salva o orçamento total retornado
+        this.orcamentoTotal = res.orcamentoTotal;
 
         this.messageService.add({
           severity: 'success',
           summary: 'Projeto salvo',
-          detail: 'Os itens selecionados foram salvos com sucesso!'
+          detail: `O projeto "${this.nomeProjeto}" foi salvo com sucesso!`
         });
+
+        this.displaySelectedProductsDialog = true;
       },
-      reject: () => {
-        this.messageService.add({ severity: 'info', summary: 'Cancelado', detail: 'Projeto não foi salvo.' });
+      error: (err: any) => {
+        console.error('❌ Erro ao salvar projeto na API:', err);
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Erro',
+          detail: 'Não foi possível salvar o projeto no banco de dados.'
+        });
       }
     });
+  }
+
+  limparNomeProjeto() {
+    this.nomeProjeto = '';
+    this.mostrarInputNomeProjeto = false;
   }
 
   confirmSaveProject() {
@@ -362,6 +415,7 @@ export class HomeComponent implements OnInit {
   }
   limparProdutosSelecionados() {
     this.selectedProducts = [];
+    this.nomeProjeto = '';
   }
 
 }

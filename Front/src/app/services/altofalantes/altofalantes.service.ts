@@ -6,12 +6,12 @@ import { environment } from '../../../environments/environment.development';
 @Injectable({
   providedIn: 'root'
 })
-export class autofalantesService {
-  private url = `${environment.api}/autofalantes`;
+export class altofalantesService {
+  private url = `${environment.api}/altofalantes`;
 
   constructor(private http: HttpClient) {}
 
-  obterAutofalantes(): Observable<any> {
+  obterAltofalantes(): Observable<any> {
     const username = 'kayky';
     const password = '123321';
     const basicAuth = btoa(`${username}:${password}`);
