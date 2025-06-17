@@ -218,6 +218,12 @@ public class ConfiguracaoService {
                 .mapToInt(AltoFalante::getPotenciaRmsW)
                 .sum();
 
+        double potenciaTotalModulos = cfg.getModulos().stream()
+                .filter(m -> m.getPotenciaPorCanalRms() != null)
+                .mapToDouble(ModuloAmplificador::getPotenciaPorCanalRms)
+                .sum();
+
+
         int somaTotal = totalGrave + totalVoz;
 
         System.out.println("\n\n\n\n\nsomatotal"+somaTotal+"\n\n\n\n\n\n\n");
@@ -230,6 +236,7 @@ public class ConfiguracaoService {
         resposta.setPotenciaVozTotal(totalVoz);
         resposta.setPercentualGrave(percGrave);
         resposta.setPercentualVoz(percVoz);
+        resposta.setConsumo(somaTotal);
 
         return resposta;
     }

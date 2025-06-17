@@ -5,16 +5,18 @@ public class BalancoAudioDTO {
     private int potenciaVozTotal;
     private double percentualGrave; // exemplo: 65.5
     private double percentualVoz;   // exemplo: 34.5
+    private double consumo;
 
 
     public BalancoAudioDTO() {
     }
 
-    public BalancoAudioDTO(int potenciaGraveTotal, int potenciaVozTotal, double percentualGrave, double percentualVoz) {
+    public BalancoAudioDTO(int potenciaGraveTotal, int potenciaVozTotal, double percentualGrave, double percentualVoz, double consumo) {
         this.potenciaGraveTotal = potenciaGraveTotal;
         this.potenciaVozTotal = potenciaVozTotal;
         this.percentualGrave = percentualGrave;
         this.percentualVoz = percentualVoz;
+        this.consumo = consumo;
     }
 
     public double getPercentualVoz() {
@@ -47,5 +49,13 @@ public class BalancoAudioDTO {
 
     public void setPotenciaGraveTotal(int potenciaGraveTotal) {
         this.potenciaGraveTotal = potenciaGraveTotal;
+    }
+
+    public double getConsumo() {
+        return consumo;
+    }
+
+    public void setConsumo(double consumo) {
+        this.consumo = consumo;
     }
 }

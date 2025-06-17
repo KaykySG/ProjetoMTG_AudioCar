@@ -72,8 +72,8 @@ public class ConfiguracaoCompatibilidade {
         // 🔌 Impedância Subwoofer
         for (Subwoofer sub : configuracao.getSubwoofers()) {
             for (ModuloAmplificador mod : configuracao.getModulos()) {
-                System.out.println("\n\n\n\n grave"+sub.getImpedanciaOhms()+"\n\n\n\n\n");
-                System.out.println("\n\n\n\n modoloOhns"+mod.getImpedanciaMinimaOhms()+"\n\n\n\n\n");
+                //System.out.println("\n\n\n\n grave"+sub.getImpedanciaOhms()+"\n\n\n\n\n");
+                //System.out.println("\n\n\n\n modoloOhns"+mod.getImpedanciaMinimaOhms()+"\n\n\n\n\n");
 
                 if (sub.getImpedanciaOhms() != null && mod.getImpedanciaMinimaOhms() != null &&
                         sub.getImpedanciaOhms() < mod.getImpedanciaMinimaOhms()) {
