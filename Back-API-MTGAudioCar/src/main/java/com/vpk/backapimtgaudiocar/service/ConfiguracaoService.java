@@ -3,8 +3,7 @@ package com.vpk.backapimtgaudiocar.service;
 import com.vpk.backapimtgaudiocar.dto.ConfiguracaoDTO;
 import com.vpk.backapimtgaudiocar.dto.ConfiguracaoRequestDTO;
 import com.vpk.backapimtgaudiocar.dto.ValidacaoCompatibilidadeDTO;
-import com.vpk.backapimtgaudiocar.model.Configuracao;
-import com.vpk.backapimtgaudiocar.model.ModuloAmplificador;
+import com.vpk.backapimtgaudiocar.model.*;
 import com.vpk.backapimtgaudiocar.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -127,6 +126,46 @@ public class ConfiguracaoService {
         return configuracaoRepository.save(configuracao);
     }
 
+
+    private ModuloAmplificador cloneModulo(ModuloAmplificador original) {
+        ModuloAmplificador clone = new ModuloAmplificador();
+        clone.setTipo(original.getTipo());
+        clone.setPotenciaPorCanalRms(original.getPotenciaPorCanalRms());
+        clone.setImpedanciaMinimaOhms(original.getImpedanciaMinimaOhms());
+        clone.setPreco(original.getPreco());
+        return clone;
+    }
+
+    private AltoFalante cloneAltoFalante(AltoFalante original) {
+        AltoFalante clone = new AltoFalante();
+        clone.setModelo(original.getModelo());
+        clone.setPotenciaRmsW(original.getPotenciaRmsW());
+        clone.setImpedanciaOhms(original.getImpedanciaOhms());
+        clone.setFaixaFrequenciaHz(original.getFaixaFrequenciaHz());
+        clone.setPreco(original.getPreco());
+        return clone;
+    }
+
+    private Subwoofer cloneSubwoofer(Subwoofer original) {
+        Subwoofer clone = new Subwoofer();
+        clone.setModelo(original.getModelo());
+        clone.setPotenciaRmsW(original.getPotenciaRmsW());
+        clone.setImpedanciaOhms(original.getImpedanciaOhms());
+        clone.setFaixaFrequenciaHz(original.getFaixaFrequenciaHz());
+        clone.setPreco(original.getPreco());
+        return clone;
+    }
+
+    private Crossover cloneCrossover(Crossover original) {
+        Crossover clone = new Crossover();
+        clone.setTipo(original.getTipo());
+        clone.setFrequenciasCorteHz(original.getFrequenciasCorteHz());
+        clone.setPreco(original.getPreco());
+        return clone;
+    }
+
+
+
     public Configuracao montarConfiguracaoSemSalvar(ConfiguracaoRequestDTO dto) {
         Configuracao configuracao = new Configuracao();
         configuracao.setNomeConfiguracao(dto.getNome());
@@ -137,27 +176,28 @@ public class ConfiguracaoService {
 
         if (dto.getAltoFalanteIds() != null) {
             dto.getAltoFalanteIds().forEach(id ->
-                    altoFalanteRepository.findById(id).ifPresent(configuracao.getAltoFalantes()::add)
+                    altoFalanteRepository.findById(id).ifPresent(af -> configuracao.getAltoFalantes().add(cloneAltoFalante(af)))
             );
         }
         if (dto.getSubwooferIds() != null) {
             dto.getSubwooferIds().forEach(id ->
-                    subwooferRepository.findById(id).ifPresent(configuracao.getSubwoofers()::add)
+                    subwooferRepository.findById(id).ifPresent(sw -> configuracao.getSubwoofers().add(cloneSubwoofer(sw)))
             );
         }
         if (dto.getModuloIds() != null) {
             dto.getModuloIds().forEach(id ->
-                    moduloRepository.findById(id).ifPresent(configuracao.getModulos()::add)
+                    moduloRepository.findById(id).ifPresent(mod -> configuracao.getModulos().add(cloneModulo(mod)))
             );
         }
         if (dto.getCrossoverIds() != null) {
             dto.getCrossoverIds().forEach(id ->
-                    crossoverRepository.findById(id).ifPresent(configuracao.getCrossovers()::add)
+                    crossoverRepository.findById(id).ifPresent(cross -> configuracao.getCrossovers().add(cloneCrossover(cross)))
             );
         }
 
         return configuracao;
     }
+
 
     public List<ValidacaoCompatibilidadeDTO> validarCompatibilidadeInterna(ConfiguracaoRequestDTO dto) {
         Configuracao configuracao = montarConfiguracaoSemSalvar(dto);
