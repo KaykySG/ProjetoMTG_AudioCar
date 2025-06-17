@@ -134,6 +134,7 @@ public class ConfiguracaoService {
         clone.setPotenciaPorCanalRms(original.getPotenciaPorCanalRms());
         clone.setImpedanciaMinimaOhms(original.getImpedanciaMinimaOhms());
         clone.setPreco(original.getPreco());
+        clone.setCanais(original.getCanais());
         return clone;
     }
 
@@ -218,10 +219,12 @@ public class ConfiguracaoService {
                 .mapToInt(AltoFalante::getPotenciaRmsW)
                 .sum();
 
+
         double potenciaTotalModulos = cfg.getModulos().stream()
                 .filter(m -> m.getPotenciaPorCanalRms() != null)
-                .mapToDouble(ModuloAmplificador::getPotenciaPorCanalRms)
+                .mapToDouble(m -> m.getPotenciaPorCanalRms() * (m.getCanais() != null ? m.getCanais() : 1))
                 .sum();
+
 
 
         int somaTotal = totalGrave + totalVoz;
