@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:background="@drawable/home_gradient_bg">
+
+    <ScrollView
+        android:layout_width="match_parent" android:layout_height="match_parent"
+        android:padding="16dp" android:clipToPadding="false">
+
+        <LinearLayout
+            android:id="@+id/container"
+            android:orientation="vertical"
+            android:layout_width="match_parent" android:layout_height="wrap_content">
+
+            <!-- Logo -->
+            <LinearLayout
+                android:orientation="vertical" android:gravity="center"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:padding="8dp">
+
+                <ImageView
+                    android:layout_width="248dp"
+                    android:layout_height="172dp"
+                    android:adjustViewBounds="true"
+                    android:src="@drawable/logo" />
+            </LinearLayout>
+
+            <!-- Card Montagem -->
+            <LinearLayout
+                android:id="@+id/cardMontagemHeader"
+                android:orientation="horizontal"
+                android:background="@drawable/menu_card"
+                android:padding="14dp"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:gravity="center_vertical">
+
+                <ImageView
+                    android:src="@drawable/ic_build"
+                    android:background="@drawable/menu_button"
+                    android:padding="8dp"
+                    android:layout_width="36dp" android:layout_height="36dp"
+                    android:layout_marginEnd="12dp"
+                    android:scaleType="centerInside"/>
+
+                <TextView
+                    android:text="Montagem" android:textStyle="bold"
+                    android:textColor="#7216F5" android:textSize="16sp"
+                    android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="1"/>
+
+                <ImageView
+                    android:id="@+id/ivToggle"
+                    android:src="@drawable/ic_expand_more"
+                    android:layout_width="24dp" android:layout_height="24dp"
+                    android:scaleType="centerInside"/>
+            </LinearLayout>
+
+            <!-- Submenu -->
+            <LinearLayout
+                android:id="@+id/submenuMontagem"
+                android:visibility="gone"
+                android:orientation="vertical"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:layout_marginTop="8dp">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnMontagemPersonalizada"
+                    android:layout_width="match_parent" android:layout_height="48dp"
+                    android:text="Montagem Personalizada" android:textColor="#FFFFFF"
+                    android:textAllCaps="false"
+                    android:layout_marginBottom="8dp"
+                    app:icon="@drawable/ic_build"
+                    app:iconGravity="textStart"
+                    app:iconPadding="8dp"
+                    app:iconSize="20dp"
+                    android:background="@drawable/menu_button"/>
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnMontagemPredefinida"
+                    android:layout_width="match_parent" android:layout_height="48dp"
+                    android:text="Montagem Predefinida" android:textColor="#FFFFFF"
+                    android:textAllCaps="false"
+                    app:icon="@drawable/ic_build"
+                    app:iconGravity="textStart"
+                    app:iconPadding="8dp"
+                    app:iconSize="20dp"
+                    android:background="@drawable/menu_button"/>
+            </LinearLayout>
+
+            <!-- Ações principais -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnProjetos"
+                android:layout_width="match_parent" android:layout_height="52dp"
+                android:layout_marginTop="14dp"
+                android:text="Projetos" android:textAllCaps="false"
+                android:textColor="#1F2937"
+                android:background="@drawable/menu_button_light"
+                app:icon="@drawable/ic_folder"
+                app:iconGravity="textStart"
+                app:iconPadding="8dp"
+                app:iconSize="20dp"/>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnLoja"
+                android:layout_width="match_parent" android:layout_height="52dp"
+                android:layout_marginTop="10dp"
+                android:text="Loja" android:textAllCaps="false"
+                android:textColor="#1F2937"
+                android:background="@drawable/menu_button_light"
+                app:icon="@drawable/ic_store"
+                app:iconGravity="textStart"
+                app:iconPadding="8dp"
+                app:iconSize="20dp"/>
+
+            <Space
+                android:layout_width="match_parent" android:layout_height="24dp"/>
+
+            <!-- Sair -->
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:gravity="center" android:layout_marginTop="12dp">
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnSair"
+                    android:layout_width="wrap_content" android:layout_height="48dp"
+                    android:text="Sair" android:textAllCaps="false"
+                    android:textColor="#1F2937"
+                    android:background="@drawable/menu_button_light"
+                    app:icon="@drawable/ic_logout"
+                    app:iconGravity="textStart"
+                    app:iconPadding="6dp"
+                    app:iconSize="20dp"/>
+            </LinearLayout>
+
+        </LinearLayout>
+    </ScrollView>
+
+</RelativeLayout>

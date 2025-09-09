@@ -1,0 +1,26 @@
+<resources>
+    <string name="app_name">MTGAudioCar</string>
+    <!-- Strings used for fragments for navigation -->
+    <string name="first_fragment_label">First Fragment</string>
+    <string name="second_fragment_label">Second Fragment</string>
+    <string name="next">Next</string>
+    <string name="previous">Previous</string>
+
+
+    <string name="login_title">Login</string>
+    <string name="hint_email">Digite seu e-mail</string>
+    <string name="hint_senha">Digite sua senha</string>
+    <string name="btn_entrar">Entrar</string>
+    <string name="link_registro">Não tem conta? Cadastre-se</string>
+
+    <string name="register_title">Cadastrar</string>
+    <string name="label_nome">Nome completo</string>
+    <string name="label_email">E-mail</string>
+    <string name="label_usuario">Nome de usuário</string>
+    <string name="label_senha">Senha</string>
+    <string name="label_confirma_senha">Confirmar senha</string>
+    <string name="btn_cadastrar">Cadastrar</string>
+    <string name="link_ja_tenho">Já tenho conta</string>
+
+
+</resources>

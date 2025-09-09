@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+
+    <!-- Decoders locais (defina ANTES de carregar a lib) -->
+    <script>
+        self.ModelViewerElement = self.ModelViewerElement || {};
+        self.ModelViewerElement.dracoDecoderLocation   = '/assets/mv/draco/';
+        self.ModelViewerElement.ktx2TranscoderLocation = '/assets/mv/ktx2/';
+        self.ModelViewerElement.meshoptDecoderLocation = '/assets/mv/meshopt_decoder.module.js';
+    </script>
+
+    <!-- model-viewer local (caminho ABSOLUTO via WebViewAssetLoader) -->
+    <script type="module" src="/assets/mv/model-viewer.min.js"></script>
+
+    <style>
+        html, body {
+          margin: 0;
+          height: 100%;
+          background: transparent !important; /* fundo da página transparente */
+          overflow: hidden;
+        }
+        model-viewer {
+          width: 100%;
+          height: 100%;
+          background: transparent !important; /* fundo do componente transparente */
+          /* Zera overlays internos */
+          --poster-color: transparent;
+          --progress-bar-color: transparent;
+        }
+    </style>
+</head>
+<body>
+<model-viewer id="mv"
+              src="/assets/models/1999_volkswagen_gol_2000_gti_g2.glb"
+              camera-controls
+              autoplay
+              reveal="auto"
+              environment-image="neutral"
+              style="background:transparent; --poster-color:transparent; --progress-bar-color:transparent;">
+</model-viewer>
+</body>
+</html>

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+
+
+        <color name="mtg_primary">#7216F5</color>
+        <color name="mtg_secondary">#FF6B6B</color>
+        <color name="mtg_surface">#FFFFFF</color>
+        <color name="mtg_text">#1F2937</color>
+        <color name="mtg_hint">#9CA3AF</color>
+        <color name="mtg_success">#22C55E</color>
+
+
+
+
+</resources>

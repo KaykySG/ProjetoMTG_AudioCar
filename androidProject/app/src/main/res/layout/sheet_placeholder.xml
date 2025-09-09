@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:padding="20dp"
+    android:layout_width="match_parent" android:layout_height="wrap_content">
+
+    <TextView
+        android:id="@+id/tvSheetTitle"
+        android:text="Título"
+        android:textStyle="bold"
+        android:textSize="18sp"
+        android:textColor="#1F2937"
+        android:layout_width="match_parent" android:layout_height="wrap_content"/>
+
+    <TextView
+        android:id="@+id/tvSheetMsg"
+        android:text="Mensagem"
+        android:textSize="14sp"
+        android:textColor="#6B7280"
+        android:layout_marginTop="8dp"
+        android:layout_width="match_parent" android:layout_height="wrap_content"/>
+</LinearLayout>

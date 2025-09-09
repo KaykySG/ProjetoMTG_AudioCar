@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:fitsSystemWindows="true"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <!-- Fundo com gradiente similar ao seu web -->
+    <LinearLayout
+        android:orientation="vertical"
+        android:gravity="center"
+        android:padding="24dp"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/login_gradient_bg">
+
+        <!-- Card -->
+        <LinearLayout
+            android:orientation="vertical"
+            android:padding="20dp"
+            android:background="@drawable/bg_card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <!-- Header com ícone -->
+            <LinearLayout
+                android:orientation="vertical"
+                android:gravity="center"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="12dp">
+
+                <ImageView
+                    android:layout_width="140dp"
+                    android:layout_height="123dp"
+                    android:src="@drawable/logo" />
+
+
+                <TextView
+                    android:text="@string/login_title"
+                    android:textStyle="bold"
+                    android:textColor="@color/mtg_text"
+                    android:textSize="20sp"
+                    android:layout_marginTop="8dp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
+            </LinearLayout>
+
+            <!-- E-mail -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="@string/hint_email"
+                app:startIconDrawable="@android:drawable/ic_dialog_email"
+                app:boxStrokeColor="@color/mtg_primary"
+                app:boxBackgroundMode="outline">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etEmail"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="textEmailAddress"/>
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- Senha com toggleMask (endIcon) -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:hint="@string/hint_senha"
+                app:endIconMode="password_toggle"
+                app:startIconDrawable="@android:drawable/ic_lock_lock"
+                app:boxStrokeColor="@color/mtg_primary"
+                app:boxBackgroundMode="outline">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etSenha"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="textPassword"/>
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- Botão Entrar -->
+            <Button
+                android:id="@+id/btnEntrar"
+                android:text="@string/btn_entrar"
+                android:textAllCaps="false"
+                android:textColor="@android:color/white"
+                android:layout_marginTop="16dp"
+                android:background="@drawable/bg_button_primary"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"/>
+
+            <!-- Link Registro -->
+            <TextView
+                android:id="@+id/tvRegister"
+                android:text="@string/link_registro"
+                android:textColor="@color/mtg_primary"
+                android:gravity="center"
+                android:layout_marginTop="10dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"/>
+        </LinearLayout>
+    </LinearLayout>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>
