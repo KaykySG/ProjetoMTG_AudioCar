@@ -49,9 +49,6 @@ public class HomeActivity extends AppCompatActivity {
         findViewById(R.id.btnLoja).setOnClickListener(v ->
                 Toast.makeText(this, "Loja", Toast.LENGTH_SHORT).show()
         );
-        findViewById(R.id.btnHome).setOnClickListener(v ->
-                Toast.makeText(this, "Home", Toast.LENGTH_SHORT).show()
-        );
         findViewById(R.id.btnSair).setOnClickListener(v ->
                 Toast.makeText(this, "Sair", Toast.LENGTH_SHORT).show()
         );
