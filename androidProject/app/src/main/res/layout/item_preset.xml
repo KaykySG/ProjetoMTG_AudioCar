@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="6dp"
+    app:cardCornerRadius="16dp"
+    app:cardUseCompatPadding="true">
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:padding="12dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <ImageView
+            android:id="@+id/imgThumb"
+            android:layout_width="match_parent"
+            android:layout_height="120dp"
+            android:scaleType="centerCrop"
+            android:contentDescription="@string/app_name"
+            android:src="@drawable/ic_audio_placeholder" />
+
+        <TextView
+            android:id="@+id/tvNome"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Trio Compacto 600W RMS"
+            android:textStyle="bold"
+            android:textSize="16sp"
+            android:paddingTop="8dp"/>
+
+        <TextView
+            android:id="@+id/tvResumo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="600W RMS • 1x sub 12” • 2 vias • Consumo Médio: 35A"
+            android:textSize="13sp"
+            android:alpha="0.8"
+            android:paddingTop="2dp"/>
+
+        <TextView
+            android:id="@+id/tvPreco"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="R$ 2.199,90"
+            android:textStyle="bold"
+            android:textSize="15sp"
+            android:paddingTop="6dp"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="end"
+            android:paddingTop="8dp">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnVer"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Ver" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnUsar"
+                style="@style/Widget.Material3.Button.FilledButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Usar montagem"
+                android:layout_marginStart="8dp"/>
+        </LinearLayout>
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>

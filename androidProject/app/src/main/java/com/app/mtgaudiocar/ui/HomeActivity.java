@@ -40,7 +40,6 @@ public class HomeActivity extends AppCompatActivity {
                 Toast.makeText(this, "Montagem Predefinida", Toast.LENGTH_SHORT).show()
         );
 
-        // 👉 Agora o botão Projetos abre a ProjetosActivity
         findViewById(R.id.btnProjetos).setOnClickListener(v -> {
             Intent i = new Intent(HomeActivity.this, ProjetosActivity.class);
             startActivity(i);

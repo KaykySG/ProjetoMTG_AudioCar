@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/toolbar"
+        style="@style/Widget.Material3.Toolbar"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        app:title="Montagem Predefinida"
+        app:titleCentered="true"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <TextView
+        android:id="@+id/tvHint"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="Escolha um estilo de som e selecione uma montagem pronta."
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:paddingTop="8dp"
+        app:layout_constraintTop_toBottomOf="@id/toolbar"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <com.google.android.material.chip.ChipGroup
+        android:id="@+id/chipGroupEstilos"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp"
+        app:singleSelection="true"
+        app:selectionRequired="true"
+        app:layout_constraintTop_toBottomOf="@id/tvHint"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chipTrio"
+            style="@style/Widget.Material3.Chip.Assist.Elevated"
+            android:text="Trio" />
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chipSQ"
+            style="@style/Widget.Material3.Chip.Assist.Elevated"
+            android:text="SQ" />
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chipSPL"
+            style="@style/Widget.Material3.Chip.Assist.Elevated"
+            android:text="SPL" />
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chipMistao"
+            style="@style/Widget.Material3.Chip.Assist.Elevated"
+            android:text="Mistão" />
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chipBudget"
+            style="@style/Widget.Material3.Chip.Assist.Elevated"
+            android:text="Budget" />
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chipPremium"
+            style="@style/Widget.Material3.Chip.Assist.Elevated"
+            android:text="Premium" />
+    </com.google.android.material.chip.ChipGroup>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvPresets"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:padding="8dp"
+        app:layout_constraintTop_toBottomOf="@id/chipGroupEstilos"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

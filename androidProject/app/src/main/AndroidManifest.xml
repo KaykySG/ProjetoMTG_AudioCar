@@ -16,6 +16,9 @@
         android:theme="@style/Theme.MTGAudioCar"
         android:usesCleartextTraffic="true">
         <activity
+            android:name=".ui.PredefinidoActivity"
+            android:exported="false" />
+        <activity
             android:name=".ui.ProjetosActivity"
             android:exported="false" />
         <activity
