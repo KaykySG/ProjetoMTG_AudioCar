@@ -36,18 +36,20 @@ public class HomeActivity extends AppCompatActivity {
             startActivity(i);
         });
 
-        findViewById(R.id.btnMontagemPredefinida).setOnClickListener(v ->
-                Toast.makeText(this, "Montagem Predefinida", Toast.LENGTH_SHORT).show()
-        );
+        findViewById(R.id.btnMontagemPredefinida).setOnClickListener(v ->{
+                Intent i = new Intent(HomeActivity.this, PredefinidoActivity.class);
+        startActivity(i);}        );
 
         findViewById(R.id.btnProjetos).setOnClickListener(v -> {
             Intent i = new Intent(HomeActivity.this, ProjetosActivity.class);
             startActivity(i);
         });
 
-        findViewById(R.id.btnLoja).setOnClickListener(v ->
-                Toast.makeText(this, "Loja", Toast.LENGTH_SHORT).show()
-        );
+        findViewById(R.id.btnLoja).setOnClickListener(v -> {
+            Intent i = new Intent(HomeActivity.this, LojasActivity.class);
+            startActivity(i);
+
+        });
         findViewById(R.id.btnSair).setOnClickListener(v ->
                 Toast.makeText(this, "Sair", Toast.LENGTH_SHORT).show()
         );

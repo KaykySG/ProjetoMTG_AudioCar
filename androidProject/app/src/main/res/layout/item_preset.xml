@@ -19,7 +19,7 @@
             android:layout_height="120dp"
             android:scaleType="centerCrop"
             android:contentDescription="@string/app_name"
-            android:src="@drawable/ic_audio_placeholder" />
+            android:src="@drawable/home_gradient_bg" />
 
         <TextView
             android:id="@+id/tvNome"
@@ -64,7 +64,6 @@
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnUsar"
-                style="@style/Widget.Material3.Button.FilledButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Usar montagem"
