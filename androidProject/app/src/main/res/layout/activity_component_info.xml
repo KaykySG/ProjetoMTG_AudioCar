@@ -7,6 +7,7 @@
     android:layout_height="match_parent"
     android:background="#0D0E10">
 
+    <!-- TOOLBAR -->
     <com.google.android.material.appbar.MaterialToolbar
         android:id="@+id/toolbar"
         style="@style/Widget.Material3.Toolbar"
@@ -15,11 +16,16 @@
         android:backgroundTint="@android:color/transparent"
         app:titleTextColor="@android:color/white" />
 
+    <!-- ========================= -->
+    <!--  MODO DETALHE (1 item)    -->
+    <!-- ========================= -->
     <androidx.core.widget.NestedScrollView
+        android:id="@+id/detailContainer"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         app:layout_behavior="@string/appbar_scrolling_view_behavior"
-        android:padding="16dp">
+        android:padding="16dp"
+        android:visibility="visible">
 
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/card"
@@ -89,7 +95,7 @@
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintEnd_toEndOf="parent" />
 
-                <!-- BOTÃO COMPRAR (filled padrão, sem style) -->
+                <!-- BOTÃO COMPRAR -->
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnComprar"
                     android:layout_width="wrap_content"
@@ -102,7 +108,7 @@
                     app:layout_constraintTop_toBottomOf="@id/tvDescription"
                     app:layout_constraintStart_toStartOf="parent" />
 
-                <!-- BOTÃO FAVORITO (outlined usando o attr do tema) -->
+                <!-- BOTÃO FAVORITO -->
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnFavorito"
                     style="?attr/materialButtonOutlinedStyle"
@@ -116,4 +122,51 @@
             </androidx.constraintlayout.widget.ConstraintLayout>
         </com.google.android.material.card.MaterialCardView>
     </androidx.core.widget.NestedScrollView>
+
+    <!-- ========================= -->
+    <!--  MODO LISTA (vários)     -->
+    <!-- ========================= -->
+    <LinearLayout
+        android:id="@+id/listContainer"
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:padding="16dp"
+        android:visibility="gone"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/tvHeader"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Amplificadores disponíveis"
+            android:textColor="@android:color/white"
+            android:textStyle="bold"
+            android:textSize="18sp"
+            android:paddingBottom="8dp"/>
+
+        <ProgressBar
+            android:id="@+id/progress"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:visibility="gone"/>
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recyclerComponents"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:scrollbars="vertical"/>
+
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/tvEmpty"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Nenhum item encontrado."
+            android:textColor="@android:color/white"
+            android:gravity="center"
+            android:visibility="gone"
+            android:paddingTop="12dp"/>
+    </LinearLayout>
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

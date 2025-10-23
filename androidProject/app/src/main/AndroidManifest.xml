@@ -14,7 +14,13 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.MTGAudioCar"
-        android:usesCleartextTraffic="true">
+        android:usesCleartextTraffic="true" >
+
+        <!-- NOVA: tela genérica/lista de componentes -->
+        <activity
+            android:name=".ui.ComponentInfoActivity"
+            android:exported="false" />
+
         <activity
             android:name=".ui.LojasActivity"
             android:exported="false" />
@@ -33,6 +39,7 @@
         <activity
             android:name=".ui.HomeActivity"
             android:exported="false" />
+
         <activity
             android:name=".ui.LoginActivity"
             android:exported="true"
@@ -40,10 +47,8 @@
             tools:ignore="MissingClass">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
     </application>
-
 </manifest>
