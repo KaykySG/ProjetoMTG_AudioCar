@@ -9,14 +9,16 @@ public class ModuloAmplificador {
     private String tipo;
     private Integer canais;
     private Integer potenciaPorCanalRms;
-    private Integer potenciaBridgeRms;
+    private Integer potenciaBridgeRms;     // pode vir null do backend
     private Integer impedanciaMinimaOhms;
     private Double tensaoAlimentacaoV;
     private Boolean entradaRca;
     private String imagemUrl;
     private String descricao;
     private Double preco;
-    private CategoriaComponente categoria;
+    // ✅ AJUSTE: trocar de CategoriaComponente para String
+    private String categoria;
+
     private List<AltoFalante> altoFalantes;
     private List<Subwoofer> subwoofers;
 
@@ -109,11 +111,12 @@ public class ModuloAmplificador {
         this.preco = preco;
     }
 
-    public CategoriaComponente getCategoria() {
+    // ✅ Getters/Setters atualizados para String
+    public String getCategoria() {
         return categoria;
     }
 
-    public void setCategoria(CategoriaComponente categoria) {
+    public void setCategoria(String categoria) {
         this.categoria = categoria;
     }
 
@@ -133,5 +136,3 @@ public class ModuloAmplificador {
         this.subwoofers = subwoofers;
     }
 }
-
-

@@ -11,6 +11,7 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.TextView;
+import android.util.Log; // [NOVO]
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.webkit.WebViewAssetLoader;
@@ -19,8 +20,19 @@ import com.app.mtgaudiocar.R;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.button.MaterialButton;
 
+import java.util.List; // [NOVO]
+
+import model.ModuloAmplificador;       // [NOVO]
+import network.ApiClient;               // [NOVO]
+import network.ApiService;              // [NOVO]
+import retrofit2.Call;                   // [NOVO]
+import retrofit2.Callback;               // [NOVO]
+import retrofit2.Response;               // [NOVO]
+import retrofit2.Retrofit;               // [NOVO]
+
 public class MontagemPersonalizadaActivity extends AppCompatActivity {
 
+    private static final String TAG = "MontagemPersonalizada"; // [NOVO]
     private WebView web3d;
 
     @Override
@@ -35,11 +47,40 @@ public class MontagemPersonalizadaActivity extends AppCompatActivity {
         MaterialButton btnSub   = findViewById(R.id.btnSubwoofer);
         MaterialButton btnCross = findViewById(R.id.btnCrossover);
 
-        btnAmp.setOnClickListener(v -> openPlaceholderSheet("Amplificadores"));
+        // [ALTERADO] - agora faz o GET e loga o retorno no console (Logcat)
+        btnAmp.setOnClickListener(v -> {
+            Log.d(TAG, "Botão Amplificador clicado. Chamando API de módulos...");
+            Retrofit retrofit = ApiClient.getClient();
+            ApiService api = retrofit.create(ApiService.class);
+
+            Call<List<ModuloAmplificador>> call = api.getModulos(); // já existente no seu ApiService
+            call.enqueue(new Callback<List<ModuloAmplificador>>() {
+                @Override
+                public void onResponse(Call<List<ModuloAmplificador>> call, Response<List<ModuloAmplificador>> response) {
+                    if (response.isSuccessful() && response.body() != null) {
+                        List<ModuloAmplificador> lista = response.body();
+                        Log.d(TAG, "✅ Sucesso. Quantidade: " + lista.size());
+                        for (ModuloAmplificador m : lista) {
+                            Log.d(TAG, "→ Modelo: " + m.getTipo()
+                                    + " | Marca: " + m.getCanais()
+                                    + " | Potência RMS Total: " + m.getDescricao() + "W");
+                        }
+                    } else {
+                        Log.e(TAG, "❌ Erro HTTP: " + response.code());
+                    }
+                }
+
+                @Override
+                public void onFailure(Call<List<ModuloAmplificador>> call, Throwable t) {
+                    Log.e(TAG, "🚨 Falha na chamada: " + t.getMessage(), t);
+                }
+            });
+        });
+
+        // permanecem iguais
         btnAlto.setOnClickListener(v -> openPlaceholderSheet("Alto-falantes"));
         btnSub.setOnClickListener(v -> openPlaceholderSheet("Subwoofers"));
         btnCross.setOnClickListener(v -> openPlaceholderSheet("Crossovers"));
-
     }
 
     @SuppressLint("SetJavaScriptEnabled")
