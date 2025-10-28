@@ -218,13 +218,16 @@ public class ComponentInfoActivity extends AppCompatActivity {
     }
 
     // =========================
-    //   Adapter inline
-    // =========================
+//   Adapter inline (com imagem e + / −)
+// =========================
     private static class ModuloAdapter extends RecyclerView.Adapter<ModuloVH> {
         private final List<ModuloAmplificador> data = new ArrayList<>();
+        // quantidade por posição (simples e direto)
+        private final android.util.SparseIntArray qtyByPos = new android.util.SparseIntArray();
 
         void submit(List<ModuloAmplificador> itens) {
             data.clear();
+            qtyByPos.clear();
             if (itens != null) data.addAll(itens);
             notifyDataSetChanged();
         }
@@ -233,7 +236,7 @@ public class ComponentInfoActivity extends AppCompatActivity {
         @Override
         public ModuloVH onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
             View v = LayoutInflater.from(parent.getContext())
-                    .inflate(R.layout.item_component_info, parent, false); // ✅ inflate correto
+                    .inflate(R.layout.item_component_info, parent, false);
             return new ModuloVH(v);
         }
 
@@ -241,6 +244,7 @@ public class ComponentInfoActivity extends AppCompatActivity {
         public void onBindViewHolder(@NonNull ModuloVH h, int position) {
             ModuloAmplificador m = data.get(position);
 
+            // Título e subtítulo
             h.tvTitle.setText(nvl(m.getDescricao(), "Amplificador"));
             String sub = "Tipo: " + nvl(m.getTipo(), "-")
                     + " • Canais: " + nvl(m.getCanais(), "-")
@@ -252,6 +256,42 @@ public class ComponentInfoActivity extends AppCompatActivity {
                     + " • Categoria: " + nvl(m.getCategoria(), "-")
                     + " • Preço: " + nvl(m.getPreco(), "-");
             h.tvSpec.setText(spec);
+
+            // 🔹 Imagem via Glide (suporta http/https e data:image;base64)
+            String url = m.getImagemUrl();
+            if (!android.text.TextUtils.isEmpty(url)) {
+                try {
+                    com.bumptech.glide.Glide.with(h.ivThumb.getContext())
+                            .load(url)
+                            .placeholder(android.R.drawable.ic_menu_gallery)
+                            .error(android.R.drawable.ic_menu_report_image)
+                            .centerCrop()
+                            .into(h.ivThumb);
+                } catch (Exception ignored) {
+                    h.ivThumb.setImageResource(android.R.drawable.ic_menu_report_image);
+                }
+            } else {
+                h.ivThumb.setImageResource(android.R.drawable.ic_menu_gallery);
+            }
+
+            // 🔹 Quantidade (+ / −)
+            int q = qtyByPos.get(position, 0);
+            h.tvQty.setText(String.valueOf(q));
+
+            h.btnPlus.setOnClickListener(v -> {
+                int cur = qtyByPos.get(position, 0) + 1;
+                qtyByPos.put(position, cur);
+                h.tvQty.setText(String.valueOf(cur));
+            });
+
+            h.btnMinus.setOnClickListener(v -> {
+                int cur = Math.max(0, qtyByPos.get(position, 0) - 1);
+                qtyByPos.put(position, cur);
+                h.tvQty.setText(String.valueOf(cur));
+            });
+
+            // (Opcional) clique no card abre detalhe
+            // h.itemView.setOnClickListener(v -> { ... });
         }
 
         @Override public int getItemCount() { return data.size(); }
@@ -260,13 +300,21 @@ public class ComponentInfoActivity extends AppCompatActivity {
     }
 
     private static class ModuloVH extends RecyclerView.ViewHolder {
-        MaterialTextView tvTitle, tvSubtitle, tvSpec;
+        MaterialTextView tvTitle, tvSubtitle, tvSpec, tvQty;
+        ImageView ivThumb;
+        com.google.android.material.button.MaterialButton btnPlus, btnMinus;
+
         @SuppressLint("WrongViewCast")
         ModuloVH(@NonNull View itemView) {
             super(itemView);
-            tvTitle    = itemView.findViewById(R.id.tvTitle);
-            tvSubtitle = itemView.findViewById(R.id.tvSubtitle);
-            tvSpec     = itemView.findViewById(R.id.tvSpec);
+            ivThumb   = itemView.findViewById(R.id.ivThumb);
+            tvTitle   = itemView.findViewById(R.id.tvTitle);
+            tvSubtitle= itemView.findViewById(R.id.tvSubtitle);
+            tvSpec    = itemView.findViewById(R.id.tvSpec);
+            tvQty     = itemView.findViewById(R.id.tvQty);
+            btnPlus   = itemView.findViewById(R.id.btnPlus);
+            btnMinus  = itemView.findViewById(R.id.btnMinus);
         }
     }
+
 }
