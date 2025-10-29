@@ -3,7 +3,8 @@ package com.app.mtgaudiocar.ui;
 import android.annotation.SuppressLint;
 import android.os.Bundle;
 import android.text.TextUtils;
-import android.view.LayoutInflater; // ✅ novo
+import android.util.SparseIntArray;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -11,7 +12,7 @@ import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import androidx.annotation.DrawableRes;
-import androidx.annotation.NonNull; // ✅ novo
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
@@ -26,20 +27,23 @@ import com.google.android.material.textview.MaterialTextView;
 import java.util.ArrayList;
 import java.util.List;
 
+// Modelos e Network
 import model.ModuloAmplificador;
+import model.RequisicaoCompatibilidade;
+import model.ValidacaoCompatibilidade;
 import network.ApiClient;
 import network.ApiService;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
-import retrofit2.Retrofit;
 
 /**
- * ComponentInfoActivity agora suporta DOIS modos:
- * - MODO LISTA: se o layout tiver RecyclerView com id recyclerComponents, carrega e exibe a lista de amplificadores da API.
- * - MODO DETALHE: se não tiver RecyclerView, mantém o comportamento original (um componente só, vindo por Intent).
+ * ComponentInfoActivity agora suporta DOIS modos, e integra a lógica de
+ * validação de compatibilidade reativa com a API (chamada a cada adição/remoção).
  */
-public class ComponentInfoActivity extends AppCompatActivity {
+public class ComponentInfoActivity extends AppCompatActivity
+        // 🔑 CORREÇÃO: Implementa a interface OnComponentCountChangeListener (agora externa)
+        implements OnComponentCountChangeListener {
 
     // ----- Views do modo DETALHE (seu fluxo original) -----
     private ImageView ivImage;
@@ -50,10 +54,16 @@ public class ComponentInfoActivity extends AppCompatActivity {
     private RecyclerView recycler;
     private ProgressBar progress;
     private MaterialTextView tvEmpty, tvHeader;
-    private View listContainer, detailContainer; // ✅ containers
+    private View listContainer, detailContainer;
     private ModuloAdapter adapter;
 
     private boolean isListMode = false;
+
+    // 🔑 Constantes para o Payload de Compatibilidade
+    private final String USUARIO_ID = "4f181b66-e602-4b31-b361-badaf4b5541d";
+    private final String VEICULO_FIXO = "Volkswagen Gol";
+    private final String NOME_PREVIEW = "Preview Android";
+
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -68,11 +78,9 @@ public class ComponentInfoActivity extends AppCompatActivity {
         }
         if (toolbar != null) toolbar.setNavigationOnClickListener(v -> finish());
 
-        // Containers (definidos no seu XML)
-        listContainer   = findViewById(R.id.listContainer);
+        listContainer    = findViewById(R.id.listContainer);
         detailContainer = findViewById(R.id.detailContainer);
 
-        // IDs do MODO LISTA
         recycler = findViewById(R.id.recyclerComponents);
         progress = findViewById(R.id.progress);
         tvEmpty  = findViewById(R.id.tvEmpty);
@@ -87,32 +95,32 @@ public class ComponentInfoActivity extends AppCompatActivity {
             }
             if (tvHeader != null) tvHeader.setText("Amplificadores disponíveis");
 
-            // 🔑 Mostra a área da lista e esconde o card de detalhe
-            if (listContainer != null)   listContainer.setVisibility(View.VISIBLE);
+            if (listContainer != null)    listContainer.setVisibility(View.VISIBLE);
             if (detailContainer != null) detailContainer.setVisibility(View.GONE);
 
             recycler.setLayoutManager(new LinearLayoutManager(this));
-            adapter = new ModuloAdapter();
+            // 🔑 O construtor do adapter agora usa a nova interface
+            adapter = new ModuloAdapter(this);
             recycler.setAdapter(adapter);
 
-            fetchModulos(); // chama API e preenche a lista
+            fetchModulos();
         } else {
-            // ---------- MODO DETALHE ----------
-            ivImage       = findViewById(R.id.ivImage);
-            tvTitle       = findViewById(R.id.tvTitle);
-            tvPrice       = findViewById(R.id.tvPrice);
+            // ---------- MODO DETALHE (código inalterado) ----------
+            ivImage        = findViewById(R.id.ivImage);
+            tvTitle        = findViewById(R.id.tvTitle);
+            tvPrice        = findViewById(R.id.tvPrice);
             tvDescription = findViewById(R.id.tvDescription);
             btnComprar    = findViewById(R.id.btnComprar);
             btnFavorito   = findViewById(R.id.btnFavorito);
 
-            String name        = getIntent().getStringExtra("name");
-            String price       = getIntent().getStringExtra("price");
+            String name          = getIntent().getStringExtra("name");
+            String price         = getIntent().getStringExtra("price");
             String description = getIntent().getStringExtra("description");
             String imageUrl    = getIntent().getStringExtra("imageUrl");
             @DrawableRes int imageRes = getIntent().getIntExtra("imageRes", 0);
 
-            if (TextUtils.isEmpty(name))        name = "Amplificador Compacto 800W";
-            if (TextUtils.isEmpty(price))       price = "R$ 799,99";
+            if (TextUtils.isEmpty(name))      name = "Amplificador Compacto 800W";
+            if (TextUtils.isEmpty(price))     price = "R$ 799,99";
             if (TextUtils.isEmpty(description)) description = "Amplificador compacto com 800W RMS, ideal para pequenos eventos e estúdios. Design leve e robusto, baixa distorção e alta eficiência.";
 
             tvTitle.setText(name);
@@ -120,8 +128,7 @@ public class ComponentInfoActivity extends AppCompatActivity {
             tvDescription.setText(description);
 
             if (!TextUtils.isEmpty(imageUrl)) {
-                // Glide/Coil aqui se quiser.
-                // Glide.with(this).load(imageUrl).into(ivImage);
+                // ...
             } else if (imageRes != 0) {
                 ivImage.setImageResource(imageRes);
             } else {
@@ -149,14 +156,85 @@ public class ComponentInfoActivity extends AppCompatActivity {
         }
     }
 
+    // 🔑 MÉTODO DA INTERFACE (Corpo inalterado)
+    @Override
+    public void onCountChanged() {
+        if (isListMode) {
+            validarConfiguracaoAtual();
+        }
+    }
+
     // =========================
-    //   MODO LISTA — LÓGICA
+    //    LÓGICA DE VALIDAÇÃO
+    // =========================
+
+    private void validarConfiguracaoAtual() {
+        List<String> modulosSelecionadosIds = adapter.getComponenteIds();
+
+        if (modulosSelecionadosIds.isEmpty()) {
+            Toast.makeText(this, "Nenhum componente de áudio (Amplificador) selecionado.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        RequisicaoCompatibilidade dados = new RequisicaoCompatibilidade(
+                NOME_PREVIEW,
+                VEICULO_FIXO,
+                USUARIO_ID,
+                new ArrayList<>(),      // altoFalanteIds (vazio)
+                new ArrayList<>(),      // subwooferIds (vazio)
+                modulosSelecionadosIds, // moduloIds (preenchido)
+                new ArrayList<>()       // crossoverIds (vazio)
+        );
+
+        ApiService api = ApiClient.getClient().create(ApiService.class);
+
+        api.validarConfiguracao(dados).enqueue(new Callback<List<ValidacaoCompatibilidade>>() {
+            @Override
+            public void onResponse(Call<List<ValidacaoCompatibilidade>> call, Response<List<ValidacaoCompatibilidade>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    handleValidacaoSucesso(response.body());
+                } else {
+                    Toast.makeText(ComponentInfoActivity.this,
+                            "Erro na API de validação: " + response.code(),
+                            Toast.LENGTH_LONG).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<ValidacaoCompatibilidade>> call, Throwable t) {
+                Toast.makeText(ComponentInfoActivity.this,
+                        "Falha de rede na validação: " + t.getMessage(),
+                        Toast.LENGTH_LONG).show();
+            }
+        });
+    }
+
+    private void handleValidacaoSucesso(List<ValidacaoCompatibilidade> validacoes) {
+        boolean compativel = true;
+
+        for (ValidacaoCompatibilidade v : validacoes) {
+            if (!v.getMensagem().equals("Todos os componentes estão compatíveis.")) {
+                compativel = false;
+                String sugestao = v.getSugestao() != null ? " | Sugestão: " + v.getSugestao() : "";
+                String msg = "INCOMPATÍVEL: " + v.getMensagem() + sugestao;
+
+                Toast.makeText(this, "⚠️ " + msg, Toast.LENGTH_LONG).show();
+            }
+        }
+
+        if (compativel && !adapter.getComponenteIds().isEmpty()) {
+            Toast.makeText(this, "✅ Configuração compatível!", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+
+    // =========================
+    //    MODO LISTA — LÓGICA
     // =========================
 
     private void fetchModulos() {
         showLoading(true);
-        Retrofit retrofit = ApiClient.getClient();
-        ApiService api = retrofit.create(ApiService.class);
+        ApiService api = ApiClient.getClient().create(ApiService.class);
 
         api.getModulos().enqueue(new Callback<List<ModuloAmplificador>>() {
             @Override
@@ -185,7 +263,6 @@ public class ComponentInfoActivity extends AppCompatActivity {
 
     private void showLoading(boolean loading) {
         if (!isListMode) return;
-        // mantém o container da lista visível o tempo todo no modo lista
         if (listContainer != null) listContainer.setVisibility(View.VISIBLE);
         if (detailContainer != null) detailContainer.setVisibility(View.GONE);
 
@@ -218,18 +295,40 @@ public class ComponentInfoActivity extends AppCompatActivity {
     }
 
     // =========================
-//   Adapter inline (com imagem e + / −)
-// =========================
+    //    Adapter inline (Corrigido para Tipagem e usando a Interface Externa)
+    // =========================
     private static class ModuloAdapter extends RecyclerView.Adapter<ModuloVH> {
         private final List<ModuloAmplificador> data = new ArrayList<>();
-        // quantidade por posição (simples e direto)
-        private final android.util.SparseIntArray qtyByPos = new android.util.SparseIntArray();
+        private final SparseIntArray qtyByPos = new SparseIntArray();
+
+        // 🔑 Usa a interface OnComponentCountChangeListener (agora externa)
+        private final OnComponentCountChangeListener listener;
+
+        ModuloAdapter(OnComponentCountChangeListener listener) {
+            this.listener = listener;
+        }
 
         void submit(List<ModuloAmplificador> itens) {
             data.clear();
             qtyByPos.clear();
             if (itens != null) data.addAll(itens);
             notifyDataSetChanged();
+        }
+
+        public List<String> getComponenteIds() {
+            List<String> ids = new ArrayList<>();
+            for (int i = 0; i < data.size(); i++) {
+                int quantidade = qtyByPos.get(i, 0);
+                if (quantidade > 0) {
+                    // 🔑 CORREÇÃO da Tipagem: Força a conversão para String
+                    String id = String.valueOf(data.get(i).getId());
+
+                    for (int j = 0; j < quantidade; j++) {
+                        ids.add(id);
+                    }
+                }
+            }
+            return ids;
         }
 
         @NonNull
@@ -244,7 +343,6 @@ public class ComponentInfoActivity extends AppCompatActivity {
         public void onBindViewHolder(@NonNull ModuloVH h, int position) {
             ModuloAmplificador m = data.get(position);
 
-            // Título e subtítulo
             h.tvTitle.setText(nvl(m.getDescricao(), "Amplificador"));
             String sub = "Tipo: " + nvl(m.getTipo(), "-")
                     + " • Canais: " + nvl(m.getCanais(), "-")
@@ -257,10 +355,10 @@ public class ComponentInfoActivity extends AppCompatActivity {
                     + " • Preço: " + nvl(m.getPreco(), "-");
             h.tvSpec.setText(spec);
 
-            // 🔹 Imagem via Glide (suporta http/https e data:image;base64)
             String url = m.getImagemUrl();
             if (!android.text.TextUtils.isEmpty(url)) {
                 try {
+                    // 🚨 Necessita da dependência do Glide no build.gradle
                     com.bumptech.glide.Glide.with(h.ivThumb.getContext())
                             .load(url)
                             .placeholder(android.R.drawable.ic_menu_gallery)
@@ -282,16 +380,17 @@ public class ComponentInfoActivity extends AppCompatActivity {
                 int cur = qtyByPos.get(position, 0) + 1;
                 qtyByPos.put(position, cur);
                 h.tvQty.setText(String.valueOf(cur));
+
+                if (listener != null) listener.onCountChanged();
             });
 
             h.btnMinus.setOnClickListener(v -> {
                 int cur = Math.max(0, qtyByPos.get(position, 0) - 1);
                 qtyByPos.put(position, cur);
                 h.tvQty.setText(String.valueOf(cur));
-            });
 
-            // (Opcional) clique no card abre detalhe
-            // h.itemView.setOnClickListener(v -> { ... });
+                if (listener != null) listener.onCountChanged();
+            });
         }
 
         @Override public int getItemCount() { return data.size(); }
@@ -316,5 +415,4 @@ public class ComponentInfoActivity extends AppCompatActivity {
             btnMinus  = itemView.findViewById(R.id.btnMinus);
         }
     }
-
 }

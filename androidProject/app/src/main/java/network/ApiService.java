@@ -6,7 +6,8 @@ import model.AltoFalante;
 import model.ModuloAmplificador;
 import model.Crossover;
 import model.CategoriaComponente;
-
+import model.ValidacaoCompatibilidade;
+import model.RequisicaoCompatibilidade;
 import java.util.List;
 
 import retrofit2.Call;
@@ -44,4 +45,9 @@ public interface ApiService {
     // Categorias
     @GET("categorias")
     Call<List<CategoriaComponente>> getCategorias();
+
+    @POST("configuracoes/validar")
+    Call<List<ValidacaoCompatibilidade>> validarConfiguracao(
+            @Body RequisicaoCompatibilidade dados
+    );
 }
