@@ -17,6 +17,8 @@ public class Subwoofer {
     private String descricao;
     private Double preco;
 
+    private int quantidadeSelecionada = 0;
+
     // Getters e Setters
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }
@@ -62,4 +64,7 @@ public class Subwoofer {
 
     public Double getPreco() { return preco; }
     public void setPreco(Double preco) { this.preco = preco; }
+
+    public int getQuantidadeSelecionada() { return quantidadeSelecionada; }
+    public void setQuantidadeSelecionada(int q) { this.quantidadeSelecionada = Math.max(0, q); }
 }

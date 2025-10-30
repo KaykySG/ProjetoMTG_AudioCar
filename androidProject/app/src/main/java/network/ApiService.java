@@ -29,6 +29,8 @@ public interface ApiService {
     // Subwoofers
     @GET("subwoofers")
     Call<List<Subwoofer>> getSubwoofers();
+    @GET("subwoofers/{id}")
+    Call<Subwoofer> getSubwooferById(@Path("id") String id);
 
     // AltoFalantes
     @GET("altofalantes")
@@ -50,4 +52,5 @@ public interface ApiService {
     Call<List<ValidacaoCompatibilidade>> validarConfiguracao(
             @Body RequisicaoCompatibilidade dados
     );
+
 }

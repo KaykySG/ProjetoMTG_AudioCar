@@ -1,4 +1,4 @@
-package com.app.mtgaudiocar.ui;
+package com.app.mtgaudiocar.ui.adpter;
 
 import android.view.LayoutInflater;
 import android.view.View;
