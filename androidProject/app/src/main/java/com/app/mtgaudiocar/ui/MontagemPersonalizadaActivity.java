@@ -1,7 +1,7 @@
 package com.app.mtgaudiocar.ui;
 
 import android.annotation.SuppressLint;
-import android.content.Intent; // ✅ novo
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -38,17 +38,18 @@ public class MontagemPersonalizadaActivity extends AppCompatActivity {
         MaterialButton btnSub   = findViewById(R.id.btnSubwoofer);
         MaterialButton btnCross = findViewById(R.id.btnCrossover);
 
-        // ✅ Agora abre a tela genérica que já lista os amplificadores
-        btnAmp.setOnClickListener(v -> {
-            Log.d(TAG, "Abrindo lista de amplificadores (ComponentInfoActivity)...");
-            Intent i = new Intent(this, ComponentInfoActivity.class);
-            startActivity(i);
-        });
+        // Abre a tela genérica de listagem já filtrando pelo tipo via EXTRA
+        btnAmp.setOnClickListener(v -> abrirLista("Amplificador"));
+        btnAlto.setOnClickListener(v -> abrirLista("Alto-falante"));
+        btnSub.setOnClickListener(v -> abrirLista("Subwoofer"));
+        btnCross.setOnClickListener(v -> abrirLista("Crossovers")); // mapper usa plural
+    }
 
-        // continuam placeholders por enquanto
-        btnAlto.setOnClickListener(v -> openPlaceholderSheet("Alto-falantes"));
-        btnSub.setOnClickListener(v -> openPlaceholderSheet("Subwoofers"));
-        btnCross.setOnClickListener(v -> openPlaceholderSheet("Crossovers"));
+    private void abrirLista(String tipo) {
+        Log.d(TAG, "Abrindo lista para tipo: " + tipo);
+        Intent i = new Intent(this, ComponentInfoActivity.class);
+        i.putExtra(ComponentInfoActivity.EXTRA_COMPONENT_TYPE, tipo);
+        startActivity(i);
     }
 
     @SuppressLint("SetJavaScriptEnabled")
@@ -89,6 +90,7 @@ public class MontagemPersonalizadaActivity extends AppCompatActivity {
         web3d.loadUrl("https://appassets.androidplatform.net/assets/Viewer.html");
     }
 
+    // (Opcional) segue disponível se você quiser reusar em algum fluxo
     private void openPlaceholderSheet(String titulo) {
         BottomSheetDialog dialog = new BottomSheetDialog(this);
         View view = LayoutInflater.from(this).inflate(R.layout.sheet_placeholder, null, false);
@@ -108,3 +110,4 @@ public class MontagemPersonalizadaActivity extends AppCompatActivity {
         super.onDestroy();
     }
 }
+

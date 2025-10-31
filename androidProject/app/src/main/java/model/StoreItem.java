@@ -1,22 +1,23 @@
 package model;
 
 import androidx.annotation.Keep;
-import java.io.Serializable;
 
-/** Modelo genérico que representa qualquer componente de áudio na listagem. */
+import java.io.Serializable;
+import java.util.UUID;
+
 @Keep
 public class StoreItem implements Serializable {
-
     private String id;
     private String name;
-    private String type;        // Amplificador | Alto-falante | Subwoofer | Crossovers
+    private String type;
     private Double price;
     private String imageUrl;
     private String description;
-    private int quantity = 0;   // apenas para controle na UI
+    private int quantity = 0;
 
     public StoreItem() {}
 
+    // construtor oficial (String)
     public StoreItem(String id, String name, String type, Double price, String imageUrl, String description) {
         this.id = id;
         this.name = name;
@@ -24,6 +25,11 @@ public class StoreItem implements Serializable {
         this.price = price;
         this.imageUrl = imageUrl;
         this.description = description;
+    }
+
+    // ✅ overload para compatibilidade com builds antigos que esperam UUID
+    public StoreItem(UUID id, String name, String type, Double price, String imageUrl, String description) {
+        this(id != null ? id.toString() : null, name, type, price, imageUrl, description);
     }
 
     public String getId() { return id; }

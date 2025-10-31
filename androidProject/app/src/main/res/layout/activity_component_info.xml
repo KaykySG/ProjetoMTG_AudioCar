@@ -7,25 +7,21 @@
     android:layout_height="match_parent"
     android:background="#0D0E10">
 
-    <!-- TOOLBAR -->
     <com.google.android.material.appbar.MaterialToolbar
         android:id="@+id/toolbar"
-        style="@style/Widget.Material3.Toolbar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:backgroundTint="@android:color/transparent"
         app:titleTextColor="@android:color/white" />
 
-    <!-- ========================= -->
-    <!--  MODO DETALHE (1 item)    -->
-    <!-- ========================= -->
+    <!-- Detalhe (inicia oculto) -->
     <androidx.core.widget.NestedScrollView
         android:id="@+id/detailContainer"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         app:layout_behavior="@string/appbar_scrolling_view_behavior"
         android:padding="16dp"
-        android:visibility="visible">
+        android:visibility="gone">
 
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/card"
@@ -42,7 +38,6 @@
                 android:layout_height="wrap_content"
                 android:padding="16dp">
 
-                <!-- IMAGEM DO COMPONENTE -->
                 <ImageView
                     android:id="@+id/ivImage"
                     android:layout_width="0dp"
@@ -54,39 +49,36 @@
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintDimensionRatio="16:9" />
 
-                <!-- TÍTULO -->
                 <com.google.android.material.textview.MaterialTextView
                     android:id="@+id/tvTitle"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"
-                    android:text="Amplificador Profissional 2000W"
-                    android:textColor="@color/black"
+                    android:text=""
+                    android:textColor="@android:color/black"
                     android:textSize="20sp"
                     android:textStyle="bold"
                     app:layout_constraintTop_toBottomOf="@id/ivImage"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintEnd_toEndOf="parent" />
 
-                <!-- PREÇO -->
                 <com.google.android.material.textview.MaterialTextView
                     android:id="@+id/tvPrice"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
-                    android:text="R$ 1.299,99"
+                    android:text=""
                     android:textColor="#034E34"
                     android:textSize="16sp"
                     app:layout_constraintTop_toBottomOf="@id/tvTitle"
                     app:layout_constraintStart_toStartOf="parent" />
 
-                <!-- DESCRIÇÃO -->
                 <com.google.android.material.textview.MaterialTextView
                     android:id="@+id/tvDescription"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
-                    android:text="Amplificador de potência profissional com 2000W RMS, ideal para eventos e shows. Baixa distorção e alta eficiência."
+                    android:text=""
                     android:textColor="#332B2B"
                     android:textSize="14sp"
                     android:maxLines="4"
@@ -95,7 +87,6 @@
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintEnd_toEndOf="parent" />
 
-                <!-- BOTÃO COMPRAR -->
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnComprar"
                     android:layout_width="wrap_content"
@@ -108,7 +99,6 @@
                     app:layout_constraintTop_toBottomOf="@id/tvDescription"
                     app:layout_constraintStart_toStartOf="parent" />
 
-                <!-- BOTÃO FAVORITO -->
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnFavorito"
                     style="?attr/materialButtonOutlinedStyle"
@@ -123,23 +113,21 @@
         </com.google.android.material.card.MaterialCardView>
     </androidx.core.widget.NestedScrollView>
 
-    <!-- ========================= -->
-    <!--  MODO LISTA (vários)     -->
-    <!-- ========================= -->
+    <!-- Lista -->
     <LinearLayout
         android:id="@+id/listContainer"
         android:orientation="vertical"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:padding="16dp"
-        android:visibility="gone"
+        android:visibility="visible"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
         <com.google.android.material.textview.MaterialTextView
             android:id="@+id/tvHeader"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Amplificadores disponíveis"
+            android:text=""
             android:textColor="@android:color/white"
             android:textStyle="bold"
             android:textSize="18sp"

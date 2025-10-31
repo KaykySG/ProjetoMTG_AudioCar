@@ -26,23 +26,29 @@ public interface ApiService {
     @GET("usuarios/{id}")
     Call<Usuario> getUsuario(@Path("id") String id);
 
+    // Amplificadores
+    @GET("modulos")
+    Call<List<ModuloAmplificador>> getModulos();
+    @GET("modulos/{id}")
+    Call<ModuloAmplificador> getModuloById(@Path("id") String id);
+
+    // Alto-falantes
+    @GET("altofalantes")
+    Call<List<AltoFalante>> getAltoFalantes();
+    @GET("altofalantes/{id}")
+    Call<AltoFalante> getAltoFalanteById(@Path("id") String id);
+
     // Subwoofers
     @GET("subwoofers")
     Call<List<Subwoofer>> getSubwoofers();
     @GET("subwoofers/{id}")
     Call<Subwoofer> getSubwooferById(@Path("id") String id);
 
-    // AltoFalantes
-    @GET("altofalantes")
-    Call<List<AltoFalante>> getAltoFalantes();
-
-    // Modulos Amplificadores
-    @GET("modulos")
-    Call<List<ModuloAmplificador>> getModulos();
-
     // Crossovers
     @GET("crossovers")
     Call<List<Crossover>> getCrossovers();
+    @GET("crossovers/{id}")
+    Call<Crossover> getCrossoverById(@Path("id") String id);
 
     // Categorias
     @GET("categorias")

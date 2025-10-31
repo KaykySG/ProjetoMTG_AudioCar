@@ -49,6 +49,10 @@ public class RequisicaoCompatibilidade {
         this.relatorioPdf = null;
     }
 
+    public RequisicaoCompatibilidade() {
+
+    }
+
     //Getters e Setters
 
     public String getNome() {

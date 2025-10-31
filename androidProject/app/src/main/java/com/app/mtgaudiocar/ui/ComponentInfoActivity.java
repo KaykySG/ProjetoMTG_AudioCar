@@ -1,418 +1,413 @@
 package com.app.mtgaudiocar.ui;
 
-import android.annotation.SuppressLint;
 import android.os.Bundle;
-import android.text.TextUtils;
-import android.util.SparseIntArray;
-import android.view.LayoutInflater;
+import android.os.Looper;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.annotation.DrawableRes;
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.app.mtgaudiocar.R;
-import com.google.android.material.button.MaterialButton;
+import com.app.mtgaudiocar.ui.adpter.ItemAdapter;
+import com.bumptech.glide.Glide;
+import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.snackbar.Snackbar;
-import com.google.android.material.textview.MaterialTextView;
 
+import java.text.Normalizer;
+import java.text.NumberFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
-// Modelos e Network
+import model.AltoFalante;
+import model.Crossover;
 import model.ModuloAmplificador;
 import model.RequisicaoCompatibilidade;
+import model.StoreItem;
+import model.Subwoofer;
 import model.ValidacaoCompatibilidade;
 import network.ApiClient;
 import network.ApiService;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
+import util.StoreItemMapper;
 
 /**
- * ComponentInfoActivity agora suporta DOIS modos, e integra a lógica de
- * validação de compatibilidade reativa com a API (chamada a cada adição/remoção).
+ * ComponentInfoActivity
+ * - Lista todos os componentes vindos da API e filtra por tipo.
+ * - Valida automaticamente a compatibilidade SEM botão:
+ *   sempre que quantidade de qualquer item mudar, dispara a validação (com debounce).
+ * - Mensagens de compatibilidade exibidas como AVISOS (Snackbars).
  */
-public class ComponentInfoActivity extends AppCompatActivity
-        // 🔑 CORREÇÃO: Implementa a interface OnComponentCountChangeListener (agora externa)
-        implements OnComponentCountChangeListener {
+public class ComponentInfoActivity extends AppCompatActivity {
 
-    // ----- Views do modo DETALHE (seu fluxo original) -----
-    private ImageView ivImage;
-    private MaterialTextView tvTitle, tvPrice, tvDescription;
-    private MaterialButton btnComprar, btnFavorito;
+    public static final String EXTRA_COMPONENT_TYPE = "componentType"; // "Amplificador" | "Alto-falante" | "Subwoofer" | "Crossovers"
 
-    // ----- Views do MODO LISTA -----
+    private MaterialToolbar toolbar;
+    private View detailContainer, listContainer;
+
     private RecyclerView recycler;
     private ProgressBar progress;
-    private MaterialTextView tvEmpty, tvHeader;
-    private View listContainer, detailContainer;
-    private ModuloAdapter adapter;
+    private TextView tvHeader, tvEmpty;
 
-    private boolean isListMode = false;
+    // Detalhe (opcionais no layout)
+    private TextView dTitle, dPrice, dDesc;
+    private ImageView dImg;
 
-    // 🔑 Constantes para o Payload de Compatibilidade
-    private final String USUARIO_ID = "4f181b66-e602-4b31-b361-badaf4b5541d";
-    private final String VEICULO_FIXO = "Volkswagen Gol";
-    private final String NOME_PREVIEW = "Preview Android";
+    private ItemAdapter itemAdapter;
 
+    private final List<StoreItem> storeItems = new ArrayList<>();
+    private final Map<String, Integer> quantities = new HashMap<>();
+    private String selectedType = "Amplificador";
+
+    private final NumberFormat nfBRL = NumberFormat.getCurrencyInstance(new Locale("pt", "BR"));
+
+    // Debounce para validação automática
+    private final android.os.Handler compatHandler = new android.os.Handler(Looper.getMainLooper());
+    private Runnable compatRunnable;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_component_info);
 
-        Toolbar toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-        if (getSupportActionBar() != null) {
-            getSupportActionBar().setTitle("Componente Selecionado");
-            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        toolbar = findViewById(R.id.toolbar);
+        if (toolbar != null) {
+            toolbar.setTitle("Componentes de Áudio");
+            toolbar.setNavigationIcon(androidx.appcompat.R.drawable.abc_ic_ab_back_material);
+            toolbar.setNavigationOnClickListener(v -> finish());
         }
-        if (toolbar != null) toolbar.setNavigationOnClickListener(v -> finish());
 
-        listContainer    = findViewById(R.id.listContainer);
         detailContainer = findViewById(R.id.detailContainer);
+        listContainer   = findViewById(R.id.listContainer);
 
-        recycler = findViewById(R.id.recyclerComponents);
-        progress = findViewById(R.id.progress);
-        tvEmpty  = findViewById(R.id.tvEmpty);
-        tvHeader = findViewById(R.id.tvHeader);
+        recycler  = findViewById(R.id.recyclerComponents);
+        progress  = findViewById(R.id.progress);
+        tvHeader  = findViewById(R.id.tvHeader);
+        tvEmpty   = findViewById(R.id.tvEmpty);
 
-        isListMode = (recycler != null);
+        // Views do detalhe (podem não existir no layout; tratadas como opcionais)
+        dTitle = findViewById(R.id.tvTitle);
+        dPrice = findViewById(R.id.tvPrice);
+        dDesc  = findViewById(R.id.tvDescription);
+        dImg   = findViewById(R.id.ivImage);
 
-        if (isListMode) {
-            // ---------- MODO LISTA ----------
-            if (getSupportActionBar() != null) {
-                getSupportActionBar().setTitle("Amplificadores disponíveis");
-            }
-            if (tvHeader != null) tvHeader.setText("Amplificadores disponíveis");
+        recycler.setLayoutManager(new LinearLayoutManager(this));
+        itemAdapter = new ItemAdapter((item, newQty) -> {
+            // Atualiza o mapa de quantidades
+            quantities.put(item.getId(), newQty);
+            // Revalida automaticamente a configuração com debounce
+            scheduleCompatValidation();
+        });
+        itemAdapter.setOnItemClick(this::preencherDetalhe);
+        recycler.setAdapter(itemAdapter);
 
-            if (listContainer != null)    listContainer.setVisibility(View.VISIBLE);
-            if (detailContainer != null) detailContainer.setVisibility(View.GONE);
+        // Tipo recebido da tela dos botões
+        String rawType = getIntent().getStringExtra(EXTRA_COMPONENT_TYPE);
+        selectedType = normalizeType(rawType);
+        if (tvHeader != null) tvHeader.setText(tipoToHeader(selectedType));
 
-            recycler.setLayoutManager(new LinearLayoutManager(this));
-            // 🔑 O construtor do adapter agora usa a nova interface
-            adapter = new ModuloAdapter(this);
-            recycler.setAdapter(adapter);
+        // Mostra lista por padrão
+        if (detailContainer != null) detailContainer.setVisibility(View.GONE);
+        if (listContainer   != null) listContainer.setVisibility(View.VISIBLE);
 
-            fetchModulos();
-        } else {
-            // ---------- MODO DETALHE (código inalterado) ----------
-            ivImage        = findViewById(R.id.ivImage);
-            tvTitle        = findViewById(R.id.tvTitle);
-            tvPrice        = findViewById(R.id.tvPrice);
-            tvDescription = findViewById(R.id.tvDescription);
-            btnComprar    = findViewById(R.id.btnComprar);
-            btnFavorito   = findViewById(R.id.btnFavorito);
+        carregarTodosItens();
+    }
 
-            String name          = getIntent().getStringExtra("name");
-            String price         = getIntent().getStringExtra("price");
-            String description = getIntent().getStringExtra("description");
-            String imageUrl    = getIntent().getStringExtra("imageUrl");
-            @DrawableRes int imageRes = getIntent().getIntExtra("imageRes", 0);
+    // =====================
+    // UI de Detalhe
+    // =====================
 
-            if (TextUtils.isEmpty(name))      name = "Amplificador Compacto 800W";
-            if (TextUtils.isEmpty(price))     price = "R$ 799,99";
-            if (TextUtils.isEmpty(description)) description = "Amplificador compacto com 800W RMS, ideal para pequenos eventos e estúdios. Design leve e robusto, baixa distorção e alta eficiência.";
+    private void preencherDetalhe(StoreItem it) {
+        if (it == null) return;
 
-            tvTitle.setText(name);
-            tvPrice.setText(price);
-            tvDescription.setText(description);
+        if (dTitle != null) dTitle.setText(it.getName() != null ? it.getName() : "");
+        if (dPrice != null) dPrice.setText(it.getPrice() != null ? nfBRL.format(it.getPrice()) : "");
+        if (dDesc  != null) dDesc.setText(it.getDescription() != null ? it.getDescription() : "");
 
-            if (!TextUtils.isEmpty(imageUrl)) {
-                // ...
-            } else if (imageRes != 0) {
-                ivImage.setImageResource(imageRes);
+        if (dImg != null) {
+            if (it.getImageUrl() != null && !it.getImageUrl().isEmpty()) {
+                Glide.with(this).load(it.getImageUrl()).into(dImg);
             } else {
-                ivImage.setImageResource(android.R.drawable.ic_menu_gallery);
+                dImg.setImageResource(android.R.drawable.ic_menu_gallery);
             }
+        }
 
-            btnComprar.setOnClickListener(v -> Snackbar.make(v, "Adicionado ao carrinho!", Snackbar.LENGTH_SHORT).show());
+        if (detailContainer != null) detailContainer.setVisibility(View.VISIBLE);
+        if (listContainer   != null) listContainer.setVisibility(View.GONE);
+    }
 
-            btnFavorito.setOnClickListener(new View.OnClickListener() {
-                private boolean favorite = false;
-                @Override
-                public void onClick(View v) {
-                    favorite = !favorite;
-                    btnFavorito.setIconResource(
-                            favorite ? android.R.drawable.btn_star_big_on
-                                    : android.R.drawable.btn_star_big_off
-                    );
-                    Toast.makeText(
-                            ComponentInfoActivity.this,
-                            favorite ? "Adicionado aos favoritos" : "Removido dos favoritos",
-                            Toast.LENGTH_SHORT
-                    ).show();
+    // =====================
+    // Listagem e Filtro
+    // =====================
+
+    /** Filtra a lista usando comparação robusta (ignora acento/hífen/espaço e plural). */
+    private void trocarListagem(String type) {
+        selectedType = normalizeType(type);
+        if (tvHeader != null) tvHeader.setText(tipoToHeader(selectedType));
+
+        String key = simplify(selectedType);
+
+        List<StoreItem> filtered = new ArrayList<>();
+        for (StoreItem it : storeItems) {
+            if (simplify(it.getType()).equals(key)) {
+                Integer q = quantities.get(it.getId());
+                if (q != null) it.setQuantity(q);
+                filtered.add(it);
+            }
+        }
+
+        android.util.Log.d("ComponentInfo",
+                "Tipo selecionado: " + selectedType +
+                        " | total em memória=" + storeItems.size() +
+                        " | filtrados=" + filtered.size());
+
+        itemAdapter.submitList(new ArrayList<>(filtered));
+        atualizarEmptyState(filtered.isEmpty());
+    }
+
+    private void atualizarEmptyState(boolean vazio) {
+        if (tvEmpty != null) tvEmpty.setVisibility(vazio ? View.VISIBLE : View.GONE);
+        if (recycler != null) recycler.setVisibility(vazio ? View.GONE : View.VISIBLE);
+    }
+
+    // =====================
+    // Carregamento de dados
+    // =====================
+
+    private void carregarTodosItens() {
+        if (progress != null) progress.setVisibility(View.VISIBLE);
+
+        ApiService api = ApiClient.getClient().create(ApiService.class);
+        storeItems.clear();
+
+        api.getModulos().enqueue(new Callback<List<ModuloAmplificador>>() {
+            @Override public void onResponse(Call<List<ModuloAmplificador>> call, Response<List<ModuloAmplificador>> resp) {
+                if (resp.isSuccessful() && resp.body() != null) {
+                    storeItems.addAll(StoreItemMapper.mapModulos(resp.body()));
                 }
-            });
-        }
+                carregarAltoFalantes(api);
+            }
+            @Override public void onFailure(Call<List<ModuloAmplificador>> call, Throwable t) {
+                carregarAltoFalantes(api);
+            }
+        });
     }
 
-    // 🔑 MÉTODO DA INTERFACE (Corpo inalterado)
-    @Override
-    public void onCountChanged() {
-        if (isListMode) {
-            validarConfiguracaoAtual();
-        }
+    private void carregarAltoFalantes(ApiService api) {
+        api.getAltoFalantes().enqueue(new Callback<List<AltoFalante>>() {
+            @Override public void onResponse(Call<List<AltoFalante>> call, Response<List<AltoFalante>> resp) {
+                if (resp.isSuccessful() && resp.body() != null) {
+                    storeItems.addAll(StoreItemMapper.mapAltoFalantes(resp.body()));
+                }
+                carregarSubwoofers(api);
+            }
+            @Override public void onFailure(Call<List<AltoFalante>> call, Throwable t) {
+                carregarSubwoofers(api);
+            }
+        });
     }
 
-    // =========================
-    //    LÓGICA DE VALIDAÇÃO
-    // =========================
+    private void carregarSubwoofers(ApiService api) {
+        api.getSubwoofers().enqueue(new Callback<List<Subwoofer>>() {
+            @Override public void onResponse(Call<List<Subwoofer>> call, Response<List<Subwoofer>> resp) {
+                if (resp.isSuccessful() && resp.body() != null) {
+                    storeItems.addAll(StoreItemMapper.mapSubwoofers(resp.body()));
+                }
+                carregarCrossovers(api);
+            }
+            @Override public void onFailure(Call<List<Subwoofer>> call, Throwable t) {
+                carregarCrossovers(api);
+            }
+        });
+    }
 
-    private void validarConfiguracaoAtual() {
-        List<String> modulosSelecionadosIds = adapter.getComponenteIds();
+    private void carregarCrossovers(ApiService api) {
+        api.getCrossovers().enqueue(new Callback<List<Crossover>>() {
+            @Override public void onResponse(Call<List<Crossover>> call, Response<List<Crossover>> resp) {
+                if (progress != null) progress.setVisibility(View.GONE);
+                if (resp.isSuccessful() && resp.body() != null) {
+                    storeItems.addAll(StoreItemMapper.mapCrossovers(resp.body()));
+                }
+                trocarListagem(selectedType); // aplica filtro final com tudo carregado
+                scheduleCompatValidation();   // dispara validação inicial se já houver quantidades
+            }
+            @Override public void onFailure(Call<List<Crossover>> call, Throwable t) {
+                if (progress != null) progress.setVisibility(View.GONE);
+                trocarListagem(selectedType);
+                Toast.makeText(getApplicationContext(), "Falha ao carregar dados", Toast.LENGTH_SHORT).show();
+                scheduleCompatValidation();
+            }
+        });
+    }
 
-        if (modulosSelecionadosIds.isEmpty()) {
-            Toast.makeText(this, "Nenhum componente de áudio (Amplificador) selecionado.", Toast.LENGTH_SHORT).show();
+    // ==========================
+    // Compatibilidade Automática
+    // ==========================
+
+    /** Debounce para evitar várias chamadas seguidas ao clicar rápido em +/-. */
+    private void scheduleCompatValidation() {
+        if (compatRunnable != null) compatHandler.removeCallbacks(compatRunnable);
+        compatRunnable = this::validarCompatibilidadeAtual;
+        compatHandler.postDelayed(compatRunnable, 350);
+        showInfo("Validando compatibilidade...");
+    }
+
+    /** Monta o payload com TODAS as quantidades selecionadas atualmente. */
+    private RequisicaoCompatibilidade montarRequisicaoAtual() {
+        RequisicaoCompatibilidade req = new RequisicaoCompatibilidade();
+        req.setModuloIds(new ArrayList<>());
+        req.setAltoFalanteIds(new ArrayList<>());
+        req.setSubwooferIds(new ArrayList<>());
+        req.setCrossoverIds(new ArrayList<>());
+
+        for (StoreItem it : storeItems) {
+            int qtd = quantities.getOrDefault(it.getId(), it.getQuantity());
+            if (qtd <= 0) continue;
+
+            String k = simplify(it.getType());
+            List<String> target = null;
+            if (k.equals("amplificador")) target = req.getModuloIds();
+            else if (k.equals("altofalante")) target = req.getAltoFalanteIds();
+            else if (k.equals("subwoofer")) target = req.getSubwooferIds();
+            else if (k.equals("crossover") || k.equals("crossovers")) target = req.getCrossoverIds();
+
+            if (target != null) for (int i = 0; i < qtd; i++) target.add(it.getId());
+        }
+        return req;
+    }
+
+    /** Chama a API e apresenta o resultado (Snackbar + Toast fallback). */
+    private void validarCompatibilidadeAtual() {
+        ApiService api = ApiClient.getClient().create(ApiService.class);
+        RequisicaoCompatibilidade req = montarRequisicaoAtual();
+
+        // Não chama backend se nada foi selecionado
+        if (req.getModuloIds().isEmpty() &&
+                req.getAltoFalanteIds().isEmpty() &&
+                req.getSubwooferIds().isEmpty() &&
+                req.getCrossoverIds().isEmpty()) {
             return;
         }
 
-        RequisicaoCompatibilidade dados = new RequisicaoCompatibilidade(
-                NOME_PREVIEW,
-                VEICULO_FIXO,
-                USUARIO_ID,
-                new ArrayList<>(),      // altoFalanteIds (vazio)
-                new ArrayList<>(),      // subwooferIds (vazio)
-                modulosSelecionadosIds, // moduloIds (preenchido)
-                new ArrayList<>()       // crossoverIds (vazio)
-        );
-
-        ApiService api = ApiClient.getClient().create(ApiService.class);
-
-        api.validarConfiguracao(dados).enqueue(new Callback<List<ValidacaoCompatibilidade>>() {
+        api.validarConfiguracao(req).enqueue(new Callback<List<ValidacaoCompatibilidade>>() {
             @Override
             public void onResponse(Call<List<ValidacaoCompatibilidade>> call, Response<List<ValidacaoCompatibilidade>> response) {
-                if (response.isSuccessful() && response.body() != null) {
-                    handleValidacaoSucesso(response.body());
-                } else {
-                    Toast.makeText(ComponentInfoActivity.this,
-                            "Erro na API de validação: " + response.code(),
-                            Toast.LENGTH_LONG).show();
+                if (!response.isSuccessful() || response.body() == null) {
+                    showWarning("Não foi possível validar agora.");
+                    return;
                 }
+                List<ValidacaoCompatibilidade> lista = response.body();
+                if (lista.isEmpty()) {
+                    showSuccess("Configuração compatível ✅");
+                    return;
+                }
+                StringBuilder sb = new StringBuilder();
+                for (ValidacaoCompatibilidade v : lista) {
+                    if (v == null) continue;
+                    if (v.getMensagem() != null && !v.getMensagem().isEmpty()) {
+                        sb.append("• ").append(v.getMensagem());
+                        if (v.getSugestao() != null && !v.getSugestao().isEmpty()) {
+                            sb.append(" (Sugestão: ").append(v.getSugestao()).append(")");
+                        }
+                        sb.append("\n");
+                    }
+                }
+                String msg = sb.length() == 0 ? "Há pontos a revisar." : sb.toString().trim();
+                showWarning(msg);
             }
 
             @Override
             public void onFailure(Call<List<ValidacaoCompatibilidade>> call, Throwable t) {
-                Toast.makeText(ComponentInfoActivity.this,
-                        "Falha de rede na validação: " + t.getMessage(),
-                        Toast.LENGTH_LONG).show();
+                showWarning("Falha na validação de compatibilidade.");
             }
         });
     }
 
-    private void handleValidacaoSucesso(List<ValidacaoCompatibilidade> validacoes) {
-        boolean compativel = true;
+    // ============
+    // Avisos (UI)
+    // ============
 
-        for (ValidacaoCompatibilidade v : validacoes) {
-            if (!v.getMensagem().equals("Todos os componentes estão compatíveis.")) {
-                compativel = false;
-                String sugestao = v.getSugestao() != null ? " | Sugestão: " + v.getSugestao() : "";
-                String msg = "INCOMPATÍVEL: " + v.getMensagem() + sugestao;
-
-                Toast.makeText(this, "⚠️ " + msg, Toast.LENGTH_LONG).show();
-            }
-        }
-
-        if (compativel && !adapter.getComponenteIds().isEmpty()) {
-            Toast.makeText(this, "✅ Configuração compatível!", Toast.LENGTH_SHORT).show();
+    private void showWarning(String msg) {
+        try {
+            Snackbar sb = Snackbar.make(findViewById(android.R.id.content), msg, Snackbar.LENGTH_LONG);
+            // (Opcional) deixar mais “alerta”:
+            // sb.setBackgroundTint(ContextCompat.getColor(this, R.color.md_theme_error));
+            sb.show();
+        } catch (Exception e) {
+            Toast.makeText(this, msg, Toast.LENGTH_LONG).show();
         }
     }
 
-
-    // =========================
-    //    MODO LISTA — LÓGICA
-    // =========================
-
-    private void fetchModulos() {
-        showLoading(true);
-        ApiService api = ApiClient.getClient().create(ApiService.class);
-
-        api.getModulos().enqueue(new Callback<List<ModuloAmplificador>>() {
-            @Override
-            public void onResponse(Call<List<ModuloAmplificador>> call, Response<List<ModuloAmplificador>> response) {
-                showLoading(false);
-                if (response.isSuccessful() && response.body() != null) {
-                    List<ModuloAmplificador> dados = response.body();
-                    if (dados.isEmpty()) {
-                        showEmpty("Nenhum amplificador encontrado.");
-                    } else {
-                        adapter.submit(dados);
-                        showList();
-                    }
-                } else {
-                    showEmpty("Erro ao carregar (" + response.code() + ").");
-                }
-            }
-
-            @Override
-            public void onFailure(Call<List<ModuloAmplificador>> call, Throwable t) {
-                showLoading(false);
-                showEmpty("Falha na chamada: " + t.getMessage());
-            }
-        });
+    private void showSuccess(String msg) {
+        try {
+            Snackbar sb = Snackbar.make(findViewById(android.R.id.content), msg, Snackbar.LENGTH_LONG);
+            // (Opcional) verde de sucesso:
+            // sb.setBackgroundTint(ContextCompat.getColor(this, R.color.teal_200));
+            sb.show();
+        } catch (Exception e) {
+            Toast.makeText(this, msg, Toast.LENGTH_LONG).show();
+        }
     }
 
-    private void showLoading(boolean loading) {
-        if (!isListMode) return;
-        if (listContainer != null) listContainer.setVisibility(View.VISIBLE);
-        if (detailContainer != null) detailContainer.setVisibility(View.GONE);
-
-        if (progress != null) progress.setVisibility(loading ? View.VISIBLE : View.GONE);
-        if (recycler != null) recycler.setVisibility(loading ? View.GONE : View.VISIBLE);
-        if (tvEmpty != null)  tvEmpty.setVisibility(View.GONE);
+    private void showInfo(String msg) {
+        try {
+            Snackbar.make(findViewById(android.R.id.content), msg, Snackbar.LENGTH_SHORT).show();
+        } catch (Exception e) {
+            // silencioso
+        }
     }
 
-    private void showEmpty(String msg) {
-        if (!isListMode) return;
-        if (listContainer != null) listContainer.setVisibility(View.VISIBLE);
-        if (detailContainer != null) detailContainer.setVisibility(View.GONE);
+    // ============
+    // Utilidades
+    // ============
 
-        if (recycler != null) recycler.setVisibility(View.GONE);
-        if (tvEmpty != null) {
-            tvEmpty.setText(msg);
-            tvEmpty.setVisibility(View.VISIBLE);
-        }
-        if (progress != null) progress.setVisibility(View.GONE);
+    /** Normaliza várias variações para os 4 tipos oficiais usados no mapper. */
+    private String normalizeType(String raw) {
+        if (raw == null) return "Amplificador";
+        String s = raw.trim().toLowerCase();
+
+        if (s.equals("amp") || s.equals("amplificador") || s.equals("amplificadores"))
+            return "Amplificador";
+
+        if (s.equals("alto falante") || s.equals("alto-falante") || s.equals("altofalante")
+                || s.equals("falante") || s.equals("falantes") || s.equals("alto-falantes")
+                || s.equals("alto-falantes disponíveis"))
+            return "Alto-falante";
+
+        if (s.equals("sub") || s.equals("subwoofer") || s.equals("subwoofers")
+                || s.equals("subwoofers disponíveis"))
+            return "Subwoofer";
+
+        if (s.equals("crossover") || s.equals("crossovers") || s.equals("crossovers disponíveis"))
+            return "Crossovers";
+
+        // fallback: capitaliza a primeira letra
+        return Character.toUpperCase(raw.charAt(0)) + raw.substring(1);
     }
 
-    private void showList() {
-        if (!isListMode) return;
-        if (listContainer != null) listContainer.setVisibility(View.VISIBLE);
-        if (detailContainer != null) detailContainer.setVisibility(View.GONE);
-
-        if (recycler != null) recycler.setVisibility(View.VISIBLE);
-        if (tvEmpty != null)  tvEmpty.setVisibility(View.GONE);
-        if (progress != null) progress.setVisibility(View.GONE);
+    private String tipoToHeader(String type) {
+        switch (type) {
+            case "Alto-falante": return "Alto-falantes disponíveis";
+            case "Subwoofer":    return "Subwoofers disponíveis";
+            case "Crossovers":   return "Crossovers disponíveis";
+            default:             return "Amplificadores disponíveis";
+        }
     }
 
-    // =========================
-    //    Adapter inline (Corrigido para Tipagem e usando a Interface Externa)
-    // =========================
-    private static class ModuloAdapter extends RecyclerView.Adapter<ModuloVH> {
-        private final List<ModuloAmplificador> data = new ArrayList<>();
-        private final SparseIntArray qtyByPos = new SparseIntArray();
-
-        // 🔑 Usa a interface OnComponentCountChangeListener (agora externa)
-        private final OnComponentCountChangeListener listener;
-
-        ModuloAdapter(OnComponentCountChangeListener listener) {
-            this.listener = listener;
-        }
-
-        void submit(List<ModuloAmplificador> itens) {
-            data.clear();
-            qtyByPos.clear();
-            if (itens != null) data.addAll(itens);
-            notifyDataSetChanged();
-        }
-
-        public List<String> getComponenteIds() {
-            List<String> ids = new ArrayList<>();
-            for (int i = 0; i < data.size(); i++) {
-                int quantidade = qtyByPos.get(i, 0);
-                if (quantidade > 0) {
-                    // 🔑 CORREÇÃO da Tipagem: Força a conversão para String
-                    String id = String.valueOf(data.get(i).getId());
-
-                    for (int j = 0; j < quantidade; j++) {
-                        ids.add(id);
-                    }
-                }
-            }
-            return ids;
-        }
-
-        @NonNull
-        @Override
-        public ModuloVH onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-            View v = LayoutInflater.from(parent.getContext())
-                    .inflate(R.layout.item_component_info, parent, false);
-            return new ModuloVH(v);
-        }
-
-        @Override
-        public void onBindViewHolder(@NonNull ModuloVH h, int position) {
-            ModuloAmplificador m = data.get(position);
-
-            h.tvTitle.setText(nvl(m.getDescricao(), "Amplificador"));
-            String sub = "Tipo: " + nvl(m.getTipo(), "-")
-                    + " • Canais: " + nvl(m.getCanais(), "-")
-                    + " • RMS/canal: " + nvl(m.getPotenciaPorCanalRms(), "-") + "W";
-            h.tvSubtitle.setText(sub);
-
-            String spec = "Bridge: " + (m.getPotenciaBridgeRms() != null ? m.getPotenciaBridgeRms() + "W" : "-")
-                    + " • Ω mín: " + nvl(m.getImpedanciaMinimaOhms(), "-")
-                    + " • Categoria: " + nvl(m.getCategoria(), "-")
-                    + " • Preço: " + nvl(m.getPreco(), "-");
-            h.tvSpec.setText(spec);
-
-            String url = m.getImagemUrl();
-            if (!android.text.TextUtils.isEmpty(url)) {
-                try {
-                    // 🚨 Necessita da dependência do Glide no build.gradle
-                    com.bumptech.glide.Glide.with(h.ivThumb.getContext())
-                            .load(url)
-                            .placeholder(android.R.drawable.ic_menu_gallery)
-                            .error(android.R.drawable.ic_menu_report_image)
-                            .centerCrop()
-                            .into(h.ivThumb);
-                } catch (Exception ignored) {
-                    h.ivThumb.setImageResource(android.R.drawable.ic_menu_report_image);
-                }
-            } else {
-                h.ivThumb.setImageResource(android.R.drawable.ic_menu_gallery);
-            }
-
-            // 🔹 Quantidade (+ / −)
-            int q = qtyByPos.get(position, 0);
-            h.tvQty.setText(String.valueOf(q));
-
-            h.btnPlus.setOnClickListener(v -> {
-                int cur = qtyByPos.get(position, 0) + 1;
-                qtyByPos.put(position, cur);
-                h.tvQty.setText(String.valueOf(cur));
-
-                if (listener != null) listener.onCountChanged();
-            });
-
-            h.btnMinus.setOnClickListener(v -> {
-                int cur = Math.max(0, qtyByPos.get(position, 0) - 1);
-                qtyByPos.put(position, cur);
-                h.tvQty.setText(String.valueOf(cur));
-
-                if (listener != null) listener.onCountChanged();
-            });
-        }
-
-        @Override public int getItemCount() { return data.size(); }
-
-        private static String nvl(Object o, String fb) { return o == null ? fb : String.valueOf(o); }
-    }
-
-    private static class ModuloVH extends RecyclerView.ViewHolder {
-        MaterialTextView tvTitle, tvSubtitle, tvSpec, tvQty;
-        ImageView ivThumb;
-        com.google.android.material.button.MaterialButton btnPlus, btnMinus;
-
-        @SuppressLint("WrongViewCast")
-        ModuloVH(@NonNull View itemView) {
-            super(itemView);
-            ivThumb   = itemView.findViewById(R.id.ivThumb);
-            tvTitle   = itemView.findViewById(R.id.tvTitle);
-            tvSubtitle= itemView.findViewById(R.id.tvSubtitle);
-            tvSpec    = itemView.findViewById(R.id.tvSpec);
-            tvQty     = itemView.findViewById(R.id.tvQty);
-            btnPlus   = itemView.findViewById(R.id.btnPlus);
-            btnMinus  = itemView.findViewById(R.id.btnMinus);
-        }
+    /** Remove acentos, espaços e hífen; deixa minúsculo. Útil para comparar tipos sem ruído. */
+    private String simplify(String s) {
+        if (s == null) return "";
+        String x = Normalizer.normalize(s, Normalizer.Form.NFD).replaceAll("\\p{M}", "");
+        return x.toLowerCase().replace("-", "").replace(" ", "");
     }
 }
