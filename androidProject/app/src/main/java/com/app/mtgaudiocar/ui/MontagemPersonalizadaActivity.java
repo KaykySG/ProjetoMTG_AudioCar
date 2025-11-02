@@ -1,7 +1,7 @@
 package com.app.mtgaudiocar.ui;
 
 import android.annotation.SuppressLint;
-import android.content.Intent; // ✅ novo
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -21,6 +21,8 @@ import com.app.mtgaudiocar.R;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.button.MaterialButton;
 
+import model.ComponentType; // ✅ importa o enum
+
 public class MontagemPersonalizadaActivity extends AppCompatActivity {
 
     private static final String TAG = "MontagemPersonalizada";
@@ -38,17 +40,19 @@ public class MontagemPersonalizadaActivity extends AppCompatActivity {
         MaterialButton btnSub   = findViewById(R.id.btnSubwoofer);
         MaterialButton btnCross = findViewById(R.id.btnCrossover);
 
-        // ✅ Agora abre a tela genérica que já lista os amplificadores
-        btnAmp.setOnClickListener(v -> {
-            Log.d(TAG, "Abrindo lista de amplificadores (ComponentInfoActivity)...");
-            Intent i = new Intent(this, ComponentInfoActivity.class);
-            startActivity(i);
-        });
+        // ✅ Agora cada botão abre a tela genérica já filtrada pelo tipo
+        btnAmp.setOnClickListener(v -> openList(ComponentType.MODULO));
+        btnAlto.setOnClickListener(v -> openList(ComponentType.ALTOFALANTE));
+        btnSub.setOnClickListener(v -> openList(ComponentType.SUBWOOFER));
+        btnCross.setOnClickListener(v -> openList(ComponentType.CROSSOVER));
+    }
 
-        // continuam placeholders por enquanto
-        btnAlto.setOnClickListener(v -> openPlaceholderSheet("Alto-falantes"));
-        btnSub.setOnClickListener(v -> openPlaceholderSheet("Subwoofers"));
-        btnCross.setOnClickListener(v -> openPlaceholderSheet("Crossovers"));
+    /** Abre a ComponentInfoActivity no modo LISTA para o tipo informado */
+    private void openList(ComponentType type) {
+        Log.d(TAG, "Abrindo lista: " + type);
+        Intent i = new Intent(this, ComponentInfoActivity.class);
+        i.putExtra(ComponentInfoActivity.EXTRA_TYPE, type); // ✅ passa o tipo
+        startActivity(i);
     }
 
     @SuppressLint("SetJavaScriptEnabled")
@@ -83,12 +87,11 @@ public class MontagemPersonalizadaActivity extends AppCompatActivity {
             }
         });
 
-        // apenas pra debug visual
         web3d.setBackgroundColor(0xFF000000);
-
         web3d.loadUrl("https://appassets.androidplatform.net/assets/Viewer.html");
     }
 
+    // (opcional) ainda dá pra usar o placeholder em outros pontos se quiser
     private void openPlaceholderSheet(String titulo) {
         BottomSheetDialog dialog = new BottomSheetDialog(this);
         View view = LayoutInflater.from(this).inflate(R.layout.sheet_placeholder, null, false);

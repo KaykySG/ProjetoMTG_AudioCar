@@ -2,6 +2,9 @@ package model;
 
 import java.util.List;
 import java.util.UUID;
+import com.google.gson.annotations.JsonAdapter;
+import com.google.gson.annotations.SerializedName;
+import util.CategoriaComponenteJsonAdapter;
 
 public class Crossover {
 
@@ -14,6 +17,8 @@ public class Crossover {
     private String imagemUrl;
     private String descricao;
     private Double preco;
+    @SerializedName("categoria")
+    @JsonAdapter(CategoriaComponenteJsonAdapter.class)
     private CategoriaComponente categoria;
     private List<AltoFalante> altoFalantes;
     private List<Subwoofer> subwoofers;
