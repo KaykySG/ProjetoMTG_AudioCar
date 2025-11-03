@@ -87,7 +87,7 @@ public class MontagemPersonalizadaActivity extends AppCompatActivity {
             }
         });
 
-        web3d.setBackgroundColor(0xFF000000);
+        web3d.setBackgroundColor(0x00000000);
         web3d.loadUrl("https://appassets.androidplatform.net/assets/Viewer.html");
     }
 

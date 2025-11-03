@@ -2,6 +2,7 @@
 <androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/home_gradient_bg">
@@ -45,6 +46,7 @@
 
 
 
+
     <!-- Card inferior com os equipamentos -->
     <androidx.cardview.widget.CardView
         android:id="@+id/cardEquipamentos"
@@ -64,13 +66,29 @@
             android:layout_height="wrap_content">
 
             <TextView
-                android:text="Equipamentos"
-                android:textStyle="bold"
-                android:textSize="16sp"
-                android:textColor="#1F2937"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp"/>
+                android:layout_marginBottom="8dp"
+                android:text="Equipamentos"
+                android:textColor="#1F2937"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnSalvarProjeto"
+                android:layout_width="344dp"
+                android:layout_height="43dp"
+
+                android:background="@drawable/menu_button_light"
+                android:text="Salvar Projeto"
+                android:textAllCaps="false"
+                android:textColor="#1F2937"
+                app:iconGravity="textStart"
+                app:iconPadding="8dp"
+                app:iconSize="20dp"
+                app:iconTint="@null"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnAmplificador"
@@ -133,5 +151,7 @@
                 android:layout_marginTop="6dp"/>
         </LinearLayout>
     </androidx.cardview.widget.CardView>
+
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>

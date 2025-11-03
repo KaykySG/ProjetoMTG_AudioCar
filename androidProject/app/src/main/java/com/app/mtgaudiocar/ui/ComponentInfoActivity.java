@@ -1,9 +1,7 @@
 package com.app.mtgaudiocar.ui;
 
-import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
@@ -14,41 +12,29 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.app.mtgaudiocar.R;
 import com.app.mtgaudiocar.ui.adpter.GenericComponentAdapter;
-import com.bumptech.glide.Glide;
 import com.google.android.material.appbar.MaterialToolbar;
-import com.google.android.material.button.MaterialButton;
+import com.google.android.material.snackbar.Snackbar;
 
 import java.util.List;
 
+import data.ConfigDraft;
 import model.ComponentType;
 import model.DisplayItem;
 import network.ApiClient;
 import network.ApiService;
 import network.ComponentRepository;
+import network.CompatibilityManager;
 
 public class ComponentInfoActivity extends AppCompatActivity {
 
     public static final String EXTRA_TYPE = "extra_type";
-    public static final String EXTRA_ITEM = "extra_item"; // se quiser abrir no modo detalhe futuramente
 
-    // Toolbar
     private MaterialToolbar toolbar;
-
-    // Containers (list x detail)
-    private View detailContainer;
-    private View listContainer;
-
-    // LIST widgets
+    private View detailContainer, listContainer;
     private TextView tvHeader, tvEmpty;
     private ProgressBar progress;
     private RecyclerView recycler;
     private GenericComponentAdapter adapter;
-
-    // DETAIL widgets
-    private ImageView ivImage;
-    private TextView tvTitle, tvPrice, tvDescription;
-    private MaterialButton btnComprar, btnFavorito;
-
     private ComponentType type;
 
     @Override
@@ -56,47 +42,87 @@ public class ComponentInfoActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_component_info);
 
-        // --- binder ---
         toolbar = findViewById(R.id.toolbar);
         detailContainer = findViewById(R.id.detailContainer);
         listContainer = findViewById(R.id.listContainer);
-
         tvHeader = findViewById(R.id.tvHeader);
         tvEmpty = findViewById(R.id.tvEmpty);
         progress = findViewById(R.id.progress);
         recycler = findViewById(R.id.recyclerComponents);
 
-        ivImage = findViewById(R.id.ivImage);
-        tvTitle = findViewById(R.id.tvTitle);
-        tvPrice = findViewById(R.id.tvPrice);
-        tvDescription = findViewById(R.id.tvDescription);
-        btnComprar = findViewById(R.id.btnComprar);
-        btnFavorito = findViewById(R.id.btnFavorito);
-
-        // --- toolbar ---
         setSupportActionBar(toolbar);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        toolbar.setNavigationOnClickListener(v -> onBackPressed());
+        if (getSupportActionBar() != null) getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        toolbar.setNavigationOnClickListener(v -> getOnBackPressedDispatcher().onBackPressed());
 
-        // --- params ---
-        Intent it = getIntent();
-        type = (ComponentType) it.getSerializableExtra(EXTRA_TYPE);
+        type = (ComponentType) getIntent().getSerializableExtra(EXTRA_TYPE);
         if (type == null) type = ComponentType.MODULO;
 
         toolbar.setTitle(titleFor(type));
         tvHeader.setText(headerFor(type));
 
-        // --- list setup ---
+        // List mode
+        if (detailContainer != null) detailContainer.setVisibility(View.GONE);
+        if (listContainer != null) listContainer.setVisibility(View.VISIBLE);
+
+        // Defaults temporários do projeto (evitam 500 no backend enquanto não há telas para isso)
+        if (ConfigDraft.get().getProjetoNome() == null) {
+            ConfigDraft.get().setProjetoNome("Projeto Mobile");
+        }
+        if (ConfigDraft.get().getVeiculoNome() == null) {
+            ConfigDraft.get().setVeiculoNome("Volkswagen Gol"); // veículo por NOME
+        }
+        if (ConfigDraft.get().getRelatorioPdf() == null) {
+            ConfigDraft.get().setRelatorioPdf("Relatório da configuração em PDF");
+        }
+        if (ConfigDraft.get().getUsuarioId() == null) {
+            ConfigDraft.get().setUsuarioId("4f181b66-e602-4b31-b361-badaf4b5541d");
+        }
+
         recycler.setLayoutManager(new LinearLayoutManager(this));
-        adapter = new GenericComponentAdapter(item -> openDetail(item));
+        adapter = new GenericComponentAdapter(new GenericComponentAdapter.OnItemAction() {
+            @Override
+            public void onAdd(DisplayItem item) {
+                double preco = parsePreco(item.getPreco()); // <- conversão String → double
+                int q = ConfigDraft.get().add(
+                        type,
+                        item.getId(),
+                        item.getNome(),
+                        preco,
+                        item.getDescricao(),
+                        item.getImagemUrl()
+                );
+                showSnack("Adicionado: " + item.getNome() + " (qtd: " + q + ")");
+                validarCompatibilidade();
+            }
+
+            @Override
+            public void onRemove(DisplayItem item) {
+                int q = ConfigDraft.get().removeOne(type, item.getId());
+                String msg = q > 0
+                        ? "Removido 1: " + item.getNome() + " (qtd: " + q + ")"
+                        : "Removido: " + item.getNome();
+                showSnack(msg);
+                validarCompatibilidade();
+            }
+        });
         recycler.setAdapter(adapter);
 
-        // por padrão abrimos no modo LISTA
-        showList();
         loadData();
     }
 
-    // ====== MODO LISTA ======
+    /** Converte "R$ 1.299,99" / "1299.99" / 1299 para double sem quebrar. */
+    private double parsePreco(Object precoField) {
+        if (precoField == null) return 0d;
+        if (precoField instanceof Number) return ((Number) precoField).doubleValue();
+        String s = precoField.toString().trim();
+        s = s.replace("R$", "").trim();
+        s = s.replace(".", "");     // remove milhar
+        s = s.replace(",", ".");    // vírgula decimal → ponto
+        if (s.isEmpty()) return 0d;
+        try { return Double.parseDouble(s); }
+        catch (NumberFormatException e) { return 0d; }
+    }
+
     private void loadData() {
         progress.setVisibility(View.VISIBLE);
         tvEmpty.setVisibility(View.GONE);
@@ -110,12 +136,12 @@ public class ComponentInfoActivity extends AppCompatActivity {
                 progress.setVisibility(View.GONE);
                 if (items == null || items.isEmpty()) {
                     tvEmpty.setVisibility(View.VISIBLE);
+                    tvEmpty.setText("Nenhum item encontrado.");
                 } else {
                     recycler.setVisibility(View.VISIBLE);
                     adapter.submit(items);
                 }
             }
-
             @Override
             public void onError(Throwable t) {
                 progress.setVisibility(View.GONE);
@@ -125,50 +151,25 @@ public class ComponentInfoActivity extends AppCompatActivity {
         });
     }
 
-    private void showList() {
-        listContainer.setVisibility(View.VISIBLE);
-        detailContainer.setVisibility(View.GONE);
-    }
-
-    // ====== MODO DETALHE ======
-    private void openDetail(DisplayItem item) {
-        // Alterna para o container de detalhe e preenche os 4 campos + botões
-        listContainer.setVisibility(View.GONE);
-        detailContainer.setVisibility(View.VISIBLE);
-
-        // Imagem
-        if (item.getImagemUrl() != null && !item.getImagemUrl().trim().isEmpty()) {
-            ivImage.setVisibility(View.VISIBLE);
-            Glide.with(this).load(item.getImagemUrl()).into(ivImage);
-        } else {
-            ivImage.setVisibility(View.GONE);
-        }
-
-        // Título (nome), preço e descrição
-        tvTitle.setText(nonNull(item.getNome(), "Sem nome"));
-        if (item.getPreco() != null && !item.getPreco().trim().isEmpty()) {
-            tvPrice.setVisibility(View.VISIBLE);
-            tvPrice.setText(item.getPreco());
-        } else {
-            tvPrice.setVisibility(View.GONE);
-        }
-        if (item.getDescricao() != null && !item.getDescricao().trim().isEmpty()) {
-            tvDescription.setVisibility(View.VISIBLE);
-            tvDescription.setText(item.getDescricao());
-        } else {
-            tvDescription.setVisibility(View.GONE);
-        }
-
-        // Ações (exemplos; conecte com sua lógica)
-        btnComprar.setOnClickListener(v -> {
-            // TODO: Adicionar item à configuração, chamar validação, etc.
-        });
-        btnFavorito.setOnClickListener(v -> {
-            // TODO: Marcar como favorito
+    private void validarCompatibilidade() {
+        ApiService api = ApiClient.getClient().create(ApiService.class);
+        CompatibilityManager compat = new CompatibilityManager(api);
+        compat.validar(new CompatibilityManager.CallbackCompat() {
+            @Override
+            public void onResult(List<model.ValidacaoCompatibilidade> lista) {
+                CompatRenderer.showFirst(recycler, lista);
+            }
+            @Override
+            public void onError(Throwable t) {
+                Snackbar.make(recycler, "Erro ao validar: " + t.getMessage(), Snackbar.LENGTH_SHORT).show();
+            }
         });
     }
 
-    // ====== Utils ======
+    private void showSnack(String msg) {
+        Snackbar.make(recycler, msg, Snackbar.LENGTH_SHORT).show();
+    }
+
     private String titleFor(ComponentType t) {
         switch (t) {
             case MODULO: return "Módulos";
@@ -187,9 +188,5 @@ public class ComponentInfoActivity extends AppCompatActivity {
             case CROSSOVER: return "Crossovers disponíveis";
             default: return "Componentes disponíveis";
         }
-    }
-
-    private String nonNull(String s, String fallback) {
-        return (s == null || s.trim().isEmpty()) ? fallback : s;
     }
 }

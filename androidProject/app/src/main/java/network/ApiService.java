@@ -9,6 +9,7 @@ import model.CategoriaComponente;
 import model.ValidacaoCompatibilidade;
 import model.RequisicaoCompatibilidade;
 import java.util.List;
+import java.util.Map;
 
 import retrofit2.Call;
 import retrofit2.http.Body;
@@ -49,8 +50,6 @@ public interface ApiService {
     Call<List<CategoriaComponente>> getCategorias();
 
     @POST("configuracoes/validar")
-    Call<List<ValidacaoCompatibilidade>> validarConfiguracao(
-            @Body RequisicaoCompatibilidade dados
-    );
+    Call<List<ValidacaoCompatibilidade>> validarConfiguracao(@Body Map<String, Object> body);
 
 }
