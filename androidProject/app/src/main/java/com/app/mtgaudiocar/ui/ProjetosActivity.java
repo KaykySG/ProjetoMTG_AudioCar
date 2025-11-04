@@ -1,198 +1,206 @@
 package com.app.mtgaudiocar.ui;
 
-import android.graphics.Typeface;
+import android.content.Context;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
+import android.text.TextUtils;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
-import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.cardview.widget.CardView;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.app.mtgaudiocar.R;
+import com.google.android.material.button.MaterialButton;
 
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
+import model.Configuracao;
+import network.ApiClient;
+import network.ApiService;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+
 /**
- * Tela "Meus Projetos" somente Front.
- * - Usa RecyclerView
- * - Dados mock locais (sem backend)
- * - Adapter e ViewHolder internos (sem arquivos extras)
+ * Lista os projetos (configurações) do usuário sem imagem, apenas texto e botões.
  */
 public class ProjetosActivity extends AppCompatActivity {
 
-    private RecyclerView rv;
+    private RecyclerView rvProjetos;
     private TextView tvVazio;
-    private final ProjectsAdapter adapter = new ProjectsAdapter();
+    private ProgressBar progress;
+
+    private final ProjetosAdapter adapter = new ProjetosAdapter();
+    private ApiService api;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        EdgeToEdge.enable(this);
         setContentView(R.layout.activity_projetos);
 
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-            return insets;
+        rvProjetos = findViewById(R.id.rvProjetos);
+        tvVazio = findViewById(R.id.tvVazio);
+
+
+        rvProjetos.setLayoutManager(new LinearLayoutManager(this));
+        rvProjetos.setAdapter(adapter);
+
+        Retrofit retrofit = ApiClient.getClient();
+        api = retrofit.create(ApiService.class);
+
+        carregarConfiguracoes();
+    }
+
+    private void carregarConfiguracoes() {
+        toggleLoading(true);
+        api.getConfiguracoes("current-user-id").enqueue(new Callback<List<Configuracao>>() {
+            @Override
+            public void onResponse(@NonNull Call<List<Configuracao>> call,
+                                   @NonNull Response<List<Configuracao>> response) {
+                toggleLoading(false);
+                if (response.isSuccessful() && response.body() != null) {
+                    aplicarLista(mapearParaUI(response.body()));
+                } else {
+                    Toast.makeText(ProjetosActivity.this,
+                            "Erro ao buscar configurações: " + response.code(),
+                            Toast.LENGTH_SHORT).show();
+                    aplicarLista(new ArrayList<>());
+                }
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<List<Configuracao>> call, @NonNull Throwable t) {
+                toggleLoading(false);
+                t.printStackTrace();
+                Toast.makeText(ProjetosActivity.this,
+                        "Falha na conexão: " + t.getMessage(),
+                        Toast.LENGTH_LONG).show();
+                aplicarLista(new ArrayList<>());
+            }
         });
-
-        TextView tvTitulo = findViewById(R.id.tvTitulo);
-        rv       = findViewById(R.id.rvProjetos);
-        tvVazio  = findViewById(R.id.tvVazio);
-
-        rv.setLayoutManager(new LinearLayoutManager(this));
-        rv.setAdapter(adapter);
-
-        // Carrega dados mock (simulando o retorno da API de configurações)
-        List<Project> mocks = mockProjects();
-        adapter.setItems(mocks);
-        toggleEmpty(mocks.isEmpty());
     }
 
-    private void toggleEmpty(boolean vazio) {
-        tvVazio.setVisibility(vazio ? View.VISIBLE : View.GONE);
-        rv.setVisibility(vazio ? View.GONE : View.VISIBLE);
+    private List<ItemUI> mapearParaUI(List<Configuracao> lista) {
+        List<ItemUI> itens = new ArrayList<>();
+        for (Configuracao c : lista) {
+            String nome = !TextUtils.isEmpty(c.getNomeConfiguracao())
+                    ? c.getNomeConfiguracao()
+                    : "Projeto sem nome";
+
+            String resumo = !TextUtils.isEmpty(c.getVeiculo())
+                    ? c.getVeiculo()
+                    : "Veículo não informado";
+
+            double preco = c.getOrcamentoTotal() != null ? c.getOrcamentoTotal() : 0.0;
+            String relatorio = c.getRelatorioPdf();
+
+            itens.add(new ItemUI(nome, resumo, preco, relatorio));
+        }
+        return itens;
     }
 
-    // ---------- MOCK ----------
-    private List<Project> mockProjects() {
-        List<Project> list = new ArrayList<>();
-        list.add(new Project(1, "Setup Trio Forte - Gol G4", 3250.90));
-        list.add(new Project(2, "SQ Clean - Honda Civic", 4879.00));
-        list.add(new Project(3, "Daily Bass - Saveiro", 6120.45));
-        // adicione mais se quiser
-        return list;
+    private void aplicarLista(List<ItemUI> dados) {
+        adapter.submit(dados);
+        tvVazio.setVisibility(dados.isEmpty() ? View.VISIBLE : View.GONE);
+        rvProjetos.setVisibility(dados.isEmpty() ? View.GONE : View.VISIBLE);
     }
 
-    // ---------- MODEL ----------
-    public static class Project {
-        public final long id;
-        public final String nome;
-        public final double orcamentoTotal;
+    private void toggleLoading(boolean show) {
+        if (progress != null) progress.setVisibility(show ? View.VISIBLE : View.GONE);
+        rvProjetos.setAlpha(show ? 0.4f : 1f);
+    }
 
-        public Project(long id, String nome, double orcamentoTotal) {
-            this.id = id;
+    // === Dados da UI (layout item_preset) ===
+    private static class ItemUI {
+        final String nome;
+        final String resumo;
+        final double preco;
+        final String relatorio;
+
+        ItemUI(String nome, String resumo, double preco, String relatorio) {
             this.nome = nome;
-            this.orcamentoTotal = orcamentoTotal;
+            this.resumo = resumo;
+            this.preco = preco;
+            this.relatorio = relatorio;
         }
     }
 
-    // ---------- ADAPTER ----------
-    private class ProjectsAdapter extends RecyclerView.Adapter<ProjectsAdapter.VH> {
-        private final List<Project> data = new ArrayList<>();
-        private final NumberFormat nfBr = NumberFormat.getCurrencyInstance(new Locale("pt", "BR"));
+    // === Adapter usando layout item_preset ===
+    private static class ProjetosAdapter extends RecyclerView.Adapter<ProjetosAdapter.VH> {
 
-        public void setItems(List<Project> items) {
+        private final List<ItemUI> data = new ArrayList<>();
+        private final NumberFormat brl = NumberFormat.getCurrencyInstance(new Locale("pt", "BR"));
+
+        void submit(List<ItemUI> novos) {
             data.clear();
-            if (items != null) data.addAll(items);
+            if (novos != null) data.addAll(novos);
             notifyDataSetChanged();
         }
 
-        @NonNull @Override
+        @NonNull
+        @Override
         public VH onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-            // Criamos o "item view" inteiramente por código (sem XML extra)
-            CardView card = new CardView(parent.getContext());
-            CardView.LayoutParams cardLp = new CardView.LayoutParams(
-                    ViewGroup.LayoutParams.MATCH_PARENT,
-                    ViewGroup.LayoutParams.WRAP_CONTENT
-            );
-            cardLp.topMargin = dp(10);
-            card.setLayoutParams(cardLp);
-            card.setUseCompatPadding(true);
-            card.setRadius(dp(16));
-
-            LinearLayout root = new LinearLayout(parent.getContext());
-            root.setOrientation(LinearLayout.VERTICAL);
-            root.setPadding(dp(14), dp(14), dp(14), dp(14));
-
-            TextView tvNome = new TextView(parent.getContext());
-            tvNome.setTextSize(16);
-            tvNome.setTypeface(Typeface.DEFAULT_BOLD);
-
-            TextView tvPreco = new TextView(parent.getContext());
-            LinearLayout botoes = new LinearLayout(parent.getContext());
-            botoes.setOrientation(LinearLayout.HORIZONTAL);
-            botoes.setPadding(0, dp(8), 0, 0);
-            botoes.setGravity(android.view.Gravity.END);
-
-            Button btnVer = new Button(parent.getContext(), null, android.R.attr.borderlessButtonStyle);
-            btnVer.setText("Ver");
-
-            Button btnExcluir = new Button(parent.getContext(), null, android.R.attr.borderlessButtonStyle);
-            btnExcluir.setText("Excluir");
-            LinearLayout.LayoutParams btnExcluirLp = new LinearLayout.LayoutParams(
-                    ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-            btnExcluirLp.leftMargin = dp(8);
-            btnExcluir.setLayoutParams(btnExcluirLp);
-
-            botoes.addView(btnVer);
-            botoes.addView(btnExcluir);
-
-            root.addView(tvNome);
-            root.addView(tvPreco);
-            root.addView(botoes);
-            card.addView(root);
-
-            return new VH(card, tvNome, tvPreco, btnVer, btnExcluir);
+            View view = LayoutInflater.from(parent.getContext())
+                    .inflate(R.layout.item_preset, parent, false);
+            return new VH(view);
         }
 
         @Override
         public void onBindViewHolder(@NonNull VH h, int position) {
-            Project p = data.get(position);
-            h.tvNome.setText(p.nome);
-            h.tvPreco.setText(nfBr.format(p.orcamentoTotal));
+            ItemUI it = data.get(position);
+            Context ctx = h.itemView.getContext();
 
-            h.btnVer.setOnClickListener(v ->
-                    Toast.makeText(ProjetosActivity.this,
-                            "Abrir detalhes de \"" + p.nome + "\" (id " + p.id + ")",
-                            Toast.LENGTH_SHORT).show());
+            h.tvNome.setText(it.nome);
+            h.tvResumo.setText(it.resumo);
+            h.tvPreco.setText(brl.format(it.preco));
 
-            h.btnExcluir.setOnClickListener(v -> {
-                int idx = h.getAdapterPosition(); // compatível com todas as versões
-                if (idx != RecyclerView.NO_POSITION) {
-                    Project removed = data.remove(idx);
-                    notifyItemRemoved(idx);
-                    notifyItemRangeChanged(idx, data.size()); // <-- atualiza os índices da lista
-                    Toast.makeText(ProjetosActivity.this,
-                            "Projeto \"" + removed.nome + "\" removido (front-only)",
-                            Toast.LENGTH_SHORT).show();
-                    toggleEmpty(data.isEmpty());
+
+            h.btnVer.setOnClickListener(v -> {
+                if (!TextUtils.isEmpty(it.relatorio)) {
+                    Intent i = new Intent(Intent.ACTION_VIEW, Uri.parse(it.relatorio));
+                    ctx.startActivity(i);
+                } else {
+                    Toast.makeText(ctx, "Relatório não disponível", Toast.LENGTH_SHORT).show();
                 }
             });
 
+
+            h.btnRemover.setOnClickListener(v ->
+                    Toast.makeText(ctx, "Projeto removido: " + it.nome, Toast.LENGTH_SHORT).show());
         }
+
 
         @Override
-        public int getItemCount() { return data.size(); }
-
-        class VH extends RecyclerView.ViewHolder {
-            final TextView tvNome, tvPreco;
-            final Button btnVer, btnExcluir;
-            VH(@NonNull View itemView, TextView tvNome, TextView tvPreco, Button btnVer, Button btnExcluir) {
-                super(itemView);
-                this.tvNome = tvNome;
-                this.tvPreco = tvPreco;
-                this.btnVer = btnVer;
-                this.btnExcluir = btnExcluir;
-            }
+        public int getItemCount() {
+            return data.size();
         }
 
-        private int dp(int v) {
-            return Math.round(getResources().getDisplayMetrics().density * v);
+        static class VH extends RecyclerView.ViewHolder {
+            final TextView tvNome, tvResumo, tvPreco;
+            final MaterialButton btnVer;
+            public View btnRemover;
+
+            VH(@NonNull View itemView) {
+                super(itemView);
+                tvNome = itemView.findViewById(R.id.tvNome);
+                tvResumo = itemView.findViewById(R.id.tvResumo);
+                tvPreco = itemView.findViewById(R.id.tvPreco);
+                btnVer = itemView.findViewById(R.id.btnVer);
+                btnRemover = itemView.findViewById(R.id.btnRemover);
+            }
         }
     }
 }

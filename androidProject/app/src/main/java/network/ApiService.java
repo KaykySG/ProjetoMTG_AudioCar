@@ -1,5 +1,6 @@
 package network;
 
+import model.Configuracao;
 import model.Usuario;
 import model.Subwoofer;
 import model.AltoFalante;
@@ -16,6 +17,7 @@ import retrofit2.http.Body;
 import retrofit2.http.GET;
 import retrofit2.http.POST;
 import retrofit2.http.Path;
+import retrofit2.http.Query;
 
 public interface ApiService {
 
@@ -51,5 +53,9 @@ public interface ApiService {
 
     @POST("configuracoes/validar")
     Call<List<ValidacaoCompatibilidade>> validarConfiguracao(@Body Map<String, Object> body);
+    @GET("configuracoes")
+    Call<List<Configuracao>> getConfiguracoes(@Query("usuarioId") String usuarioId);
+    @POST("configuracoes")
+    Call<Configuracao> salvarConfiguracao(@Body Configuracao configuracao);
 
 }
