@@ -2,17 +2,22 @@
 FROM gradle:8.10.2-jdk21 AS builder
 WORKDIR /app
 
-# Copia arquivos de config primeiro (cache)
 COPY build.gradle settings.gradle gradlew ./
 COPY gradle ./gradle
 
-# Baixa dependências (aproveita cache mesmo sem código)
+# ✅ Corrige permissão e possíveis CRLF do Windows
+RUN chmod +x gradlew && sed -i 's/\r$//' gradlew
+
+# Opcional: também normalize os scripts do wrapper, se existirem
+RUN find gradle -type f -name "*.bat" -prune -o -type f -exec sed -i 's/\r$//' {} \;
+
+# Puxa deps (cache)
 RUN ./gradlew --no-daemon dependencies || true
 
-# Copia o código
+# Código
 COPY src ./src
 
-# Gera o JAR
+# Build
 RUN ./gradlew --no-daemon bootJar -x test
 
 # ===== Runtime =====
