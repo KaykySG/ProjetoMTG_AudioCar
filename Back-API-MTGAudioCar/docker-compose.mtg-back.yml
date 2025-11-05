@@ -1,0 +1,8 @@
+services:
+  mtg-back:
+    build: .
+    image: mtg-back:dev
+    container_name: mtg-back
+    ports:
+      - "8082:8080"
+    restart: unless-stopped
