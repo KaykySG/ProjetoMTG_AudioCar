@@ -76,19 +76,11 @@
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnSalvarProjeto"
-                android:layout_width="344dp"
-                android:layout_height="43dp"
-
-                android:background="@drawable/menu_button_light"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="match_parent"
+                android:layout_height="55dp"
                 android:text="Salvar Projeto"
-                android:textAllCaps="false"
-                android:textColor="#1F2937"
-                app:iconGravity="textStart"
-                app:iconPadding="8dp"
-                app:iconSize="20dp"
-                app:iconTint="@null"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
+                app:cornerRadius="15dp" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnAmplificador"

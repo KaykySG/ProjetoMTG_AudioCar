@@ -1,37 +1,67 @@
 package com.app.mtgaudiocar.ui;
 
 import android.annotation.SuppressLint;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.webkit.WebChromeClient;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebResourceResponse;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.EditText;
 import android.widget.TextView;
-import android.util.Log;
+import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.RecyclerView;
 import androidx.webkit.WebViewAssetLoader;
 
 import com.app.mtgaudiocar.R;
-import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.button.MaterialButton;
 
-import model.ComponentType; // ✅ importa o enum
+import java.text.NumberFormat;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Locale;
+
+import data.ConfigDraft;
+import data.SelectedComponent;
+import model.ComponentType;
+import model.Configuracao;
+import network.ApiClient;
+import network.ApiService;
+import model.ConfiguracaoCreateRequest;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
 
 public class MontagemPersonalizadaActivity extends AppCompatActivity {
 
     private static final String TAG = "MontagemPersonalizada";
+
     private WebView web3d;
+    private MaterialButton btnSalvarProjeto;
+
+    private ApiService api;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_montagem_personaliza);
+
+        // Retrofit
+        Retrofit retrofit = ApiClient.getClient();
+        api = retrofit.create(ApiService.class);
 
         init3D();
 
@@ -39,19 +69,22 @@ public class MontagemPersonalizadaActivity extends AppCompatActivity {
         MaterialButton btnAlto  = findViewById(R.id.btnAltoFalante);
         MaterialButton btnSub   = findViewById(R.id.btnSubwoofer);
         MaterialButton btnCross = findViewById(R.id.btnCrossover);
+        btnSalvarProjeto        = findViewById(R.id.btnSalvarProjeto);
 
-        // ✅ Agora cada botão abre a tela genérica já filtrada pelo tipo
         btnAmp.setOnClickListener(v -> openList(ComponentType.MODULO));
         btnAlto.setOnClickListener(v -> openList(ComponentType.ALTOFALANTE));
         btnSub.setOnClickListener(v -> openList(ComponentType.SUBWOOFER));
         btnCross.setOnClickListener(v -> openList(ComponentType.CROSSOVER));
+
+        // Botão Salvar Projeto -> abre pop-up de revisão
+        btnSalvarProjeto.setOnClickListener(v -> showReviewDialog());
     }
 
     /** Abre a ComponentInfoActivity no modo LISTA para o tipo informado */
     private void openList(ComponentType type) {
         Log.d(TAG, "Abrindo lista: " + type);
         Intent i = new Intent(this, ComponentInfoActivity.class);
-        i.putExtra(ComponentInfoActivity.EXTRA_TYPE, type); // ✅ passa o tipo
+        i.putExtra(ComponentInfoActivity.EXTRA_TYPE, type);
         startActivity(i);
     }
 
@@ -91,17 +124,6 @@ public class MontagemPersonalizadaActivity extends AppCompatActivity {
         web3d.loadUrl("https://appassets.androidplatform.net/assets/Viewer.html");
     }
 
-    // (opcional) ainda dá pra usar o placeholder em outros pontos se quiser
-    private void openPlaceholderSheet(String titulo) {
-        BottomSheetDialog dialog = new BottomSheetDialog(this);
-        View view = LayoutInflater.from(this).inflate(R.layout.sheet_placeholder, null, false);
-        ((TextView) view.findViewById(R.id.tvSheetTitle)).setText(titulo + " disponíveis");
-        ((TextView) view.findViewById(R.id.tvSheetMsg))
-                .setText("Nenhum item disponível no momento.\n(Conectaremos ao banco em breve)");
-        dialog.setContentView(view);
-        dialog.show();
-    }
-
     @Override
     protected void onDestroy() {
         if (web3d != null) {
@@ -109,5 +131,232 @@ public class MontagemPersonalizadaActivity extends AppCompatActivity {
             web3d.destroy();
         }
         super.onDestroy();
+    }
+
+    // =========================
+    // POP-UP de revisão
+    // =========================
+
+    private static final NumberFormat BRL = NumberFormat.getCurrencyInstance(new Locale("pt", "BR"));
+
+    private static class Linha {
+        final String tipo;
+        final String nome;
+        final String preco; // já formatado
+        Linha(String tipo, String nome, String preco) {
+            this.tipo = tipo;
+            this.nome = nome;
+            this.preco = preco;
+        }
+    }
+
+    /** Monta string amigável do tipo */
+    private String displayOf(ComponentType t) {
+        switch (t) {
+            case MODULO:       return "Módulo";
+            case SUBWOOFER:    return "Subwoofer";
+            case ALTOFALANTE:  return "Alto-falante";
+            case CROSSOVER:    return "Crossover";
+            default:           return t.name();
+        }
+    }
+
+    /** Mostra o dialog de revisão: lista simples + total + botão Avançar */
+    private void showReviewDialog() {
+        // Constrói as linhas a partir do draft
+        List<Linha> linhas = new ArrayList<>();
+        double total = 0.0;
+
+        for (ComponentType type : ComponentType.values()) {
+            List<SelectedComponent> list = ConfigDraft.get().getList(type);
+            if (list == null || list.isEmpty()) continue;
+
+            for (SelectedComponent sc : list) {
+                double linhaPreco = sc.getPreco() * sc.getQuantidade();
+                total += linhaPreco;
+
+                String nome = sc.getNome();
+                if (sc.getQuantidade() > 1) {
+                    nome = nome + "  x" + sc.getQuantidade();
+                }
+
+                linhas.add(new Linha(
+                        displayOf(type),
+                        nome,
+                        BRL.format(linhaPreco)
+                ));
+            }
+        }
+
+        // Se não há itens, não deixa seguir
+        if (linhas.isEmpty()) {
+            Toast.makeText(this, "Adicione itens antes de salvar o projeto.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        View content = LayoutInflater.from(this).inflate(R.layout.dialog_review_config, null, false);
+        RecyclerView rv = content.findViewById(R.id.rvReview);
+        TextView tvTotal = content.findViewById(R.id.tvTotalValor);
+        MaterialButton btnAvancar = content.findViewById(R.id.btnAvancar);
+
+        rv.setAdapter(new ReviewAdapter(linhas));
+        tvTotal.setText(BRL.format(total));
+
+        AlertDialog dialog = new AlertDialog.Builder(this)
+                .setView(content)
+                .setCancelable(true)
+                .create();
+
+        btnAvancar.setOnClickListener(v -> {
+            dialog.dismiss();
+            showNameDialog(); // abre o dialog de nome do projeto
+        });
+
+        dialog.show();
+    }
+
+    // Adapter interno da lista de revisão
+    private static class ReviewAdapter extends RecyclerView.Adapter<ReviewAdapter.ReviewVH> {
+
+        private final List<Linha> data;
+
+        ReviewAdapter(List<Linha> data) {
+            this.data = (data == null) ? Collections.emptyList() : data;
+        }
+
+        static class ReviewVH extends RecyclerView.ViewHolder {
+            final TextView tvTipo, tvNome, tvPreco;
+            ReviewVH(@NonNull View itemView) {
+                super(itemView);
+                tvTipo  = itemView.findViewById(R.id.tvTipo);
+                tvNome  = itemView.findViewById(R.id.tvNome);
+                tvPreco = itemView.findViewById(R.id.tvPreco);
+            }
+        }
+
+        @NonNull
+        @Override
+        public ReviewVH onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+            View v = LayoutInflater.from(parent.getContext())
+                    .inflate(R.layout.row_review_item, parent, false);
+            return new ReviewVH(v);
+        }
+
+        @Override
+        public void onBindViewHolder(@NonNull ReviewVH h, int position) {
+            Linha l = data.get(position);
+            h.tvTipo.setText(l.tipo);
+            h.tvNome.setText(l.nome);
+            h.tvPreco.setText(l.preco);
+        }
+
+        @Override
+        public int getItemCount() {
+            return data.size();
+        }
+    }
+
+    // =========================
+    // Dialog de nome do projeto
+    // =========================
+    private void showNameDialog() {
+        View view = LayoutInflater.from(this).inflate(R.layout.dialog_nome_projeto, null, false);
+        EditText etNome = view.findViewById(R.id.tvTituloDialog);
+        MaterialButton btnCancelar = view.findViewById(R.id.btnCancelar);
+        MaterialButton btnSalvar = view.findViewById(R.id.btnSalvar);
+
+        AlertDialog dialog = new AlertDialog.Builder(this)
+                .setView(view)
+                .setCancelable(true)
+                .create();
+
+        btnCancelar.setOnClickListener(v -> dialog.dismiss());
+        btnSalvar.setOnClickListener(v -> {
+            String nome = etNome.getText() != null ? etNome.getText().toString().trim() : "";
+            if (nome.isEmpty()) {
+                etNome.setError("Dê um nome ao projeto");
+                etNome.requestFocus();
+                return;
+            }
+            dialog.dismiss();
+            salvarProjeto(nome);
+        });
+
+        dialog.show();
+    }
+
+    // =========================
+    // Salvar projeto (POST)
+    // =========================
+    private void salvarProjeto(String nomeProjeto) {
+        // Monta o request a partir do rascunho
+        ConfiguracaoCreateRequest req = buildRequestFromDraft(this, nomeProjeto);
+
+        // Validação mínima: precisa ter ao menos 1 item válido
+        if (req.getAltoFalantes().isEmpty() &&
+                req.getSubwoofers().isEmpty() &&
+                req.getModulos().isEmpty() &&
+                req.getCrossovers().isEmpty()) {
+            Toast.makeText(this, "A configuração está vazia.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        api.criarConfiguracao(req).enqueue(new Callback<Configuracao>() {
+            @Override
+            public void onResponse(@NonNull Call<Configuracao> call, @NonNull Response<Configuracao> response) {
+                if (response.isSuccessful()) {
+                    Toast.makeText(MontagemPersonalizadaActivity.this, "Projeto salvo!", Toast.LENGTH_SHORT).show();
+                    // limpa rascunho e fecha a tela
+                    ConfigDraft.get().clear();
+                    finish();
+                } else {
+                    Toast.makeText(MontagemPersonalizadaActivity.this, "Falha ao salvar (HTTP " + response.code() + ")", Toast.LENGTH_LONG).show();
+                }
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<Configuracao> call, @NonNull Throwable t) {
+                Toast.makeText(MontagemPersonalizadaActivity.this, "Erro: " + t.getMessage(), Toast.LENGTH_LONG).show();
+            }
+        });
+    }
+
+    /** Constrói o payload esperado pelo backend usando o draft atual. */
+    private ConfiguracaoCreateRequest buildRequestFromDraft(Context ctx, String nomeProjeto) {
+        ConfigDraft draft = ConfigDraft.get();
+
+        List<String> idsAlto = new ArrayList<>();
+        List<String> idsSub = new ArrayList<>();
+        List<String> idsMod = new ArrayList<>();
+        List<String> idsCross = new ArrayList<>();
+
+        // inclui repetido conforme quantidade
+        addAll(idsMod,   draft.getList(ComponentType.MODULO));
+        addAll(idsAlto,  draft.getList(ComponentType.ALTOFALANTE));
+        addAll(idsSub,   draft.getList(ComponentType.SUBWOOFER));
+        addAll(idsCross, draft.getList(ComponentType.CROSSOVER));
+
+        ConfiguracaoCreateRequest req = new ConfiguracaoCreateRequest();
+        req.setNomeConfiguracao(nomeProjeto);
+        req.setVeiculo(draft.getVeiculoNome() == null ? "Volkswagen Gol" : draft.getVeiculoNome());
+        req.setRelatorioPdf(draft.getRelatorioPdf() == null ? "Relatório da configuração em PDF" : draft.getRelatorioPdf());
+        req.setUsuarioId(draft.getUsuarioId()); // se for nulo, backend deve rejeitar/ignorar
+
+        req.setAltoFalantes(idsAlto);
+        req.setSubwoofers(idsSub);
+        req.setModulos(idsMod);
+        req.setCrossovers(idsCross);
+
+        return req;
+    }
+
+    /** Copia IDs para a lista de destino repetindo conforme quantidade. */
+    private void addAll(List<String> dest, List<SelectedComponent> src) {
+        if (src == null) return;
+        for (SelectedComponent sc : src) {
+            for (int i = 0; i < sc.getQuantidade(); i++) {
+                dest.add(sc.getId());
+            }
+        }
     }
 }

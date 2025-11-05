@@ -1,6 +1,7 @@
 package network;
 
 import model.Configuracao;
+import model.ConfiguracaoCreateRequest;
 import model.Usuario;
 import model.Subwoofer;
 import model.AltoFalante;
@@ -56,6 +57,6 @@ public interface ApiService {
     @GET("configuracoes")
     Call<List<Configuracao>> getConfiguracoes(@Query("usuarioId") String usuarioId);
     @POST("configuracoes")
-    Call<Configuracao> salvarConfiguracao(@Body Configuracao configuracao);
+    Call<Configuracao> criarConfiguracao(@Body ConfiguracaoCreateRequest body);
 
 }
