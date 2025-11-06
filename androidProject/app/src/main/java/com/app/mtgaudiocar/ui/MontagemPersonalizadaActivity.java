@@ -196,6 +196,10 @@ public class MontagemPersonalizadaActivity extends AppCompatActivity {
 
         View content = LayoutInflater.from(this).inflate(R.layout.dialog_review_config, null, false);
         RecyclerView rv = content.findViewById(R.id.rvReview);
+
+        rv.setLayoutManager(new androidx.recyclerview.widget.LinearLayoutManager(this));
+        rv.setAdapter(new ReviewAdapter(linhas));
+
         TextView tvTotal = content.findViewById(R.id.tvTotalValor);
         MaterialButton btnAvancar = content.findViewById(R.id.btnAvancar);
 
@@ -260,23 +264,40 @@ public class MontagemPersonalizadaActivity extends AppCompatActivity {
     // Dialog de nome do projeto
     // =========================
     private void showNameDialog() {
+        // infla o layout do diálogo
         View view = LayoutInflater.from(this).inflate(R.layout.dialog_nome_projeto, null, false);
-        EditText etNome = view.findViewById(R.id.tvTituloDialog);
-        MaterialButton btnCancelar = view.findViewById(R.id.btnCancelar);
-        MaterialButton btnSalvar = view.findViewById(R.id.btnSalvar);
 
-        AlertDialog dialog = new AlertDialog.Builder(this)
+        // pega o TextInputLayout e o TextInputEditText pelos IDs do seu XML
+        com.google.android.material.textfield.TextInputLayout til =
+                view.findViewById(R.id.tilNomeProjeto);
+        EditText etNome = view.findViewById(R.id.etNomeProjeto); // TextInputEditText é EditText
+
+        // cria o diálogo
+        final AlertDialog dialog = new com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
                 .setView(view)
                 .setCancelable(true)
                 .create();
 
+        // botões do layout
+        MaterialButton btnCancelar = view.findViewById(R.id.btnCancelar);
+        MaterialButton btnSalvar   = view.findViewById(R.id.btnSalvar);
+
         btnCancelar.setOnClickListener(v -> dialog.dismiss());
+
         btnSalvar.setOnClickListener(v -> {
             String nome = etNome.getText() != null ? etNome.getText().toString().trim() : "";
             if (nome.isEmpty()) {
-                etNome.setError("Dê um nome ao projeto");
+                // mostra erro no campo e no TextInputLayout para acessibilidade
+                if (til != null) {
+                    til.setErrorEnabled(true);
+                    til.setError("Dê um nome ao projeto");
+                }
                 etNome.requestFocus();
                 return;
+            }
+            if (til != null) {
+                til.setError(null);
+                til.setErrorEnabled(false);
             }
             dialog.dismiss();
             salvarProjeto(nome);
@@ -284,6 +305,8 @@ public class MontagemPersonalizadaActivity extends AppCompatActivity {
 
         dialog.show();
     }
+
+
 
     // =========================
     // Salvar projeto (POST)
@@ -293,10 +316,10 @@ public class MontagemPersonalizadaActivity extends AppCompatActivity {
         ConfiguracaoCreateRequest req = buildRequestFromDraft(this, nomeProjeto);
 
         // Validação mínima: precisa ter ao menos 1 item válido
-        if (req.getAltoFalantes().isEmpty() &&
-                req.getSubwoofers().isEmpty() &&
-                req.getModulos().isEmpty() &&
-                req.getCrossovers().isEmpty()) {
+        if (req.getaltoFalanteIds().isEmpty() &&
+                req.getsubwooferIds().isEmpty() &&
+                req.getmoduloIds().isEmpty() &&
+                req.getcrossoverIds().isEmpty()) {
             Toast.makeText(this, "A configuração está vazia.", Toast.LENGTH_SHORT).show();
             return;
         }
@@ -337,15 +360,15 @@ public class MontagemPersonalizadaActivity extends AppCompatActivity {
         addAll(idsCross, draft.getList(ComponentType.CROSSOVER));
 
         ConfiguracaoCreateRequest req = new ConfiguracaoCreateRequest();
-        req.setNomeConfiguracao(nomeProjeto);
+        req.setnome(nomeProjeto);
         req.setVeiculo(draft.getVeiculoNome() == null ? "Volkswagen Gol" : draft.getVeiculoNome());
         req.setRelatorioPdf(draft.getRelatorioPdf() == null ? "Relatório da configuração em PDF" : draft.getRelatorioPdf());
         req.setUsuarioId(draft.getUsuarioId()); // se for nulo, backend deve rejeitar/ignorar
 
-        req.setAltoFalantes(idsAlto);
-        req.setSubwoofers(idsSub);
-        req.setModulos(idsMod);
-        req.setCrossovers(idsCross);
+        req.setaltoFalanteIds(idsAlto);
+        req.setsubwooferIds(idsSub);
+        req.setmoduloIds(idsMod);
+        req.setcrossoverIds(idsCross);
 
         return req;
     }

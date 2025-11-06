@@ -3,19 +3,19 @@ package model;
 import java.util.List;
 
 public class ConfiguracaoCreateRequest {
-    private String nomeConfiguracao;
+    private String nome;
     private String veiculo;
     private String relatorioPdf; // opcional
     private String usuarioId;    // se o back precisar
 
     // listas de IDs (strings/UUID em string)
-    private List<String> subwoofers;
-    private List<String> altoFalantes;
-    private List<String> modulos;
-    private List<String> crossovers;
+    private List<String> subwooferIds;
+    private List<String> altoFalanteIds;
+    private List<String> moduloIds;
+    private List<String> crossoverIds;
 
-    public String getNomeConfiguracao() { return nomeConfiguracao; }
-    public void setNomeConfiguracao(String nomeConfiguracao) { this.nomeConfiguracao = nomeConfiguracao; }
+    public String getnome() { return nome; }
+    public void setnome(String nome) { this.nome = nome; }
 
     public String getVeiculo() { return veiculo; }
     public void setVeiculo(String veiculo) { this.veiculo = veiculo; }
@@ -26,15 +26,15 @@ public class ConfiguracaoCreateRequest {
     public String getUsuarioId() { return usuarioId; }
     public void setUsuarioId(String usuarioId) { this.usuarioId = usuarioId; }
 
-    public List<String> getSubwoofers() { return subwoofers; }
-    public void setSubwoofers(List<String> subwoofers) { this.subwoofers = subwoofers; }
+    public List<String> getsubwooferIds() { return subwooferIds; }
+    public void setsubwooferIds(List<String> subwooferIds) { this.subwooferIds = subwooferIds; }
 
-    public List<String> getAltoFalantes() { return altoFalantes; }
-    public void setAltoFalantes(List<String> altoFalantes) { this.altoFalantes = altoFalantes; }
+    public List<String> getaltoFalanteIds() { return altoFalanteIds; }
+    public void setaltoFalanteIds(List<String> altoFalanteIds) { this.altoFalanteIds = altoFalanteIds; }
 
-    public List<String> getModulos() { return modulos; }
-    public void setModulos(List<String> modulos) { this.modulos = modulos; }
+    public List<String> getmoduloIds() { return moduloIds; }
+    public void setmoduloIds(List<String> moduloIds) { this.moduloIds = moduloIds; }
 
-    public List<String> getCrossovers() { return crossovers; }
-    public void setCrossovers(List<String> crossovers) { this.crossovers = crossovers; }
+    public List<String> getcrossoverIds() { return crossoverIds; }
+    public void setcrossoverIds(List<String> crossoverIds) { this.crossoverIds = crossoverIds; }
 }
