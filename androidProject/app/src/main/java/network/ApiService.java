@@ -1,5 +1,7 @@
 package network;
 
+import model.Configuracao;
+import model.ConfiguracaoCreateRequest;
 import model.Usuario;
 import model.Subwoofer;
 import model.AltoFalante;
@@ -9,12 +11,14 @@ import model.CategoriaComponente;
 import model.ValidacaoCompatibilidade;
 import model.RequisicaoCompatibilidade;
 import java.util.List;
+import java.util.Map;
 
 import retrofit2.Call;
 import retrofit2.http.Body;
 import retrofit2.http.GET;
 import retrofit2.http.POST;
 import retrofit2.http.Path;
+import retrofit2.http.Query;
 
 public interface ApiService {
 
@@ -55,8 +59,10 @@ public interface ApiService {
     Call<List<CategoriaComponente>> getCategorias();
 
     @POST("configuracoes/validar")
-    Call<List<ValidacaoCompatibilidade>> validarConfiguracao(
-            @Body RequisicaoCompatibilidade dados
-    );
+    Call<List<ValidacaoCompatibilidade>> validarConfiguracao(@Body Map<String, Object> body);
+    @GET("configuracoes")
+    Call<List<Configuracao>> getConfiguracoes(@Query("usuarioId") String usuarioId);
+    @POST("configuracoes")
+    Call<Configuracao> criarConfiguracao(@Body ConfiguracaoCreateRequest body);
 
 }

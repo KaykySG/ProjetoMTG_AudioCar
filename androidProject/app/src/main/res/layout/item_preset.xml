@@ -13,19 +13,13 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
-        <ImageView
-            android:id="@+id/imgThumb"
-            android:layout_width="match_parent"
-            android:layout_height="120dp"
-            android:scaleType="centerCrop"
-            android:contentDescription="@string/app_name"
-            android:src="@drawable/home_gradient_bg" />
+
 
         <TextView
             android:id="@+id/tvNome"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Trio Compacto 600W RMS"
+            android:text=""
             android:textStyle="bold"
             android:textSize="16sp"
             android:paddingTop="8dp"/>
@@ -34,7 +28,7 @@
             android:id="@+id/tvResumo"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="600W RMS • 1x sub 12” • 2 vias • Consumo Médio: 35A"
+            android:text=""
             android:textSize="13sp"
             android:alpha="0.8"
             android:paddingTop="2dp"/>
@@ -43,7 +37,7 @@
             android:id="@+id/tvPreco"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="R$ 2.199,90"
+            android:text=""
             android:textStyle="bold"
             android:textSize="15sp"
             android:paddingTop="6dp"/>
@@ -56,17 +50,17 @@
             android:paddingTop="8dp">
 
             <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnVer"
+                android:id="@+id/btnRemover"
                 style="@style/Widget.Material3.Button.OutlinedButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Ver" />
+                android:text="Remover" />
 
             <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnUsar"
+                android:id="@+id/btnVer"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Usar montagem"
+                android:text="Ver"
                 android:layout_marginStart="8dp"/>
         </LinearLayout>
     </LinearLayout>

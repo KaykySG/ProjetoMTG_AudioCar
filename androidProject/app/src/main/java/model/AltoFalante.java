@@ -1,6 +1,9 @@
 package model;
 
 import java.util.UUID;
+import com.google.gson.annotations.JsonAdapter;
+import com.google.gson.annotations.SerializedName;
+import util.CategoriaComponenteJsonAdapter;
 
 public class AltoFalante {
 
@@ -18,6 +21,8 @@ public class AltoFalante {
     private String descricao;
     private Double preco;
 
+    @SerializedName("categoria")
+    @JsonAdapter(CategoriaComponenteJsonAdapter.class)
     private CategoriaComponente categoria;
     private ModuloAmplificador modulo;
     private Crossover crossover;
