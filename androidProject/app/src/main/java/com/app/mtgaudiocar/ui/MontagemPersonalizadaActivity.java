@@ -26,20 +26,25 @@ import androidx.webkit.WebViewAssetLoader;
 
 import com.app.mtgaudiocar.R;
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
+import java.io.IOException;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;              // <-- novo
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;                 // <-- novo
 
 import data.ConfigDraft;
 import data.SelectedComponent;
 import model.ComponentType;
 import model.Configuracao;
+import model.ConfiguracaoCreateRequest;
 import network.ApiClient;
 import network.ApiService;
-import model.ConfiguracaoCreateRequest;
+import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -76,8 +81,8 @@ public class MontagemPersonalizadaActivity extends AppCompatActivity {
         btnSub.setOnClickListener(v -> openList(ComponentType.SUBWOOFER));
         btnCross.setOnClickListener(v -> openList(ComponentType.CROSSOVER));
 
-        // Botão Salvar Projeto -> abre pop-up de revisão
-        btnSalvarProjeto.setOnClickListener(v -> showReviewDialog());
+        // ✅ Validação logo no clique do botão (antes de abrir o review)
+        btnSalvarProjeto.setOnClickListener(v -> validarAntesDeRevisar());
     }
 
     /** Abre a ComponentInfoActivity no modo LISTA para o tipo informado */
@@ -139,10 +144,17 @@ public class MontagemPersonalizadaActivity extends AppCompatActivity {
 
     private static final NumberFormat BRL = NumberFormat.getCurrencyInstance(new Locale("pt", "BR"));
 
+    // Normalização defensiva para casos onde o preço chega multiplicado
+    private static double normalizeBRPrice(double v) {
+        if (v >= 1000.0 && (v / 10.0) < 1000.0) return v / 10.0;
+        if (v >= 10000.0 && (v / 100.0) >= 1.0 && (v / 100.0) < 10000.0) return v / 100.0;
+        return v;
+    }
+
     private static class Linha {
         final String tipo;
         final String nome;
-        final String preco; // já formatado
+        final String preco; // já formatado (unitário)
         Linha(String tipo, String nome, String preco) {
             this.tipo = tipo;
             this.nome = nome;
@@ -163,7 +175,6 @@ public class MontagemPersonalizadaActivity extends AppCompatActivity {
 
     /** Mostra o dialog de revisão: lista simples + total + botão Avançar */
     private void showReviewDialog() {
-        // Constrói as linhas a partir do draft
         List<Linha> linhas = new ArrayList<>();
         double total = 0.0;
 
@@ -172,23 +183,24 @@ public class MontagemPersonalizadaActivity extends AppCompatActivity {
             if (list == null || list.isEmpty()) continue;
 
             for (SelectedComponent sc : list) {
-                double linhaPreco = sc.getPreco() * sc.getQuantidade();
-                total += linhaPreco;
+                int q = sc.getQuantidade();
+                if (q <= 0 || q > 5000) q = 1;
+
+                double unit = normalizeBRPrice(sc.getPreco());
+                double subtotal = unit * q;
+                total += subtotal;
 
                 String nome = sc.getNome();
-                if (sc.getQuantidade() > 1) {
-                    nome = nome + "  x" + sc.getQuantidade();
-                }
+                if (q > 1) nome = nome + "  x" + q;
 
                 linhas.add(new Linha(
                         displayOf(type),
                         nome,
-                        BRL.format(linhaPreco)
+                        BRL.format(unit)
                 ));
             }
         }
 
-        // Se não há itens, não deixa seguir
         if (linhas.isEmpty()) {
             Toast.makeText(this, "Adicione itens antes de salvar o projeto.", Toast.LENGTH_SHORT).show();
             return;
@@ -203,7 +215,6 @@ public class MontagemPersonalizadaActivity extends AppCompatActivity {
         TextView tvTotal = content.findViewById(R.id.tvTotalValor);
         MaterialButton btnAvancar = content.findViewById(R.id.btnAvancar);
 
-        rv.setAdapter(new ReviewAdapter(linhas));
         tvTotal.setText(BRL.format(total));
 
         AlertDialog dialog = new AlertDialog.Builder(this)
@@ -264,21 +275,17 @@ public class MontagemPersonalizadaActivity extends AppCompatActivity {
     // Dialog de nome do projeto
     // =========================
     private void showNameDialog() {
-        // infla o layout do diálogo
         View view = LayoutInflater.from(this).inflate(R.layout.dialog_nome_projeto, null, false);
 
-        // pega o TextInputLayout e o TextInputEditText pelos IDs do seu XML
         com.google.android.material.textfield.TextInputLayout til =
                 view.findViewById(R.id.tilNomeProjeto);
-        EditText etNome = view.findViewById(R.id.etNomeProjeto); // TextInputEditText é EditText
+        EditText etNome = view.findViewById(R.id.etNomeProjeto);
 
-        // cria o diálogo
         final AlertDialog dialog = new com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
                 .setView(view)
                 .setCancelable(true)
                 .create();
 
-        // botões do layout
         MaterialButton btnCancelar = view.findViewById(R.id.btnCancelar);
         MaterialButton btnSalvar   = view.findViewById(R.id.btnSalvar);
 
@@ -287,7 +294,6 @@ public class MontagemPersonalizadaActivity extends AppCompatActivity {
         btnSalvar.setOnClickListener(v -> {
             String nome = etNome.getText() != null ? etNome.getText().toString().trim() : "";
             if (nome.isEmpty()) {
-                // mostra erro no campo e no TextInputLayout para acessibilidade
                 if (til != null) {
                     til.setErrorEnabled(true);
                     til.setError("Dê um nome ao projeto");
@@ -306,16 +312,92 @@ public class MontagemPersonalizadaActivity extends AppCompatActivity {
         dialog.show();
     }
 
+    // =========================
+    // Validação no clique do botão Salvar (antes de abrir o review)
+    // =========================
+    private void validarAntesDeRevisar() {
+        boolean vazio =
+                (ConfigDraft.get().getList(ComponentType.MODULO) == null || ConfigDraft.get().getList(ComponentType.MODULO).isEmpty()) &&
+                        (ConfigDraft.get().getList(ComponentType.ALTOFALANTE) == null || ConfigDraft.get().getList(ComponentType.ALTOFALANTE).isEmpty()) &&
+                        (ConfigDraft.get().getList(ComponentType.SUBWOOFER) == null || ConfigDraft.get().getList(ComponentType.SUBWOOFER).isEmpty()) &&
+                        (ConfigDraft.get().getList(ComponentType.CROSSOVER) == null || ConfigDraft.get().getList(ComponentType.CROSSOVER).isEmpty());
 
+        if (vazio) {
+            Toast.makeText(this, "Adicione itens antes de salvar o projeto.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        String nome = ConfigDraft.get().getProjetoNome();
+        if (nome == null || nome.trim().isEmpty()) nome = "Projeto Mobile";
+
+        ConfiguracaoCreateRequest req = buildRequestFromDraft(this, nome);
+
+        Map<String, Object> body = new HashMap<>();
+        body.put("nome", req.getnome());
+        body.put("veiculo", req.getVeiculo());
+        body.put("relatorioPdf", req.getRelatorioPdf());
+        body.put("usuarioId", req.getUsuarioId());
+        body.put("altoFalanteIds", req.getaltoFalanteIds());
+        body.put("subwooferIds", req.getsubwooferIds());
+        body.put("moduloIds", req.getmoduloIds());
+        body.put("crossoverIds", req.getcrossoverIds());
+
+        btnSalvarProjeto.setEnabled(false);
+        btnSalvarProjeto.setAlpha(0.6f);
+
+        api.validarConfiguracao(body).enqueue(new retrofit2.Callback<java.util.List<model.ValidacaoCompatibilidade>>() {
+            @Override
+            public void onResponse(@androidx.annotation.NonNull retrofit2.Call<java.util.List<model.ValidacaoCompatibilidade>> call,
+                                   @androidx.annotation.NonNull retrofit2.Response<java.util.List<model.ValidacaoCompatibilidade>> response) {
+                btnSalvarProjeto.setEnabled(true);
+                btnSalvarProjeto.setAlpha(1f);
+
+                if (response.isSuccessful() && response.body() != null) {
+                    java.util.List<model.ValidacaoCompatibilidade> lista = response.body();
+                    if (!lista.isEmpty()) {
+                        StringBuilder msg = new StringBuilder("Não é possível salvar o projeto pois há incompatibilidades:\n\n");
+                        for (model.ValidacaoCompatibilidade v : lista) {
+                            msg.append("• ").append(v.getMensagem());
+                            if (v.getSugestao() != null && !v.getSugestao().isEmpty()) {
+                                msg.append("\n  Sugestão: ").append(v.getSugestao());
+                            }
+                            msg.append("\n\n");
+                        }
+                        new MaterialAlertDialogBuilder(MontagemPersonalizadaActivity.this)
+                                .setTitle("Projeto incompatível")
+                                .setMessage(msg.toString().trim())
+                                .setPositiveButton("OK", null)
+                                .show();
+                        return;
+                    }
+
+                    // ✅ Compatível: segue o fluxo normal
+                    showReviewDialog();
+
+                } else {
+                    Toast.makeText(MontagemPersonalizadaActivity.this,
+                            "Erro na validação (HTTP " + response.code() + ")", Toast.LENGTH_LONG).show();
+                }
+            }
+
+            @Override
+            public void onFailure(@androidx.annotation.NonNull retrofit2.Call<java.util.List<model.ValidacaoCompatibilidade>> call,
+                                  @androidx.annotation.NonNull Throwable t) {
+                btnSalvarProjeto.setEnabled(true);
+                btnSalvarProjeto.setAlpha(1f);
+                Toast.makeText(MontagemPersonalizadaActivity.this,
+                        "Falha ao validar compatibilidade: " + t.getMessage(),
+                        Toast.LENGTH_LONG).show();
+            }
+        });
+    }
 
     // =========================
-    // Salvar projeto (POST)
+    // Salvar projeto (VALIDA -> POST) — defesa em profundidade
     // =========================
     private void salvarProjeto(String nomeProjeto) {
-        // Monta o request a partir do rascunho
         ConfiguracaoCreateRequest req = buildRequestFromDraft(this, nomeProjeto);
 
-        // Validação mínima: precisa ter ao menos 1 item válido
         if (req.getaltoFalanteIds().isEmpty() &&
                 req.getsubwooferIds().isEmpty() &&
                 req.getmoduloIds().isEmpty() &&
@@ -324,22 +406,73 @@ public class MontagemPersonalizadaActivity extends AppCompatActivity {
             return;
         }
 
-        api.criarConfiguracao(req).enqueue(new Callback<Configuracao>() {
+        Map<String, Object> body = new HashMap<>();
+        body.put("nome", req.getnome());
+        body.put("veiculo", req.getVeiculo());
+        body.put("relatorioPdf", req.getRelatorioPdf());
+        body.put("usuarioId", req.getUsuarioId());
+        body.put("altoFalanteIds", req.getaltoFalanteIds());
+        body.put("subwooferIds", req.getsubwooferIds());
+        body.put("moduloIds", req.getmoduloIds());
+        body.put("crossoverIds", req.getcrossoverIds());
+
+        // 1) Validação de compatibilidade antes de criar
+        api.validarConfiguracao(body).enqueue(new Callback<List<model.ValidacaoCompatibilidade>>() {
             @Override
-            public void onResponse(@NonNull Call<Configuracao> call, @NonNull Response<Configuracao> response) {
-                if (response.isSuccessful()) {
-                    Toast.makeText(MontagemPersonalizadaActivity.this, "Projeto salvo!", Toast.LENGTH_SHORT).show();
-                    // limpa rascunho e fecha a tela
-                    ConfigDraft.get().clear();
-                    finish();
+            public void onResponse(@NonNull Call<List<model.ValidacaoCompatibilidade>> call,
+                                   @NonNull Response<List<model.ValidacaoCompatibilidade>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    List<model.ValidacaoCompatibilidade> lista = response.body();
+
+                    // Se houver incompatibilidades → bloq. salvamento
+                    if (!lista.isEmpty()) {
+                        StringBuilder msg = new StringBuilder("Não é possível salvar o projeto pois há incompatibilidades:\n\n");
+                        for (model.ValidacaoCompatibilidade v : lista) {
+                            msg.append("• ").append(v.getMensagem());
+                            if (v.getSugestao() != null && !v.getSugestao().isEmpty()) {
+                                msg.append("\n  Sugestão: ").append(v.getSugestao());
+                            }
+                            msg.append("\n\n");
+                        }
+
+                        new MaterialAlertDialogBuilder(MontagemPersonalizadaActivity.this)
+                                .setTitle("Projeto incompatível")
+                                .setMessage(msg.toString().trim())
+                                .setPositiveButton("OK", null)
+                                .show();
+                        return; // ❌ Não continua o salvamento
+                    }
+
+                    // 2) Compatível → prossegue para salvar
+                    api.criarConfiguracao(req).enqueue(new Callback<Configuracao>() {
+                        @Override
+                        public void onResponse(@NonNull Call<Configuracao> call, @NonNull Response<Configuracao> response) {
+                            if (response.isSuccessful()) {
+                                Toast.makeText(MontagemPersonalizadaActivity.this, "Projeto salvo!", Toast.LENGTH_SHORT).show();
+                                ConfigDraft.get().clear();
+                                finish();
+                            } else {
+                                Toast.makeText(MontagemPersonalizadaActivity.this,
+                                        "Falha ao salvar (HTTP " + response.code() + ")", Toast.LENGTH_LONG).show();
+                            }
+                        }
+
+                        @Override
+                        public void onFailure(@NonNull Call<Configuracao> call, @NonNull Throwable t) {
+                            Toast.makeText(MontagemPersonalizadaActivity.this, "Erro: " + t.getMessage(), Toast.LENGTH_LONG).show();
+                        }
+                    });
                 } else {
-                    Toast.makeText(MontagemPersonalizadaActivity.this, "Falha ao salvar (HTTP " + response.code() + ")", Toast.LENGTH_LONG).show();
+                    Toast.makeText(MontagemPersonalizadaActivity.this,
+                            "Erro na validação (HTTP " + response.code() + ")", Toast.LENGTH_LONG).show();
                 }
             }
 
             @Override
-            public void onFailure(@NonNull Call<Configuracao> call, @NonNull Throwable t) {
-                Toast.makeText(MontagemPersonalizadaActivity.this, "Erro: " + t.getMessage(), Toast.LENGTH_LONG).show();
+            public void onFailure(@NonNull Call<List<model.ValidacaoCompatibilidade>> call, @NonNull Throwable t) {
+                Toast.makeText(MontagemPersonalizadaActivity.this,
+                        "Falha ao validar compatibilidade: " + t.getMessage(),
+                        Toast.LENGTH_LONG).show();
             }
         });
     }
@@ -353,7 +486,6 @@ public class MontagemPersonalizadaActivity extends AppCompatActivity {
         List<String> idsMod = new ArrayList<>();
         List<String> idsCross = new ArrayList<>();
 
-        // inclui repetido conforme quantidade
         addAll(idsMod,   draft.getList(ComponentType.MODULO));
         addAll(idsAlto,  draft.getList(ComponentType.ALTOFALANTE));
         addAll(idsSub,   draft.getList(ComponentType.SUBWOOFER));
@@ -363,7 +495,7 @@ public class MontagemPersonalizadaActivity extends AppCompatActivity {
         req.setnome(nomeProjeto);
         req.setVeiculo(draft.getVeiculoNome() == null ? "Volkswagen Gol" : draft.getVeiculoNome());
         req.setRelatorioPdf(draft.getRelatorioPdf() == null ? "Relatório da configuração em PDF" : draft.getRelatorioPdf());
-        req.setUsuarioId(draft.getUsuarioId()); // se for nulo, backend deve rejeitar/ignorar
+        req.setUsuarioId(draft.getUsuarioId());
 
         req.setaltoFalanteIds(idsAlto);
         req.setsubwooferIds(idsSub);
@@ -377,9 +509,37 @@ public class MontagemPersonalizadaActivity extends AppCompatActivity {
     private void addAll(List<String> dest, List<SelectedComponent> src) {
         if (src == null) return;
         for (SelectedComponent sc : src) {
-            for (int i = 0; i < sc.getQuantidade(); i++) {
+            int qtd = sc.getQuantidade() <= 0 ? 1 : sc.getQuantidade();
+            for (int i = 0; i < qtd; i++) {
                 dest.add(sc.getId());
             }
+        }
+    }
+
+    // =========================
+    // (Opcional) helpers não usados diretamente
+    // =========================
+    private String extractServerMessage(ResponseBody errorBody) {
+        if (errorBody == null) return null;
+        try {
+            String raw = errorBody.string();
+            if (raw == null) return null;
+            String lower = raw.toLowerCase();
+            int idx = lower.indexOf("\"mensagem\"");
+            if (idx >= 0) {
+                int start = raw.indexOf(':', idx);
+                if (start >= 0) {
+                    int firstQuote = raw.indexOf('"', start + 1);
+                    int secondQuote = raw.indexOf('"', firstQuote + 1);
+                    if (firstQuote >= 0 && secondQuote > firstQuote) {
+                        return raw.substring(firstQuote + 1, secondQuote);
+                    }
+                }
+            }
+            if (lower.contains("incompat")) return raw;
+            return null;
+        } catch (IOException e) {
+            return null;
         }
     }
 }
