@@ -8,6 +8,6 @@ services:
     environment:
       SPRING_DATASOURCE_URL: "jdbc:postgresql://aws-0-sa-east-1.pooler.supabase.com:5432/postgres?sslmode=require"
       SPRING_DATASOURCE_USERNAME: "postgres.ooxzdyhhzrsgxvvkhqmk"
-      SPRING_DATASOURCE_PASSWORD: "COLOQUE_SUA_SENHA_AQUI"
+      SPRING_DATASOURCE_PASSWORD: "Xe6VJdht6ExyNHw5"
       JAVA_OPTS: "-Djava.net.preferIPv4Stack=true"
     restart: unless-stopped
