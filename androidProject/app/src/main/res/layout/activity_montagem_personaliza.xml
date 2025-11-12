@@ -44,9 +44,6 @@
             android:overScrollMode="never" />
     </FrameLayout>
 
-
-
-
     <!-- Card inferior com os equipamentos -->
     <androidx.cardview.widget.CardView
         android:id="@+id/cardEquipamentos"
@@ -144,6 +141,20 @@
         </LinearLayout>
     </androidx.cardview.widget.CardView>
 
-
+    <!-- Loader central branco (fica sobre tudo) -->
+    <ProgressBar
+        android:id="@+id/progress"
+        style="?android:attr/progressBarStyleLarge"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:indeterminate="true"
+        android:visibility="gone"
+        android:contentDescription="Carregando…"
+        android:indeterminateTint="@android:color/white"
+        android:indeterminateTintMode="src_in"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

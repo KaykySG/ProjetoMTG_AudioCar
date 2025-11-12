@@ -15,6 +15,7 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.EditText;
+import android.widget.ProgressBar; // <-- novo
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -29,14 +30,14 @@ import com.google.android.material.button.MaterialButton;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import java.io.IOException;
-import java.text.Normalizer; // <-- novo
+import java.text.Normalizer; // <-- já adicionado
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;              // já existia no seu snippet
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;                 // já existia no seu snippet
+import java.util.Map;
 
 import data.ConfigDraft;
 import data.SelectedComponent;
@@ -57,17 +58,16 @@ public class MontagemPersonalizadaActivity extends AppCompatActivity {
 
     private WebView web3d;
     private MaterialButton btnSalvarProjeto;
+    private MaterialButton btnAmp, btnAlto, btnSub, btnCross; // opcional para desabilitar durante POST
+    private ProgressBar progress; // <-- novo
 
     private ApiService api;
 
     // =========================
     // Constantes e helpers NOVOS
     // =========================
-
-    // Mensagem que a API deve retornar para confirmar compatibilidade total
     private static final String COMPAT_STR = "Todos os componentes estão compatíveis";
 
-    // Normaliza string: remove acentos, põe em minúsculas e trim
     private static String norm(String s) {
         if (s == null) return "";
         String n = Normalizer.normalize(s, Normalizer.Form.NFD);
@@ -75,7 +75,6 @@ public class MontagemPersonalizadaActivity extends AppCompatActivity {
         return n.toLowerCase(Locale.ROOT).trim();
     }
 
-    // Verifica se a lista vinda da API contém a confirmação de compatibilidade
     private static boolean hasCompatMessage(List<model.ValidacaoCompatibilidade> lista) {
         String alvo = norm(COMPAT_STR);
         if (lista == null) return false;
@@ -86,7 +85,6 @@ public class MontagemPersonalizadaActivity extends AppCompatActivity {
         return false;
     }
 
-    // Retorna mensagens que NÃO são a confirmação (ou seja, prováveis incompatibilidades)
     private static List<String> nonCompatMessages(List<model.ValidacaoCompatibilidade> lista) {
         List<String> out = new ArrayList<>();
         String alvo = norm(COMPAT_STR);
@@ -110,11 +108,12 @@ public class MontagemPersonalizadaActivity extends AppCompatActivity {
 
         init3D();
 
-        MaterialButton btnAmp   = findViewById(R.id.btnAmplificador);
-        MaterialButton btnAlto  = findViewById(R.id.btnAltoFalante);
-        MaterialButton btnSub   = findViewById(R.id.btnSubwoofer);
-        MaterialButton btnCross = findViewById(R.id.btnCrossover);
-        btnSalvarProjeto        = findViewById(R.id.btnSalvarProjeto);
+        btnAmp   = findViewById(R.id.btnAmplificador);
+        btnAlto  = findViewById(R.id.btnAltoFalante);
+        btnSub   = findViewById(R.id.btnSubwoofer);
+        btnCross = findViewById(R.id.btnCrossover);
+        btnSalvarProjeto = findViewById(R.id.btnSalvarProjeto);
+        progress = findViewById(R.id.progress); // <-- novo
 
         btnAmp.setOnClickListener(v -> openList(ComponentType.MODULO));
         btnAlto.setOnClickListener(v -> openList(ComponentType.ALTOFALANTE));
@@ -123,6 +122,21 @@ public class MontagemPersonalizadaActivity extends AppCompatActivity {
 
         // ✅ Validação logo no clique do botão (antes de abrir o review)
         btnSalvarProjeto.setOnClickListener(v -> validarAntesDeRevisar());
+    }
+
+    /** Liga/desliga overlay de loading durante o POST */
+    private void toggleSaving(boolean show) {
+        if (progress != null) progress.setVisibility(show ? View.VISIBLE : View.GONE);
+
+        // trava interações visuais básicas
+        if (btnSalvarProjeto != null) {
+            btnSalvarProjeto.setEnabled(!show);
+            btnSalvarProjeto.setAlpha(show ? 0.6f : 1f);
+        }
+        if (btnAmp != null)  btnAmp.setEnabled(!show);
+        if (btnAlto != null) btnAlto.setEnabled(!show);
+        if (btnSub != null)  btnSub.setEnabled(!show);
+        if (btnCross != null)btnCross.setEnabled(!show);
     }
 
     /** Abre a ComponentInfoActivity no modo LISTA para o tipo informado */
@@ -184,7 +198,6 @@ public class MontagemPersonalizadaActivity extends AppCompatActivity {
 
     private static final NumberFormat BRL = NumberFormat.getCurrencyInstance(new Locale("pt", "BR"));
 
-    // Normalização defensiva para casos onde o preço chega multiplicado
     private static double normalizeBRPrice(double v) {
         if (v >= 1000.0 && (v / 10.0) < 1000.0) return v / 10.0;
         if (v >= 10000.0 && (v / 100.0) >= 1.0 && (v / 100.0) < 10000.0) return v / 100.0;
@@ -194,7 +207,7 @@ public class MontagemPersonalizadaActivity extends AppCompatActivity {
     private static class Linha {
         final String tipo;
         final String nome;
-        final String preco; // já formatado (unitário)
+        final String preco;
         Linha(String tipo, String nome, String preco) {
             this.tipo = tipo;
             this.nome = nome;
@@ -202,7 +215,6 @@ public class MontagemPersonalizadaActivity extends AppCompatActivity {
         }
     }
 
-    /** Monta string amigável do tipo */
     private String displayOf(ComponentType t) {
         switch (t) {
             case MODULO:       return "Módulo";
@@ -213,7 +225,6 @@ public class MontagemPersonalizadaActivity extends AppCompatActivity {
         }
     }
 
-    /** Mostra o dialog de revisão: lista simples + total + botão Avançar */
     private void showReviewDialog() {
         List<Linha> linhas = new ArrayList<>();
         double total = 0.0;
@@ -270,15 +281,11 @@ public class MontagemPersonalizadaActivity extends AppCompatActivity {
         dialog.show();
     }
 
-    // Adapter interno da lista de revisão
     private static class ReviewAdapter extends RecyclerView.Adapter<ReviewAdapter.ReviewVH> {
-
         private final List<Linha> data;
-
         ReviewAdapter(List<Linha> data) {
             this.data = (data == null) ? Collections.emptyList() : data;
         }
-
         static class ReviewVH extends RecyclerView.ViewHolder {
             final TextView tvTipo, tvNome, tvPreco;
             ReviewVH(@NonNull View itemView) {
@@ -288,27 +295,18 @@ public class MontagemPersonalizadaActivity extends AppCompatActivity {
                 tvPreco = itemView.findViewById(R.id.tvPreco);
             }
         }
-
-        @NonNull
-        @Override
-        public ReviewVH onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        @NonNull @Override public ReviewVH onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
             View v = LayoutInflater.from(parent.getContext())
                     .inflate(R.layout.row_review_item, parent, false);
             return new ReviewVH(v);
         }
-
-        @Override
-        public void onBindViewHolder(@NonNull ReviewVH h, int position) {
+        @Override public void onBindViewHolder(@NonNull ReviewVH h, int position) {
             Linha l = data.get(position);
             h.tvTipo.setText(l.tipo);
             h.tvNome.setText(l.nome);
             h.tvPreco.setText(l.preco);
         }
-
-        @Override
-        public int getItemCount() {
-            return data.size();
-        }
+        @Override public int getItemCount() { return data.size(); }
     }
 
     // =========================
@@ -395,7 +393,6 @@ public class MontagemPersonalizadaActivity extends AppCompatActivity {
                 if (response.isSuccessful() && response.body() != null) {
                     List<model.ValidacaoCompatibilidade> lista = response.body();
 
-                    // Trate qualquer mensagem que não seja a confirmação como incompatibilidade
                     List<String> problemas = nonCompatMessages(lista);
                     if (!problemas.isEmpty()) {
                         StringBuilder msg = new StringBuilder("Não é possível salvar o projeto pois há incompatibilidades:\n\n");
@@ -410,7 +407,6 @@ public class MontagemPersonalizadaActivity extends AppCompatActivity {
                         return;
                     }
 
-                    // Última verificação: exige a frase de confirmação
                     if (!hasCompatMessage(lista)) {
                         new MaterialAlertDialogBuilder(MontagemPersonalizadaActivity.this)
                                 .setTitle("Compatibilidade não confirmada")
@@ -420,7 +416,6 @@ public class MontagemPersonalizadaActivity extends AppCompatActivity {
                         return;
                     }
 
-                    // ✅ Tudo certo: confirmação presente e sem problemas → segue para o review
                     showReviewDialog();
 
                 } else {
@@ -442,7 +437,7 @@ public class MontagemPersonalizadaActivity extends AppCompatActivity {
     }
 
     // =========================
-    // Salvar projeto (VALIDA -> POST) — defesa em profundidade
+    // Salvar projeto (VALIDA -> POST) — com loading durante o POST
     // =========================
     private void salvarProjeto(String nomeProjeto) {
         ConfiguracaoCreateRequest req = buildRequestFromDraft(this, nomeProjeto);
@@ -465,7 +460,7 @@ public class MontagemPersonalizadaActivity extends AppCompatActivity {
         body.put("moduloIds", req.getmoduloIds());
         body.put("crossoverIds", req.getcrossoverIds());
 
-        // 1) Validação de compatibilidade antes de criar
+        // 1) Validação de compatibilidade antes de criar (sem loader)
         api.validarConfiguracao(body).enqueue(new Callback<List<model.ValidacaoCompatibilidade>>() {
             @Override
             public void onResponse(@NonNull Call<List<model.ValidacaoCompatibilidade>> call,
@@ -473,7 +468,6 @@ public class MontagemPersonalizadaActivity extends AppCompatActivity {
                 if (response.isSuccessful() && response.body() != null) {
                     List<model.ValidacaoCompatibilidade> lista = response.body();
 
-                    // Trate qualquer mensagem que não seja a confirmação como incompatibilidade
                     List<String> problemas = nonCompatMessages(lista);
                     if (!problemas.isEmpty()) {
                         StringBuilder msg = new StringBuilder("Não é possível salvar o projeto pois há incompatibilidades:\n\n");
@@ -486,10 +480,9 @@ public class MontagemPersonalizadaActivity extends AppCompatActivity {
                                 .setMessage(msg.toString().trim())
                                 .setPositiveButton("OK", null)
                                 .show();
-                        return; // ❌ Não continua o salvamento
+                        return;
                     }
 
-                    // Última verificação: exige a frase de confirmação
                     if (!hasCompatMessage(lista)) {
                         new MaterialAlertDialogBuilder(MontagemPersonalizadaActivity.this)
                                 .setTitle("Compatibilidade não confirmada")
@@ -499,10 +492,12 @@ public class MontagemPersonalizadaActivity extends AppCompatActivity {
                         return;
                     }
 
-                    // 2) Compatível e confirmado → prossegue para salvar
+                    // 2) Compatível e confirmado → ativa loader e faz o POST
+                    toggleSaving(true); // <-- LIGA LOADING
                     api.criarConfiguracao(req).enqueue(new Callback<Configuracao>() {
                         @Override
                         public void onResponse(@NonNull Call<Configuracao> call, @NonNull Response<Configuracao> response) {
+                            toggleSaving(false); // <-- DESLIGA LOADING
                             if (response.isSuccessful()) {
                                 Toast.makeText(MontagemPersonalizadaActivity.this, "Projeto salvo!", Toast.LENGTH_SHORT).show();
                                 ConfigDraft.get().clear();
@@ -515,6 +510,7 @@ public class MontagemPersonalizadaActivity extends AppCompatActivity {
 
                         @Override
                         public void onFailure(@NonNull Call<Configuracao> call, @NonNull Throwable t) {
+                            toggleSaving(false); // <-- DESLIGA LOADING
                             Toast.makeText(MontagemPersonalizadaActivity.this, "Erro: " + t.getMessage(), Toast.LENGTH_LONG).show();
                         }
                     });
@@ -533,7 +529,6 @@ public class MontagemPersonalizadaActivity extends AppCompatActivity {
         });
     }
 
-    /** Constrói o payload esperado pelo backend usando o draft atual. */
     private ConfiguracaoCreateRequest buildRequestFromDraft(Context ctx, String nomeProjeto) {
         ConfigDraft draft = ConfigDraft.get();
 
@@ -561,7 +556,6 @@ public class MontagemPersonalizadaActivity extends AppCompatActivity {
         return req;
     }
 
-    /** Copia IDs para a lista de destino repetindo conforme quantidade. */
     private void addAll(List<String> dest, List<SelectedComponent> src) {
         if (src == null) return;
         for (SelectedComponent sc : src) {
@@ -572,9 +566,6 @@ public class MontagemPersonalizadaActivity extends AppCompatActivity {
         }
     }
 
-    // =========================
-    // (Opcional) helpers não usados diretamente
-    // =========================
     private String extractServerMessage(ResponseBody errorBody) {
         if (errorBody == null) return null;
         try {

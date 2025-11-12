@@ -53,7 +53,7 @@ public class ProjetosActivity extends AppCompatActivity {
 
         rvProjetos = findViewById(R.id.rvProjetos);
         tvVazio = findViewById(R.id.tvVazio);
-
+        progress = findViewById(R.id.progress); // <-- inicializa o círculo de loading
 
         rvProjetos.setLayoutManager(new LinearLayoutManager(this));
         rvProjetos.setAdapter(adapter);
@@ -120,7 +120,10 @@ public class ProjetosActivity extends AppCompatActivity {
 
     private void toggleLoading(boolean show) {
         if (progress != null) progress.setVisibility(show ? View.VISIBLE : View.GONE);
+        // Diminui a opacidade e bloqueia interações enquanto carrega
         rvProjetos.setAlpha(show ? 0.4f : 1f);
+        rvProjetos.setEnabled(!show);
+        if (show) tvVazio.setVisibility(View.GONE);
     }
 
     // === Dados da UI (layout item_preset) ===
@@ -167,7 +170,6 @@ public class ProjetosActivity extends AppCompatActivity {
             h.tvResumo.setText(it.resumo);
             h.tvPreco.setText(brl.format(it.preco));
 
-
             h.btnVer.setOnClickListener(v -> {
                 if (!TextUtils.isEmpty(it.relatorio)) {
                     Intent i = new Intent(Intent.ACTION_VIEW, Uri.parse(it.relatorio));
@@ -177,11 +179,9 @@ public class ProjetosActivity extends AppCompatActivity {
                 }
             });
 
-
             h.btnRemover.setOnClickListener(v ->
                     Toast.makeText(ctx, "Projeto removido: " + it.nome, Toast.LENGTH_SHORT).show());
         }
-
 
         @Override
         public int getItemCount() {
