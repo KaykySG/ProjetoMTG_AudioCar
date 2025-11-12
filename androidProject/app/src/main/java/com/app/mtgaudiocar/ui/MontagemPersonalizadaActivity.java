@@ -139,10 +139,19 @@ public class MontagemPersonalizadaActivity extends AppCompatActivity {
 
     private static final NumberFormat BRL = NumberFormat.getCurrencyInstance(new Locale("pt", "BR"));
 
+    // Normalização defensiva para casos onde o preço chega multiplicado
+    private static double normalizeBRPrice(double v) {
+        // 10x maior: 6499.0 ao invés de 649.90
+        if (v >= 1000.0 && (v / 10.0) < 1000.0) return v / 10.0;
+        // 100x maior: 64990.0 ao invés de 649.90
+        if (v >= 10000.0 && (v / 100.0) >= 1.0 && (v / 100.0) < 10000.0) return v / 100.0;
+        return v;
+    }
+
     private static class Linha {
         final String tipo;
         final String nome;
-        final String preco; // já formatado
+        final String preco; // já formatado (unitário)
         Linha(String tipo, String nome, String preco) {
             this.tipo = tipo;
             this.nome = nome;
@@ -172,18 +181,28 @@ public class MontagemPersonalizadaActivity extends AppCompatActivity {
             if (list == null || list.isEmpty()) continue;
 
             for (SelectedComponent sc : list) {
-                double linhaPreco = sc.getPreco() * sc.getQuantidade();
-                total += linhaPreco;
+                // quantidade defensiva
+                int q = sc.getQuantidade();
+                if (q <= 0 || q > 5000) q = 1;
 
+                // normaliza o preço unitário que possa estar multiplicado
+                double unit = normalizeBRPrice(sc.getPreco());
+
+                // subtotal e total corretos
+                double subtotal = unit * q;
+                total += subtotal;
+
+                // nome com multiplicador quando necessário
                 String nome = sc.getNome();
-                if (sc.getQuantidade() > 1) {
-                    nome = nome + "  x" + sc.getQuantidade();
+                if (q > 1) {
+                    nome = nome + "  x" + q;
                 }
 
+                // Na lista exibimos o PREÇO UNITÁRIO
                 linhas.add(new Linha(
                         displayOf(type),
                         nome,
-                        BRL.format(linhaPreco)
+                        BRL.format(unit)
                 ));
             }
         }
@@ -203,7 +222,6 @@ public class MontagemPersonalizadaActivity extends AppCompatActivity {
         TextView tvTotal = content.findViewById(R.id.tvTotalValor);
         MaterialButton btnAvancar = content.findViewById(R.id.btnAvancar);
 
-        rv.setAdapter(new ReviewAdapter(linhas));
         tvTotal.setText(BRL.format(total));
 
         AlertDialog dialog = new AlertDialog.Builder(this)
@@ -264,21 +282,17 @@ public class MontagemPersonalizadaActivity extends AppCompatActivity {
     // Dialog de nome do projeto
     // =========================
     private void showNameDialog() {
-        // infla o layout do diálogo
         View view = LayoutInflater.from(this).inflate(R.layout.dialog_nome_projeto, null, false);
 
-        // pega o TextInputLayout e o TextInputEditText pelos IDs do seu XML
         com.google.android.material.textfield.TextInputLayout til =
                 view.findViewById(R.id.tilNomeProjeto);
-        EditText etNome = view.findViewById(R.id.etNomeProjeto); // TextInputEditText é EditText
+        EditText etNome = view.findViewById(R.id.etNomeProjeto);
 
-        // cria o diálogo
         final AlertDialog dialog = new com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
                 .setView(view)
                 .setCancelable(true)
                 .create();
 
-        // botões do layout
         MaterialButton btnCancelar = view.findViewById(R.id.btnCancelar);
         MaterialButton btnSalvar   = view.findViewById(R.id.btnSalvar);
 
@@ -287,7 +301,6 @@ public class MontagemPersonalizadaActivity extends AppCompatActivity {
         btnSalvar.setOnClickListener(v -> {
             String nome = etNome.getText() != null ? etNome.getText().toString().trim() : "";
             if (nome.isEmpty()) {
-                // mostra erro no campo e no TextInputLayout para acessibilidade
                 if (til != null) {
                     til.setErrorEnabled(true);
                     til.setError("Dê um nome ao projeto");
@@ -306,16 +319,12 @@ public class MontagemPersonalizadaActivity extends AppCompatActivity {
         dialog.show();
     }
 
-
-
     // =========================
     // Salvar projeto (POST)
     // =========================
     private void salvarProjeto(String nomeProjeto) {
-        // Monta o request a partir do rascunho
         ConfiguracaoCreateRequest req = buildRequestFromDraft(this, nomeProjeto);
 
-        // Validação mínima: precisa ter ao menos 1 item válido
         if (req.getaltoFalanteIds().isEmpty() &&
                 req.getsubwooferIds().isEmpty() &&
                 req.getmoduloIds().isEmpty() &&
@@ -329,7 +338,6 @@ public class MontagemPersonalizadaActivity extends AppCompatActivity {
             public void onResponse(@NonNull Call<Configuracao> call, @NonNull Response<Configuracao> response) {
                 if (response.isSuccessful()) {
                     Toast.makeText(MontagemPersonalizadaActivity.this, "Projeto salvo!", Toast.LENGTH_SHORT).show();
-                    // limpa rascunho e fecha a tela
                     ConfigDraft.get().clear();
                     finish();
                 } else {
@@ -353,7 +361,6 @@ public class MontagemPersonalizadaActivity extends AppCompatActivity {
         List<String> idsMod = new ArrayList<>();
         List<String> idsCross = new ArrayList<>();
 
-        // inclui repetido conforme quantidade
         addAll(idsMod,   draft.getList(ComponentType.MODULO));
         addAll(idsAlto,  draft.getList(ComponentType.ALTOFALANTE));
         addAll(idsSub,   draft.getList(ComponentType.SUBWOOFER));
@@ -363,7 +370,7 @@ public class MontagemPersonalizadaActivity extends AppCompatActivity {
         req.setnome(nomeProjeto);
         req.setVeiculo(draft.getVeiculoNome() == null ? "Volkswagen Gol" : draft.getVeiculoNome());
         req.setRelatorioPdf(draft.getRelatorioPdf() == null ? "Relatório da configuração em PDF" : draft.getRelatorioPdf());
-        req.setUsuarioId(draft.getUsuarioId()); // se for nulo, backend deve rejeitar/ignorar
+        req.setUsuarioId(draft.getUsuarioId());
 
         req.setaltoFalanteIds(idsAlto);
         req.setsubwooferIds(idsSub);
