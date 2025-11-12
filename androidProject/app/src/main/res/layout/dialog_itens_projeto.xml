@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <TextView
+        android:id="@+id/tvTituloDialog"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Itens do projeto"
+        android:textStyle="bold"
+        android:textSize="18sp"
+        android:paddingBottom="8dp"/>
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="320dp">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvItensProjeto"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:overScrollMode="never"/>
+
+        <!-- Loader branco central -->
+        <ProgressBar
+            android:id="@+id/progressItens"
+            style="?android:attr/progressBarStyleLarge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:indeterminate="true"
+            android:visibility="gone"
+            android:indeterminateTint="@android:color/darker_gray"
+            android:indeterminateTintMode="src_in"/>
+    </FrameLayout>
+
+</LinearLayout>

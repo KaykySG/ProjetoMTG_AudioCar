@@ -58,5 +58,22 @@ public interface ApiService {
     Call<List<Configuracao>> getConfiguracoes(@Query("usuarioId") String usuarioId);
     @POST("configuracoes")
     Call<Configuracao> criarConfiguracao(@Body ConfiguracaoCreateRequest body);
+    @GET("/api/configuracoes/{id}")
+    Call<List<model.DisplayItem>> getItensConfiguracao(@Path("id") String configuracaoId);
+    @GET("/api/configuracoes/{id}")
+    Call<model.Configuracao> getConfiguracao(@Path("id") String id);
+
+    // Endpoints de detalhe por tipo (retornando Map p/ ser resiliente)
+    @GET("/api/modulos/{id}")
+    Call<java.util.Map<String, Object>> getModulo(@Path("id") String id);
+
+    @GET("/api/altofalantes/{id}")
+    Call<java.util.Map<String, Object>> getAltoFalante(@Path("id") String id);
+
+    @GET("/api/subwoofers/{id}")
+    Call<java.util.Map<String, Object>> getSubwoofer(@Path("id") String id);
+
+    @GET("/api/crossovers/{id}")
+    Call<java.util.Map<String, Object>> getCrossover(@Path("id") String id);
 
 }
