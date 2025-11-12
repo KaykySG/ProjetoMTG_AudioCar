@@ -7,7 +7,7 @@ import okhttp3.logging.HttpLoggingInterceptor;
 
 public class ApiClient {
 
-    private static final String BASE_URL = "http://172.20.10.2:8080/api/";
+    private static final String BASE_URL = "http://mtg.nkwflow.com:8082/api/";
     private static Retrofit retrofit = null;
 
     public static Retrofit getClient() {
