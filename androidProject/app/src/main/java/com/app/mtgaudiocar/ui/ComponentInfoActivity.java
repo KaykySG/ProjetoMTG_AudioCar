@@ -10,6 +10,11 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+// [ALTERAÇÃO] imports para tratar edge-to-edge/insets
+import androidx.core.view.WindowCompat;           // novo
+import androidx.core.view.ViewCompat;            // novo
+import androidx.core.view.WindowInsetsCompat;    // novo
+
 import com.app.mtgaudiocar.R;
 import com.app.mtgaudiocar.ui.adpter.GenericComponentAdapter;
 import com.google.android.material.appbar.MaterialToolbar;
@@ -34,12 +39,18 @@ public class ComponentInfoActivity extends AppCompatActivity {
     private TextView tvHeader, tvEmpty;
     private ProgressBar progress;
     private RecyclerView recycler;
+
+    // [ALTERAÇÃO] deixei explícito
     private GenericComponentAdapter adapter;
     private ComponentType type;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // [ALTERAÇÃO] evita conteúdo sob a status bar (empurra layout)
+        WindowCompat.setDecorFitsSystemWindows(getWindow(), true);
+
         setContentView(R.layout.activity_component_info);
 
         toolbar = findViewById(R.id.toolbar);
@@ -49,6 +60,15 @@ public class ComponentInfoActivity extends AppCompatActivity {
         tvEmpty = findViewById(R.id.tvEmpty);
         progress = findViewById(R.id.progress);
         recycler = findViewById(R.id.recyclerComponents);
+
+        // [ALTERAÇÃO] aplica paddingTop conforme status bar (robusto a temas edge-to-edge)
+        ViewCompat.setOnApplyWindowInsetsListener(toolbar, (v, insets) -> {
+            int top = insets.getInsets(WindowInsetsCompat.Type.statusBars()).top;
+            if (v.getPaddingTop() != top) {
+                v.setPadding(v.getPaddingLeft(), top, v.getPaddingRight(), v.getPaddingBottom());
+            }
+            return insets;
+        });
 
         setSupportActionBar(toolbar);
         if (getSupportActionBar() != null) getSupportActionBar().setDisplayHomeAsUpEnabled(true);
@@ -79,10 +99,13 @@ public class ComponentInfoActivity extends AppCompatActivity {
         }
 
         recycler.setLayoutManager(new LinearLayoutManager(this));
-        adapter = new GenericComponentAdapter(new GenericComponentAdapter.OnItemAction() {
+
+        // [ALTERAÇÃO] passa o 'type' para o adapter
+        //  -> exige construtor GenericComponentAdapter(ComponentType, OnItemAction)
+        adapter = new GenericComponentAdapter(type, new GenericComponentAdapter.OnItemAction() {
             @Override
             public void onAdd(DisplayItem item) {
-                double preco = parsePreco(item.getPreco()); // <- conversão String → double
+                double preco = parsePreco(item.getPreco()); // conversão String → double
                 int q = ConfigDraft.get().add(
                         type,
                         item.getId(),
@@ -93,6 +116,19 @@ public class ComponentInfoActivity extends AppCompatActivity {
                 );
                 showSnack("Adicionado: " + item.getNome() + " (qtd: " + q + ")");
                 validarCompatibilidade();
+
+                // [ALTERAÇÃO] rebind para refletir contador no card
+                //  -> se ainda não tiver getPositionById no adapter, use notifyDataSetChanged()
+                try {
+                    int pos = adapter.getPositionById(item.getId());
+                    if (pos != RecyclerView.NO_POSITION) {
+                        adapter.notifyItemChanged(pos);
+                    } else {
+                        adapter.notifyDataSetChanged();
+                    }
+                } catch (Throwable ignored) {
+                    adapter.notifyDataSetChanged();
+                }
             }
 
             @Override
@@ -103,6 +139,18 @@ public class ComponentInfoActivity extends AppCompatActivity {
                         : "Removido: " + item.getNome();
                 showSnack(msg);
                 validarCompatibilidade();
+
+                // [ALTERAÇÃO] rebind para refletir contador no card
+                try {
+                    int pos = adapter.getPositionById(item.getId());
+                    if (pos != RecyclerView.NO_POSITION) {
+                        adapter.notifyItemChanged(pos);
+                    } else {
+                        adapter.notifyDataSetChanged();
+                    }
+                } catch (Throwable ignored) {
+                    adapter.notifyDataSetChanged();
+                }
             }
         });
         recycler.setAdapter(adapter);
@@ -139,7 +187,7 @@ public class ComponentInfoActivity extends AppCompatActivity {
                     tvEmpty.setText("Nenhum item encontrado.");
                 } else {
                     recycler.setVisibility(View.VISIBLE);
-                    adapter.submit(items);
+                    adapter.submit(items); // [mantido]
                 }
             }
             @Override
