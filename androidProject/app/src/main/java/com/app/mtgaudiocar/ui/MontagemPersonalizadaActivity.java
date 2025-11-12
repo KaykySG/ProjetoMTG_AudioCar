@@ -29,13 +29,14 @@ import com.google.android.material.button.MaterialButton;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import java.io.IOException;
+import java.text.Normalizer; // <-- novo
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;              // <-- novo
+import java.util.HashMap;              // já existia no seu snippet
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;                 // <-- novo
+import java.util.Map;                 // já existia no seu snippet
 
 import data.ConfigDraft;
 import data.SelectedComponent;
@@ -58,6 +59,45 @@ public class MontagemPersonalizadaActivity extends AppCompatActivity {
     private MaterialButton btnSalvarProjeto;
 
     private ApiService api;
+
+    // =========================
+    // Constantes e helpers NOVOS
+    // =========================
+
+    // Mensagem que a API deve retornar para confirmar compatibilidade total
+    private static final String COMPAT_STR = "Todos os componentes estão compatíveis";
+
+    // Normaliza string: remove acentos, põe em minúsculas e trim
+    private static String norm(String s) {
+        if (s == null) return "";
+        String n = Normalizer.normalize(s, Normalizer.Form.NFD);
+        n = n.replaceAll("\\p{M}+", "");
+        return n.toLowerCase(Locale.ROOT).trim();
+    }
+
+    // Verifica se a lista vinda da API contém a confirmação de compatibilidade
+    private static boolean hasCompatMessage(List<model.ValidacaoCompatibilidade> lista) {
+        String alvo = norm(COMPAT_STR);
+        if (lista == null) return false;
+        for (model.ValidacaoCompatibilidade v : lista) {
+            String msg = norm(v.getMensagem());
+            if (msg.contains(alvo)) return true;
+        }
+        return false;
+    }
+
+    // Retorna mensagens que NÃO são a confirmação (ou seja, prováveis incompatibilidades)
+    private static List<String> nonCompatMessages(List<model.ValidacaoCompatibilidade> lista) {
+        List<String> out = new ArrayList<>();
+        String alvo = norm(COMPAT_STR);
+        if (lista == null) return out;
+        for (model.ValidacaoCompatibilidade v : lista) {
+            String raw = v.getMensagem();
+            if (raw == null) continue;
+            if (!norm(raw).contains(alvo)) out.add(raw);
+        }
+        return out;
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -353,15 +393,14 @@ public class MontagemPersonalizadaActivity extends AppCompatActivity {
                 btnSalvarProjeto.setAlpha(1f);
 
                 if (response.isSuccessful() && response.body() != null) {
-                    java.util.List<model.ValidacaoCompatibilidade> lista = response.body();
-                    if (!lista.isEmpty()) {
+                    List<model.ValidacaoCompatibilidade> lista = response.body();
+
+                    // Trate qualquer mensagem que não seja a confirmação como incompatibilidade
+                    List<String> problemas = nonCompatMessages(lista);
+                    if (!problemas.isEmpty()) {
                         StringBuilder msg = new StringBuilder("Não é possível salvar o projeto pois há incompatibilidades:\n\n");
-                        for (model.ValidacaoCompatibilidade v : lista) {
-                            msg.append("• ").append(v.getMensagem());
-                            if (v.getSugestao() != null && !v.getSugestao().isEmpty()) {
-                                msg.append("\n  Sugestão: ").append(v.getSugestao());
-                            }
-                            msg.append("\n\n");
+                        for (String p : problemas) {
+                            msg.append("• ").append(p).append("\n\n");
                         }
                         new MaterialAlertDialogBuilder(MontagemPersonalizadaActivity.this)
                                 .setTitle("Projeto incompatível")
@@ -371,7 +410,17 @@ public class MontagemPersonalizadaActivity extends AppCompatActivity {
                         return;
                     }
 
-                    // ✅ Compatível: segue o fluxo normal
+                    // Última verificação: exige a frase de confirmação
+                    if (!hasCompatMessage(lista)) {
+                        new MaterialAlertDialogBuilder(MontagemPersonalizadaActivity.this)
+                                .setTitle("Compatibilidade não confirmada")
+                                .setMessage("A validação não retornou a confirmação:\n\n“" + COMPAT_STR + "”.\n\nRevise a seleção de componentes e tente novamente.")
+                                .setPositiveButton("OK", null)
+                                .show();
+                        return;
+                    }
+
+                    // ✅ Tudo certo: confirmação presente e sem problemas → segue para o review
                     showReviewDialog();
 
                 } else {
@@ -424,15 +473,12 @@ public class MontagemPersonalizadaActivity extends AppCompatActivity {
                 if (response.isSuccessful() && response.body() != null) {
                     List<model.ValidacaoCompatibilidade> lista = response.body();
 
-                    // Se houver incompatibilidades → bloq. salvamento
-                    if (!lista.isEmpty()) {
+                    // Trate qualquer mensagem que não seja a confirmação como incompatibilidade
+                    List<String> problemas = nonCompatMessages(lista);
+                    if (!problemas.isEmpty()) {
                         StringBuilder msg = new StringBuilder("Não é possível salvar o projeto pois há incompatibilidades:\n\n");
-                        for (model.ValidacaoCompatibilidade v : lista) {
-                            msg.append("• ").append(v.getMensagem());
-                            if (v.getSugestao() != null && !v.getSugestao().isEmpty()) {
-                                msg.append("\n  Sugestão: ").append(v.getSugestao());
-                            }
-                            msg.append("\n\n");
+                        for (String p : problemas) {
+                            msg.append("• ").append(p).append("\n\n");
                         }
 
                         new MaterialAlertDialogBuilder(MontagemPersonalizadaActivity.this)
@@ -443,7 +489,17 @@ public class MontagemPersonalizadaActivity extends AppCompatActivity {
                         return; // ❌ Não continua o salvamento
                     }
 
-                    // 2) Compatível → prossegue para salvar
+                    // Última verificação: exige a frase de confirmação
+                    if (!hasCompatMessage(lista)) {
+                        new MaterialAlertDialogBuilder(MontagemPersonalizadaActivity.this)
+                                .setTitle("Compatibilidade não confirmada")
+                                .setMessage("A validação não retornou a confirmação:\n\n“" + COMPAT_STR + "”.\n\nRevise a seleção de componentes e tente novamente.")
+                                .setPositiveButton("OK", null)
+                                .show();
+                        return;
+                    }
+
+                    // 2) Compatível e confirmado → prossegue para salvar
                     api.criarConfiguracao(req).enqueue(new Callback<Configuracao>() {
                         @Override
                         public void onResponse(@NonNull Call<Configuracao> call, @NonNull Response<Configuracao> response) {
