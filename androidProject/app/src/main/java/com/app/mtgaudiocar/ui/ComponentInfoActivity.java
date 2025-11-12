@@ -13,11 +13,13 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.app.mtgaudiocar.R;
 import com.app.mtgaudiocar.ui.adpter.GenericComponentAdapter;
 import com.google.android.material.appbar.MaterialToolbar;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.snackbar.Snackbar;
 
 import java.util.List;
 
 import data.ConfigDraft;
+import data.SelectedComponent; // ➕ (necessário para checar quantidades)
 import model.ComponentType;
 import model.DisplayItem;
 import network.ApiClient;
@@ -64,12 +66,12 @@ public class ComponentInfoActivity extends AppCompatActivity {
         if (detailContainer != null) detailContainer.setVisibility(View.GONE);
         if (listContainer != null) listContainer.setVisibility(View.VISIBLE);
 
-        // Defaults temporários do projeto (evitam 500 no backend enquanto não há telas para isso)
+        // Defaults temporários
         if (ConfigDraft.get().getProjetoNome() == null) {
             ConfigDraft.get().setProjetoNome("Projeto Mobile");
         }
         if (ConfigDraft.get().getVeiculoNome() == null) {
-            ConfigDraft.get().setVeiculoNome("Volkswagen Gol"); // veículo por NOME
+            ConfigDraft.get().setVeiculoNome("Volkswagen Gol");
         }
         if (ConfigDraft.get().getRelatorioPdf() == null) {
             ConfigDraft.get().setRelatorioPdf("Relatório da configuração em PDF");
@@ -82,7 +84,7 @@ public class ComponentInfoActivity extends AppCompatActivity {
         adapter = new GenericComponentAdapter(new GenericComponentAdapter.OnItemAction() {
             @Override
             public void onAdd(DisplayItem item) {
-                double preco = parsePreco(item.getPreco()); // <- conversão String → double
+                double preco = parsePreco(item.getPreco());
                 int q = ConfigDraft.get().add(
                         type,
                         item.getId(),
@@ -97,6 +99,16 @@ public class ComponentInfoActivity extends AppCompatActivity {
 
             @Override
             public void onRemove(DisplayItem item) {
+                // 🔒 Checagem antes de remover
+                if (!canRemoveItem(type, item.getId())) {
+                    new MaterialAlertDialogBuilder(ComponentInfoActivity.this)
+                            .setTitle("Não é possível remover")
+                            .setMessage("Não há itens adicionados para remover.")
+                            .setPositiveButton("OK", null)
+                            .show();
+                    return;
+                }
+
                 int q = ConfigDraft.get().removeOne(type, item.getId());
                 String msg = q > 0
                         ? "Removido 1: " + item.getNome() + " (qtd: " + q + ")"
@@ -110,14 +122,28 @@ public class ComponentInfoActivity extends AppCompatActivity {
         loadData();
     }
 
+    /** Verifica se existe pelo menos 1 item selecionado (do tipo) e se o item alvo tem quantidade > 0. */
+    private boolean canRemoveItem(ComponentType t, String itemId) {
+        List<SelectedComponent> list = ConfigDraft.get().getList(t);
+        if (list == null || list.isEmpty()) return false;
+        for (SelectedComponent sc : list) {
+            if (sc == null) continue;
+            if (itemId != null && itemId.equals(sc.getId())) {
+                return sc.getQuantidade() > 0;
+            }
+        }
+        // Se o item ainda não foi adicionado, não pode remover
+        return false;
+    }
+
     /** Converte "R$ 1.299,99" / "1299.99" / 1299 para double sem quebrar. */
     private double parsePreco(Object precoField) {
         if (precoField == null) return 0d;
         if (precoField instanceof Number) return ((Number) precoField).doubleValue();
         String s = precoField.toString().trim();
         s = s.replace("R$", "").trim();
-        s = s.replace(".", "");     // remove milhar
-        s = s.replace(",", ".");    // vírgula decimal → ponto
+        s = s.replace(".", "");
+        s = s.replace(",", ".");
         if (s.isEmpty()) return 0d;
         try { return Double.parseDouble(s); }
         catch (NumberFormatException e) { return 0d; }
