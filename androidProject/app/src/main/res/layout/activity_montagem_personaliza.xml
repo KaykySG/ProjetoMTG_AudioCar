@@ -12,7 +12,7 @@
         android:id="@+id/tvTitulo"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:text="Volkswagen Gol"
+        android:text="TIPO DE CARRO"
         android:textSize="22sp"
         android:textStyle="bold"
         android:textColor="@android:color/white"
