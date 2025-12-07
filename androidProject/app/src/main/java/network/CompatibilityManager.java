@@ -78,7 +78,7 @@ public class CompatibilityManager {
         String nome        = safe(ConfigDraft.get().getProjetoNome(), "Projeto Mobile");
         String veiculo     = safe(ConfigDraft.get().getVeiculoNome(), "Volkswagen Gol"); // NOME do veículo
         String relatorio   = safe(ConfigDraft.get().getRelatorioPdf(), "Relatório da configuração em PDF");
-        String usuarioId   = safe(ConfigDraft.get().getUsuarioId(), "4f181b66-e602-4b31-b361-badaf4b5541d");
+        String usuarioId   = ConfigDraft.get().getUsuarioId();
 
         Map<String, Object> body = new HashMap<>();
         body.put("nome", nome);

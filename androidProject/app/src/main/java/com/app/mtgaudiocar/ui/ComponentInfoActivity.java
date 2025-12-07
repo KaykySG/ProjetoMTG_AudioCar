@@ -96,9 +96,7 @@ public class ComponentInfoActivity extends AppCompatActivity {
         if (ConfigDraft.get().getRelatorioPdf() == null) {
             ConfigDraft.get().setRelatorioPdf("Relatório da configuração em PDF");
         }
-        if (ConfigDraft.get().getUsuarioId() == null) {
-            ConfigDraft.get().setUsuarioId("4f181b66-e602-4b31-b361-badaf4b5541d");
-        }
+
 
         recycler.setLayoutManager(new LinearLayoutManager(this));
 

@@ -25,14 +25,18 @@ import com.google.android.material.button.MaterialButton;
 import java.lang.reflect.Method;
 import java.text.NumberFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import model.Configuracao;
+import data.ConfigDraft;
 import network.ApiClient;
 import network.ApiService;
 import retrofit2.Call;
@@ -55,6 +59,15 @@ public class ProjetosActivity extends AppCompatActivity {
     private ProjetosAdapter adapter;
     private ApiService api;
 
+    private String tipoLista;
+
+    // IDs dos projetos predefinidos (CSV)
+    private static final Set<String> IDS_PREDEFINIDOS = new HashSet<>(Arrays.asList(
+            "ebbd85f0-e702-43df-8726-2b9c7cbd7bff",
+            "ecdc998d-ce61-42d2-9988-ffe9a5638d6f",
+            "f10a1976-ab03-441b-ab43-ad51cb3c0396"
+    ));
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -68,32 +81,117 @@ public class ProjetosActivity extends AppCompatActivity {
         adapter = new ProjetosAdapter(this::onVerProjeto);
         rvProjetos.setAdapter(adapter);
 
+        // Lê o tipo de lista (usuario ou predefinida)
+        Intent i = getIntent();
+        tipoLista = i.getStringExtra(HomeActivity.EXTRA_TIPO_LISTA);
+        if (tipoLista == null) {
+            // se não vier nada, default para lista do usuário
+            tipoLista = HomeActivity.TIPO_LISTA_USUARIO;
+        }
+
         Retrofit retrofit = ApiClient.getClient();
         api = retrofit.create(ApiService.class);
 
         carregarConfiguracoes();
     }
 
+    /**
+     * Carrega as configurações do backend e aplica:
+     * - Se for lista do usuário: mostra todos os projetos do usuário.
+     * - Se for montagem predefinida: filtra para mostrar apenas os 3 IDs em IDS_PREDEFINIDOS.
+     */
     private void carregarConfiguracoes() {
         toggleLoading(true);
-        // TROQUE "current-user-id" pela origem real do seu userId
-        api.getConfiguracoes("current-user-id").enqueue(new Callback<List<Configuracao>>() {
-            @Override public void onResponse(@NonNull Call<List<Configuracao>> call, @NonNull Response<List<Configuracao>> response) {
+
+        // ✅ Recupera o ID do usuário atual do ConfigDraft ou da Intent
+        String usuarioId = ConfigDraft.get().getUsuarioId();
+        if (usuarioId == null || usuarioId.isEmpty()) {
+            usuarioId = getIntent().getStringExtra("usuarioId");
+            if (usuarioId != null && !usuarioId.isEmpty()) {
+                ConfigDraft.get().setUsuarioId(usuarioId);
+            }
+        }
+
+        if (usuarioId == null || usuarioId.isEmpty()) {
+            Toast.makeText(this,
+                    "Usuário não identificado. Faça login novamente.",
+                    Toast.LENGTH_LONG).show();
+            toggleLoading(false);
+            aplicarLista(new ArrayList<>());
+            return;
+        }
+
+        api.getConfiguracoes(usuarioId).enqueue(new Callback<List<Configuracao>>() {
+            @Override
+            public void onResponse(@NonNull Call<List<Configuracao>> call,
+                                   @NonNull Response<List<Configuracao>> response) {
                 toggleLoading(false);
                 if (response.isSuccessful() && response.body() != null) {
-                    aplicarLista(mapearParaUI(response.body()));
+                    List<Configuracao> lista = response.body();
+
+                    // Mapeia para itens de UI
+                    List<ItemUI> itens = mapearParaUI(lista);
+
+                    if (HomeActivity.TIPO_LISTA_PREDEFINIDA.equals(tipoLista)) {
+                        // Mostrar somente os 3 predefinidos
+                        itens = filtrarPredefinidos(itens);
+                    } else {
+                        // Ocultar os 3 predefinidos da listagem normal do usuário
+                        itens = removerPredefinidos(itens);
+                    }
+
+                    aplicarLista(itens);
                 } else {
-                    Toast.makeText(ProjetosActivity.this, "Erro ao buscar configurações: " + response.code(), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(ProjetosActivity.this,
+                            "Erro ao carregar configurações: " + response.code(),
+                            Toast.LENGTH_SHORT).show();
                     aplicarLista(new ArrayList<>());
                 }
             }
-            @Override public void onFailure(@NonNull Call<List<Configuracao>> call, @NonNull Throwable t) {
+
+            @Override
+            public void onFailure(@NonNull Call<List<Configuracao>> call,
+                                  @NonNull Throwable t) {
                 toggleLoading(false);
-                Toast.makeText(ProjetosActivity.this, "Falha na conexão: " + t.getMessage(), Toast.LENGTH_LONG).show();
+                Toast.makeText(ProjetosActivity.this,
+                        "Falha na conexão: " + t.getMessage(),
+                        Toast.LENGTH_LONG).show();
                 aplicarLista(new ArrayList<>());
             }
         });
     }
+
+    /**
+     * Mantém apenas os itens cujos IDs estão em IDS_PREDEFINIDOS.
+     */
+    private List<ItemUI> filtrarPredefinidos(List<ItemUI> lista) {
+        List<ItemUI> out = new ArrayList<>();
+        if (lista == null) return out;
+
+        for (ItemUI it : lista) {
+            if (it != null && !TextUtils.isEmpty(it.id)
+                    && IDS_PREDEFINIDOS.contains(it.id)) {
+                out.add(it);
+            }
+        }
+        return out;
+    }
+
+    private List<ItemUI> removerPredefinidos(List<ItemUI> lista) {
+        List<ItemUI> out = new ArrayList<>();
+        if (lista == null) return out;
+
+        for (ItemUI it : lista) {
+            if (it == null || TextUtils.isEmpty(it.id)) continue;
+
+            // Apenas mantém os que NÃO estão nos predefinidos
+            if (!IDS_PREDEFINIDOS.contains(it.id)) {
+                out.add(it);
+            }
+        }
+        return out;
+    }
+
 
     private List<ItemUI> mapearParaUI(List<Configuracao> lista) {
         List<ItemUI> itens = new ArrayList<>();
@@ -310,16 +408,27 @@ public class ProjetosActivity extends AppCompatActivity {
     // ===== Reflection helpers =====
     private String resolveId(Configuracao c) {
         String[] cand = {"getId", "getConfiguracaoId", "get_id", "getUuid"};
-        for (String m : cand) { try { Method md = c.getClass().getMethod(m); Object v = md.invoke(c); if (v != null) return String.valueOf(v);} catch (Exception ignored) {} }
+        for (String m : cand) {
+            try {
+                Method md = c.getClass().getMethod(m);
+                Object v = md.invoke(c);
+                if (v != null) return String.valueOf(v);
+            } catch (Exception ignored) {}
+        }
         return null;
     }
     private String getStr(Configuracao c, String m) {
-        try { Method md = c.getClass().getMethod(m); Object v = md.invoke(c); return v != null ? String.valueOf(v) : null; }
+        try {
+            Method md = c.getClass().getMethod(m);
+            Object v = md.invoke(c);
+            return v != null ? String.valueOf(v) : null;
+        }
         catch (Exception e) { return null; }
     }
     private Double getDbl(Configuracao c, String m) {
         try {
-            Method md = c.getClass().getMethod(m); Object v = md.invoke(c);
+            Method md = c.getClass().getMethod(m);
+            Object v = md.invoke(c);
             if (v instanceof Number) return ((Number) v).doubleValue();
             return v != null ? Double.parseDouble(String.valueOf(v)) : null;
         } catch (Exception e) { return null; }

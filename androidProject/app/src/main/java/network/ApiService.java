@@ -76,4 +76,11 @@ public interface ApiService {
     @GET("/api/crossovers/{id}")
     Call<java.util.Map<String, Object>> getCrossover(@Path("id") String id);
 
+    // Cadastro de usuário
+    @POST("usuarios")
+    Call<Usuario> registrarUsuario(@Body Usuario usuario);
+
+    // Login de usuário
+    @POST("usuarios/login")
+    Call<Usuario> loginUsuario(@Body Map<String, String> loginRequest);
 }

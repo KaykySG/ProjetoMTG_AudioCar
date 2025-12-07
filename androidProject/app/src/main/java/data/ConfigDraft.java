@@ -150,7 +150,7 @@ public class ConfigDraft {
         projetoNome = null;
         veiculoNome = null;
         relatorioPdf = null;
-        usuarioId = null;
+
     }
 
     // ---------------- Helpers de limpeza automática ----------------
