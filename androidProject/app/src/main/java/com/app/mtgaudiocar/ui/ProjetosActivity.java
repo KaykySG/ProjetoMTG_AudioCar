@@ -12,6 +12,7 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
@@ -35,8 +36,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import model.Configuracao;
 import data.ConfigDraft;
+import model.Configuracao;
 import network.ApiClient;
 import network.ApiService;
 import retrofit2.Call;
@@ -78,7 +79,19 @@ public class ProjetosActivity extends AppCompatActivity {
         progress  = findViewById(R.id.progress);
 
         rvProjetos.setLayoutManager(new LinearLayoutManager(this));
-        adapter = new ProjetosAdapter(this::onVerProjeto);
+
+        // Adapter com ações de VER e REMOVER
+        adapter = new ProjetosAdapter(new ProjetosAdapter.OnProjetoAction() {
+            @Override
+            public void onVer(ItemUI it) {
+                onVerProjeto(it);
+            }
+
+            @Override
+            public void onRemover(ItemUI it, int position) {
+                onRemoverProjeto(it, position);
+            }
+        });
         rvProjetos.setAdapter(adapter);
 
         // Lê o tipo de lista (usuario ou predefinida)
@@ -93,6 +106,15 @@ public class ProjetosActivity extends AppCompatActivity {
         api = retrofit.create(ApiService.class);
 
         carregarConfiguracoes();
+
+        // Back moderno (caso queira algo especial aqui depois)
+        getOnBackPressedDispatcher().addCallback(this,
+                new OnBackPressedCallback(true) {
+                    @Override
+                    public void handleOnBackPressed() {
+                        finish();
+                    }
+                });
     }
 
     /**
@@ -103,7 +125,7 @@ public class ProjetosActivity extends AppCompatActivity {
     private void carregarConfiguracoes() {
         toggleLoading(true);
 
-        // ✅ Recupera o ID do usuário atual do ConfigDraft ou da Intent
+        // Recupera o ID do usuário atual
         String usuarioId = ConfigDraft.get().getUsuarioId();
         if (usuarioId == null || usuarioId.isEmpty()) {
             usuarioId = getIntent().getStringExtra("usuarioId");
@@ -192,7 +214,6 @@ public class ProjetosActivity extends AppCompatActivity {
         return out;
     }
 
-
     private List<ItemUI> mapearParaUI(List<Configuracao> lista) {
         List<ItemUI> itens = new ArrayList<>();
         for (Configuracao c : lista) {
@@ -231,6 +252,53 @@ public class ProjetosActivity extends AppCompatActivity {
             return;
         }
         abrirItensProjeto(it.id, it.nome, it.relatorio);
+    }
+
+    // ===== Clique "Remover" =====
+    private void onRemoverProjeto(ItemUI it, int position) {
+        if (it == null || TextUtils.isEmpty(it.id)) {
+            Toast.makeText(this, "ID do projeto indisponível.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        new AlertDialog.Builder(this)
+                .setTitle("Remover projeto")
+                .setMessage("Tem certeza que deseja remover o projeto \"" + it.nome + "\"?")
+                .setNegativeButton("Cancelar", null)
+                .setPositiveButton("Remover", (dialog, which) -> {
+                    // Ajuste o nome do método conforme estiver no seu ApiService
+                    Call<Void> call = api.deleteConfiguracao(it.id);
+                    call.enqueue(new Callback<Void>() {
+                        @Override
+                        public void onResponse(@NonNull Call<Void> call,
+                                               @NonNull Response<Void> response) {
+                            if (response.isSuccessful()) {
+                                Toast.makeText(ProjetosActivity.this,
+                                        "Projeto removido.",
+                                        Toast.LENGTH_SHORT).show();
+                                adapter.removerNaPosicao(position);
+
+                                if (adapter.getItemCount() == 0) {
+                                    tvVazio.setVisibility(View.VISIBLE);
+                                    rvProjetos.setVisibility(View.GONE);
+                                }
+                            } else {
+                                Toast.makeText(ProjetosActivity.this,
+                                        "Erro ao remover (HTTP " + response.code() + ")",
+                                        Toast.LENGTH_LONG).show();
+                            }
+                        }
+
+                        @Override
+                        public void onFailure(@NonNull Call<Void> call,
+                                              @NonNull Throwable t) {
+                            Toast.makeText(ProjetosActivity.this,
+                                    "Falha ao remover: " + t.getMessage(),
+                                    Toast.LENGTH_LONG).show();
+                        }
+                    });
+                })
+                .show();
     }
 
     private void abrirItensProjeto(String configId, String titulo, String relatorioPdf) {
@@ -463,7 +531,11 @@ public class ProjetosActivity extends AppCompatActivity {
 
     // ===== Adapters =====
     private static class ProjetosAdapter extends RecyclerView.Adapter<ProjetosAdapter.VH> {
-        interface OnProjetoAction { void onVer(ItemUI it); }
+
+        interface OnProjetoAction {
+            void onVer(ItemUI it);
+            void onRemover(ItemUI it, int position);
+        }
 
         private final List<ItemUI> data = new ArrayList<>();
         private final NumberFormat brl = NumberFormat.getCurrencyInstance(new Locale("pt", "BR"));
@@ -471,7 +543,20 @@ public class ProjetosActivity extends AppCompatActivity {
 
         ProjetosAdapter(OnProjetoAction l){ this.listener = l; }
 
-        void submit(List<ItemUI> novos){ data.clear(); if (novos!=null) data.addAll(novos); notifyDataSetChanged(); }
+        void submit(List<ItemUI> novos){
+            data.clear();
+            if (novos!=null) data.addAll(novos);
+            notifyDataSetChanged();
+        }
+
+        void removerNaPosicao(int posicao) {
+            if (posicao < 0 || posicao >= data.size()) return;
+            data.remove(posicao);
+            notifyItemRemoved(posicao);
+            if (posicao < data.size()) {
+                notifyItemRangeChanged(posicao, data.size() - posicao);
+            }
+        }
 
         @NonNull @Override public VH onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
             View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_preset, parent, false);
@@ -486,7 +571,9 @@ public class ProjetosActivity extends AppCompatActivity {
             h.tvResumo.setText(it.resumo);
             h.tvPreco.setText(brl.format(it.preco));
 
-            h.btnVer.setOnClickListener(v -> { if (listener != null) listener.onVer(it); });
+            h.btnVer.setOnClickListener(v -> {
+                if (listener != null) listener.onVer(it);
+            });
 
             // Clique longo do VER → abrir PDF (opcional)
             h.btnVer.setOnLongClickListener(v -> {
@@ -498,7 +585,15 @@ public class ProjetosActivity extends AppCompatActivity {
                 return true;
             });
 
-            h.btnRemover.setOnClickListener(v -> Toast.makeText(ctx, "Projeto removido: " + it.nome, Toast.LENGTH_SHORT).show());
+            // Remover projeto
+            h.btnRemover.setOnClickListener(v -> {
+                if (listener != null) {
+                    int pos = h.getAdapterPosition();
+                    if (pos != RecyclerView.NO_POSITION) {
+                        listener.onRemover(it, pos);
+                    }
+                }
+            });
         }
 
         @Override public int getItemCount() { return data.size(); }

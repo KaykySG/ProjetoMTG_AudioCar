@@ -15,6 +15,7 @@ import java.util.Map;
 
 import retrofit2.Call;
 import retrofit2.http.Body;
+import retrofit2.http.DELETE;
 import retrofit2.http.GET;
 import retrofit2.http.POST;
 import retrofit2.http.Path;
@@ -62,6 +63,8 @@ public interface ApiService {
     Call<List<model.DisplayItem>> getItensConfiguracao(@Path("id") String configuracaoId);
     @GET("/api/configuracoes/{id}")
     Call<model.Configuracao> getConfiguracao(@Path("id") String id);
+    @DELETE("configuracoes/{id}")
+    Call<Void> deleteConfiguracao(@Path("id") String id);
 
     // Endpoints de detalhe por tipo (retornando Map p/ ser resiliente)
     @GET("/api/modulos/{id}")

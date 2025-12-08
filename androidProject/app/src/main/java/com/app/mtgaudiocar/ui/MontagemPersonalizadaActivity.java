@@ -29,6 +29,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.webkit.WebViewAssetLoader;
+import androidx.activity.OnBackPressedCallback;
+
 
 import com.app.mtgaudiocar.R;
 import com.google.android.material.button.MaterialButton;
@@ -121,6 +123,13 @@ public class MontagemPersonalizadaActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_montagem_personaliza);
+        OnBackPressedCallback callback = new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                confirmarSaida();
+            }
+        };
+        getOnBackPressedDispatcher().addCallback(this, callback);
 
         // Retrofit
         Retrofit retrofit = ApiClient.getClient();
@@ -150,12 +159,36 @@ public class MontagemPersonalizadaActivity extends AppCompatActivity {
     }
 
     @Override
+    protected void onResume() {
+        super.onResume();
+        // Reaplica o modelo 3D considerando o veículo + quantidades atuais
+        aplicarVeiculoNo3D();
+    }
+
+    @Override
     protected void onDestroy() {
         if (web3d != null) {
             web3d.loadUrl("about:blank");
             web3d.destroy();
         }
         super.onDestroy();
+    }
+
+    // =========================
+    // Confirmar saída da tela
+    // =========================
+
+    private void confirmarSaida() {
+        new MaterialAlertDialogBuilder(this)
+                .setTitle("Sair da montagem?")
+                .setMessage("Se você sair agora, a montagem deste projeto será perdida.\n\nDeseja realmente sair?")
+                .setNegativeButton("Continuar montando", null)
+                .setPositiveButton("Sair", (dialog, which) -> {
+                    // Limpa o draft para não reaproveitar a montagem
+                    ConfigDraft.get().clear();
+                    finish(); // fecha a Activity
+                })
+                .show();
     }
 
     // =========================
@@ -249,28 +282,87 @@ public class MontagemPersonalizadaActivity extends AppCompatActivity {
     }
 
     /**
-     * Mapeia a escolha do usuário para o caminho do modelo .glb dentro de assets.
+     * Soma a quantidade total de componentes de um tipo no draft
+     * (considerando o campo quantidade de cada SelectedComponent).
+     */
+    private int getQuantidadeTotal(ComponentType type) {
+        List<SelectedComponent> list = ConfigDraft.get().getList(type);
+        if (list == null) return 0;
+
+        int total = 0;
+        for (SelectedComponent sc : list) {
+            int q = sc.getQuantidade();
+            if (q <= 0) q = 1;       // saneamento básico
+            if (q > 5000) q = 5000;  // limite de segurança
+            total += q;
+        }
+        return total;
+    }
+
+    /**
+     * Mapeia a escolha do usuário + quantidade de alto-falantes/subwoofers
+     * para o caminho do modelo .glb dentro de assets.
+     *
+     * Regra:
+     * - Base: padrão
+     * - Médio: >= 2 alto-falantes E >= 2 subwoofers
+     * - Completo: >= 4 alto-falantes E >= 4 subwoofers
      */
     private String getModelSrcForVehicle(String veiculo) {
         if (veiculo == null) veiculo = "Sedan";
         String v = veiculo.toLowerCase(Locale.ROOT);
 
-        if (v.contains("caminhoneta") || v.contains("pick")) {
-            // modelo de caminhoneta/pick-up
-            return "/assets/models/Pick-UpPadrao.glb";
-        } else if (v.contains("hatch")) {
-            // se tiver um modelo específico de hatch, troca aqui
-            // return "/assets/models/HatchBase.glb";
-            return "/assets/models/SedanBase.glb"; // provisório
+        int qtdAlto = getQuantidadeTotal(ComponentType.ALTOFALANTE);
+        int qtdSub  = getQuantidadeTotal(ComponentType.SUBWOOFER);
+
+        // Define o "tamanho" do modelo
+        String nivel; // "base", "medio", "completo"
+        if (qtdAlto >= 4 && qtdSub >= 4) {
+            nivel = "completo";
+        } else if (qtdAlto >= 2 && qtdSub >= 2) {
+            nivel = "medio";
         } else {
-            // sedan como default
-            return "/assets/models/SedanBase.glb";
+            nivel = "base";
+        }
+
+        // Caminhoneta / Pick-up
+        if (v.contains("caminhoneta") || v.contains("pick")) {
+            switch (nivel) {
+                case "completo":
+                    return "/assets/models/Pick-UpCompleta.glb";
+                case "medio":
+                    return "/assets/models/Pick-UpMetade.glb";
+                default:
+                    return "/assets/models/Pick-UpPadrao.glb";
+            }
+        }
+
+        // Hatch
+        if (v.contains("hatch")) {
+            switch (nivel) {
+                case "completo":
+                    return "/assets/models/hatchCompleto.glb";
+                case "medio":
+                    return "/assets/models/hatchMedio.glb";
+                default:
+                    return "/assets/models/hatchBase.glb";
+            }
+        }
+
+        // Sedan (default)
+        switch (nivel) {
+            case "completo":
+                return "/assets/models/SedanCompleto.glb";
+            case "medio":
+                return "/assets/models/SedanMeio.glb";
+            default:
+                return "/assets/models/SedanBase.glb";
         }
     }
 
     /**
-     * Aplica no HTML (Viewer.html) o modelo de acordo com o veículo selecionado.
-     * Assumindo que o HTML tem um <model-viewer id="mv">.
+     * Aplica no HTML (Viewer.html) o modelo de acordo com o veículo selecionado
+     * e a quantidade atual de alto-falantes/subwoofers.
      */
     private void aplicarVeiculoNo3D() {
         if (web3d == null) return;
@@ -610,6 +702,7 @@ public class MontagemPersonalizadaActivity extends AppCompatActivity {
                 if (response.isSuccessful()) {
                     Toast.makeText(MontagemPersonalizadaActivity.this,
                             "Projeto salvo!", Toast.LENGTH_SHORT).show();
+                    // Aqui continua limpando o draft porque o projeto foi salvo
                     ConfigDraft.get().clear();
                     finish();
                 } else {
@@ -646,7 +739,7 @@ public class MontagemPersonalizadaActivity extends AppCompatActivity {
 
         ConfiguracaoCreateRequest req = new ConfiguracaoCreateRequest();
         req.setnome(nomeProjeto);
-        // AQUI entra o valor vindo da combo box (default: "Sedan")
+        // Veículo vindo da combo box (default: "Sedan")
         req.setVeiculo(draft.getVeiculoNome() == null ? "Sedan" : draft.getVeiculoNome());
         req.setRelatorioPdf(draft.getRelatorioPdf() == null
                 ? "Relatório da configuração em PDF"
