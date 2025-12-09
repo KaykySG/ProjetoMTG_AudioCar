@@ -2,6 +2,9 @@ package com.app.mtgaudiocar.ui;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -22,8 +25,11 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.app.mtgaudiocar.R;
 import com.google.android.material.button.MaterialButton;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
 import java.lang.reflect.Method;
+import java.lang.reflect.Type;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -46,10 +52,10 @@ import retrofit2.Response;
 import retrofit2.Retrofit;
 
 /**
- * Lista os projetos; no botão "Ver" abre um diálogo com os itens do projeto.
- * - Loader branco enquanto carrega os itens.
- * - Sem IDs na UI (fallback "Sem nome – Tipo").
- * - Resolução tolerante de nome/preço (no espírito do web).
+ * Lista os projetos.
+ * - Botão VER: mostra itens do projeto (online busca detalhes; offline usa cache se existir).
+ * - Botão BAIXAR: baixa o projeto + itens e grava em cache para uso offline.
+ * - Botão REMOVER: remove projeto do backend (não mexi).
  */
 public class ProjetosActivity extends AppCompatActivity {
 
@@ -80,7 +86,7 @@ public class ProjetosActivity extends AppCompatActivity {
 
         rvProjetos.setLayoutManager(new LinearLayoutManager(this));
 
-        // Adapter com ações de VER e REMOVER
+        // Adapter com ações VER / REMOVER / BAIXAR
         adapter = new ProjetosAdapter(new ProjetosAdapter.OnProjetoAction() {
             @Override
             public void onVer(ItemUI it) {
@@ -91,14 +97,18 @@ public class ProjetosActivity extends AppCompatActivity {
             public void onRemover(ItemUI it, int position) {
                 onRemoverProjeto(it, position);
             }
+
+            @Override
+            public void onBaixar(ItemUI it) {
+                baixarProjeto(it);
+            }
         });
         rvProjetos.setAdapter(adapter);
 
-        // Lê o tipo de lista (usuario ou predefinida)
+        // Tipo de lista (usuario ou predefinida)
         Intent i = getIntent();
         tipoLista = i.getStringExtra(HomeActivity.EXTRA_TIPO_LISTA);
         if (tipoLista == null) {
-            // se não vier nada, default para lista do usuário
             tipoLista = HomeActivity.TIPO_LISTA_USUARIO;
         }
 
@@ -107,7 +117,7 @@ public class ProjetosActivity extends AppCompatActivity {
 
         carregarConfiguracoes();
 
-        // Back moderno (caso queira algo especial aqui depois)
+        // Back
         getOnBackPressedDispatcher().addCallback(this,
                 new OnBackPressedCallback(true) {
                     @Override
@@ -117,24 +127,21 @@ public class ProjetosActivity extends AppCompatActivity {
                 });
     }
 
-    /**
-     * Carrega as configurações do backend e aplica:
-     * - Se for lista do usuário: mostra todos os projetos do usuário.
-     * - Se for montagem predefinida: filtra para mostrar apenas os 3 IDs em IDS_PREDEFINIDOS.
-     */
+    // ========================= CARREGAR PROJETOS =========================
+
     private void carregarConfiguracoes() {
         toggleLoading(true);
 
-        // Recupera o ID do usuário atual
         String usuarioId = ConfigDraft.get().getUsuarioId();
-        if (usuarioId == null || usuarioId.isEmpty()) {
-            usuarioId = getIntent().getStringExtra("usuarioId");
-            if (usuarioId != null && !usuarioId.isEmpty()) {
-                ConfigDraft.get().setUsuarioId(usuarioId);
+        if (TextUtils.isEmpty(usuarioId)) {
+            String extra = getIntent().getStringExtra("usuarioId");
+            if (!TextUtils.isEmpty(extra)) {
+                ConfigDraft.get().setUsuarioId(extra);
+                usuarioId = extra;
             }
         }
 
-        if (usuarioId == null || usuarioId.isEmpty()) {
+        if (TextUtils.isEmpty(usuarioId)) {
             Toast.makeText(this,
                     "Usuário não identificado. Faça login novamente.",
                     Toast.LENGTH_LONG).show();
@@ -143,7 +150,37 @@ public class ProjetosActivity extends AppCompatActivity {
             return;
         }
 
-        api.getConfiguracoes(usuarioId).enqueue(new Callback<List<Configuracao>>() {
+        final String usuarioIdFinal = usuarioId;
+
+        // OFFLINE → lista apenas projetos baixados anteriormente
+        if (!isOnline()) {
+            List<Configuracao> cached = OfflineProjetosCache.carregarProjetos(this, usuarioIdFinal);
+            toggleLoading(false);
+
+            if (cached != null && !cached.isEmpty()) {
+                List<ItemUI> itens = mapearParaUI(cached);
+
+                if (HomeActivity.TIPO_LISTA_PREDEFINIDA.equals(tipoLista)) {
+                    itens = filtrarPredefinidos(itens);
+                } else {
+                    itens = removerPredefinidos(itens);
+                }
+
+                Toast.makeText(this,
+                        "Sem conexão. Mostrando apenas projetos baixados.",
+                        Toast.LENGTH_SHORT).show();
+                aplicarLista(itens);
+            } else {
+                Toast.makeText(this,
+                        "Nenhum projeto baixado para visualização offline.",
+                        Toast.LENGTH_LONG).show();
+                aplicarLista(new ArrayList<>());
+            }
+            return;
+        }
+
+        // ONLINE → busca lista normalmente (sem salvar em cache)
+        api.getConfiguracoes(usuarioIdFinal).enqueue(new Callback<List<Configuracao>>() {
             @Override
             public void onResponse(@NonNull Call<List<Configuracao>> call,
                                    @NonNull Response<List<Configuracao>> response) {
@@ -151,14 +188,11 @@ public class ProjetosActivity extends AppCompatActivity {
                 if (response.isSuccessful() && response.body() != null) {
                     List<Configuracao> lista = response.body();
 
-                    // Mapeia para itens de UI
                     List<ItemUI> itens = mapearParaUI(lista);
 
                     if (HomeActivity.TIPO_LISTA_PREDEFINIDA.equals(tipoLista)) {
-                        // Mostrar somente os 3 predefinidos
                         itens = filtrarPredefinidos(itens);
                     } else {
-                        // Ocultar os 3 predefinidos da listagem normal do usuário
                         itens = removerPredefinidos(itens);
                     }
 
@@ -183,13 +217,21 @@ public class ProjetosActivity extends AppCompatActivity {
         });
     }
 
-    /**
-     * Mantém apenas os itens cujos IDs estão em IDS_PREDEFINIDOS.
-     */
+    private boolean isOnline() {
+        ConnectivityManager cm =
+                (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        if (cm != null) {
+            NetworkInfo netInfo = cm.getActiveNetworkInfo();
+            return netInfo != null && netInfo.isConnected();
+        }
+        return false;
+    }
+
+    // ========================= LISTA / MAPEAMENTO =========================
+
     private List<ItemUI> filtrarPredefinidos(List<ItemUI> lista) {
         List<ItemUI> out = new ArrayList<>();
         if (lista == null) return out;
-
         for (ItemUI it : lista) {
             if (it != null && !TextUtils.isEmpty(it.id)
                     && IDS_PREDEFINIDOS.contains(it.id)) {
@@ -202,11 +244,8 @@ public class ProjetosActivity extends AppCompatActivity {
     private List<ItemUI> removerPredefinidos(List<ItemUI> lista) {
         List<ItemUI> out = new ArrayList<>();
         if (lista == null) return out;
-
         for (ItemUI it : lista) {
             if (it == null || TextUtils.isEmpty(it.id)) continue;
-
-            // Apenas mantém os que NÃO estão nos predefinidos
             if (!IDS_PREDEFINIDOS.contains(it.id)) {
                 out.add(it);
             }
@@ -216,6 +255,8 @@ public class ProjetosActivity extends AppCompatActivity {
 
     private List<ItemUI> mapearParaUI(List<Configuracao> lista) {
         List<ItemUI> itens = new ArrayList<>();
+        if (lista == null) return itens;
+
         for (Configuracao c : lista) {
             String nome = getStr(c, "getNomeConfiguracao");
             if (TextUtils.isEmpty(nome)) nome = "Projeto sem nome";
@@ -245,16 +286,25 @@ public class ProjetosActivity extends AppCompatActivity {
         if (show) tvVazio.setVisibility(View.GONE);
     }
 
-    // ===== Clique "Ver" =====
+    // ========================= AÇÕES: VER / REMOVER / BAIXAR =========================
+
     private void onVerProjeto(ItemUI it) {
-        if (it == null || TextUtils.isEmpty(it.id)) {
-            Toast.makeText(this, "ID do projeto indisponível.", Toast.LENGTH_SHORT).show();
+        if (it == null) {
+            Toast.makeText(this, "Projeto indisponível.", Toast.LENGTH_SHORT).show();
             return;
         }
-        abrirItensProjeto(it.id, it.nome, it.relatorio);
+
+        if (isOnline()) {
+            if (TextUtils.isEmpty(it.id)) {
+                Toast.makeText(this, "ID do projeto indisponível.", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            abrirItensProjetoOnline(it.id, it.nome, it.relatorio);
+        } else {
+            abrirItensProjetoOffline(it);
+        }
     }
 
-    // ===== Clique "Remover" =====
     private void onRemoverProjeto(ItemUI it, int position) {
         if (it == null || TextUtils.isEmpty(it.id)) {
             Toast.makeText(this, "ID do projeto indisponível.", Toast.LENGTH_SHORT).show();
@@ -266,7 +316,6 @@ public class ProjetosActivity extends AppCompatActivity {
                 .setMessage("Tem certeza que deseja remover o projeto \"" + it.nome + "\"?")
                 .setNegativeButton("Cancelar", null)
                 .setPositiveButton("Remover", (dialog, which) -> {
-                    // Ajuste o nome do método conforme estiver no seu ApiService
                     Call<Void> call = api.deleteConfiguracao(it.id);
                     call.enqueue(new Callback<Void>() {
                         @Override
@@ -301,7 +350,156 @@ public class ProjetosActivity extends AppCompatActivity {
                 .show();
     }
 
-    private void abrirItensProjeto(String configId, String titulo, String relatorioPdf) {
+    /**
+     * Botão BAIXAR: baixa a configuração + itens e grava tudo em cache.
+     */
+    private void baixarProjeto(ItemUI item) {
+        if (item == null || TextUtils.isEmpty(item.id)) {
+            Toast.makeText(this, "Projeto indisponível para download.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if (!isOnline()) {
+            Toast.makeText(this, "Conecte-se à internet para baixar o projeto.", Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        String usuarioId = ConfigDraft.get().getUsuarioId();
+        if (TextUtils.isEmpty(usuarioId)) {
+            Toast.makeText(this, "Usuário não identificado.", Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        final String usuarioIdFinal = usuarioId;
+        final String configId = item.id;
+
+        Toast.makeText(this, "Baixando projeto para uso offline...", Toast.LENGTH_SHORT).show();
+
+        // primeiro, pega a configuração completa do backend
+        api.getConfiguracao(configId).enqueue(new Callback<Configuracao>() {
+            @Override
+            public void onResponse(@NonNull Call<Configuracao> call,
+                                   @NonNull Response<Configuracao> response) {
+                if (!response.isSuccessful() || response.body() == null) {
+                    Toast.makeText(ProjetosActivity.this,
+                            "Erro ao baixar projeto (HTTP " + response.code() + ")",
+                            Toast.LENGTH_LONG).show();
+                    return;
+                }
+
+                Configuracao cfg = response.body();
+
+                // Atualiza lista de projetos baixados desse usuário
+                List<Configuracao> atuais = OfflineProjetosCache.carregarProjetos(ProjetosActivity.this, usuarioIdFinal);
+                boolean replaced = false;
+                for (int i = 0; i < atuais.size(); i++) {
+                    String idExistente = resolveId(atuais.get(i));
+                    if (!TextUtils.isEmpty(idExistente) && idExistente.equals(configId)) {
+                        atuais.set(i, cfg);
+                        replaced = true;
+                        break;
+                    }
+                }
+                if (!replaced) {
+                    atuais.add(cfg);
+                }
+                OfflineProjetosCache.salvarProjetos(ProjetosActivity.this, usuarioIdFinal, atuais);
+
+                // Agora baixa os itens (módulos, alto-falantes etc.) e grava no cache
+                List<String> modulos    = getList(cfg, "getModulos", "getModuloIds");
+                List<String> altos      = getList(cfg, "getAltoFalantes", "getAltofalanteIds", "getAltoFalanteIds");
+                List<String> subs       = getList(cfg, "getSubwoofers", "getSubwooferIds");
+                List<String> crossovers = getList(cfg, "getCrossovers", "getCrossoverIds");
+
+                int total = size(modulos) + size(altos) + size(subs) + size(crossovers);
+                if (total == 0) {
+                    OfflineProjetosCache.salvarItensConfiguracao(ProjetosActivity.this, configId, new ArrayList<>());
+                    Toast.makeText(ProjetosActivity.this,
+                            "Projeto baixado para uso offline.",
+                            Toast.LENGTH_LONG).show();
+                    return;
+                }
+
+                List<ItemLinha> agregados = Collections.synchronizedList(new ArrayList<>());
+                AtomicInteger pendentes = new AtomicInteger(total);
+
+                fetchListaDownload("Módulo",       modulos,    agregados, pendentes, configId);
+                fetchListaDownload("Alto-falante", altos,      agregados, pendentes, configId);
+                fetchListaDownload("Subwoofer",    subs,       agregados, pendentes, configId);
+                fetchListaDownload("Crossover",    crossovers, agregados, pendentes, configId);
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<Configuracao> call,
+                                  @NonNull Throwable t) {
+                Toast.makeText(ProjetosActivity.this,
+                        "Falha ao baixar projeto: " + t.getMessage(),
+                        Toast.LENGTH_LONG).show();
+            }
+        });
+    }
+
+    /**
+     * Versão de fetchLista apenas para DOWNLOAD (não mexe em UI, só preenche cache).
+     */
+    private void fetchListaDownload(String tipo,
+                                    List<String> ids,
+                                    List<ItemLinha> out,
+                                    AtomicInteger pendentes,
+                                    String configId) {
+        if (ids == null) return;
+        for (String id : ids) {
+            Call<Map<String, Object>> call;
+            switch (tipo) {
+                case "Módulo":       call = api.getModulo(id); break;
+                case "Alto-falante": call = api.getAltoFalante(id); break;
+                case "Subwoofer":    call = api.getSubwoofer(id); break;
+                case "Crossover":    call = api.getCrossover(id); break;
+                default:             call = null;
+            }
+            if (call == null) {
+                out.add(new ItemLinha(tipo, fallbackNome(tipo), null));
+                if (pendentes.decrementAndGet() == 0) finishDownloadAggregate(out, configId);
+                continue;
+            }
+
+            call.enqueue(new Callback<Map<String, Object>>() {
+                @Override public void onResponse(@NonNull Call<Map<String, Object>> c,
+                                                 @NonNull Response<Map<String, Object>> r) {
+                    if (r.isSuccessful() && r.body() != null) {
+                        Map<String, Object> m = r.body();
+                        String nomeResolved = resolverNomeComoNoWeb(m, tipo);
+                        Double preco = resolverPrecoTolerante(m);
+                        out.add(new ItemLinha(tipo, nomeResolved, preco));
+                    } else {
+                        out.add(new ItemLinha(tipo, fallbackNome(tipo), null));
+                    }
+                    if (pendentes.decrementAndGet() == 0) finishDownloadAggregate(out, configId);
+                }
+
+                @Override public void onFailure(@NonNull Call<Map<String, Object>> c,
+                                                @NonNull Throwable t) {
+                    out.add(new ItemLinha(tipo, fallbackNome(tipo), null));
+                    if (pendentes.decrementAndGet() == 0) finishDownloadAggregate(out, configId);
+                }
+            });
+        }
+    }
+
+    private void finishDownloadAggregate(List<ItemLinha> out, String configId) {
+        Collections.sort(out, Comparator.comparing((ItemLinha i) -> i.tipo)
+                .thenComparing(i -> i.nome));
+        runOnUiThread(() -> {
+            OfflineProjetosCache.salvarItensConfiguracao(ProjetosActivity.this, configId, out);
+            Toast.makeText(ProjetosActivity.this,
+                    "Projeto e itens baixados para uso offline.",
+                    Toast.LENGTH_LONG).show();
+        });
+    }
+
+    // ========================= VER ITENS – ONLINE =========================
+
+    private void abrirItensProjetoOnline(String configId, String titulo, String relatorioPdf) {
         View content = LayoutInflater.from(this).inflate(R.layout.dialog_itens_projeto, null, false);
         TextView tvTitulo = content.findViewById(R.id.tvTituloDialog);
         RecyclerView rv   = content.findViewById(R.id.rvItensProjeto);
@@ -320,18 +518,19 @@ public class ProjetosActivity extends AppCompatActivity {
 
         toggleDialogLoading(pb, rv, true);
 
-        // 1) Busca a configuração (traz arrays de IDs)
         api.getConfiguracao(configId).enqueue(new Callback<Configuracao>() {
-            @Override public void onResponse(@NonNull Call<Configuracao> call, @NonNull Response<Configuracao> response) {
+            @Override public void onResponse(@NonNull Call<Configuracao> call,
+                                             @NonNull Response<Configuracao> response) {
                 if (!response.isSuccessful() || response.body() == null) {
                     toggleDialogLoading(pb, rv, false);
-                    Toast.makeText(ProjetosActivity.this, "Erro ao carregar projeto (HTTP " + response.code() + ")", Toast.LENGTH_LONG).show();
+                    Toast.makeText(ProjetosActivity.this,
+                            "Erro ao carregar projeto (HTTP " + response.code() + ")",
+                            Toast.LENGTH_LONG).show();
                     return;
                 }
 
                 Configuracao cfg = response.body();
 
-                // Arrays de IDs (cobre variações de getter)
                 List<String> modulos    = getList(cfg, "getModulos", "getModuloIds");
                 List<String> altos      = getList(cfg, "getAltoFalantes", "getAltofalanteIds", "getAltoFalanteIds");
                 List<String> subs       = getList(cfg, "getSubwoofers", "getSubwooferIds");
@@ -341,32 +540,36 @@ public class ProjetosActivity extends AppCompatActivity {
                 if (total == 0) {
                     toggleDialogLoading(pb, rv, false);
                     itensAdapter.submit(new ArrayList<>());
-                    Toast.makeText(ProjetosActivity.this, "Este projeto não possui itens.", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(ProjetosActivity.this,
+                            "Este projeto não possui itens.",
+                            Toast.LENGTH_SHORT).show();
                     return;
                 }
 
                 List<ItemLinha> agregados = Collections.synchronizedList(new ArrayList<>());
                 AtomicInteger pendentes = new AtomicInteger(total);
 
-                fetchLista("Módulo",       modulos,    agregados, pendentes, itensAdapter, pb, rv);
-                fetchLista("Alto-falante", altos,      agregados, pendentes, itensAdapter, pb, rv);
-                fetchLista("Subwoofer",    subs,       agregados, pendentes, itensAdapter, pb, rv);
-                fetchLista("Crossover",    crossovers, agregados, pendentes, itensAdapter, pb, rv);
+                fetchListaOnline("Módulo",       modulos,    agregados, pendentes, itensAdapter, pb, rv);
+                fetchListaOnline("Alto-falante", altos,      agregados, pendentes, itensAdapter, pb, rv);
+                fetchListaOnline("Subwoofer",    subs,       agregados, pendentes, itensAdapter, pb, rv);
+                fetchListaOnline("Crossover",    crossovers, agregados, pendentes, itensAdapter, pb, rv);
             }
 
-            @Override public void onFailure(@NonNull Call<Configuracao> call, @NonNull Throwable t) {
+            @Override public void onFailure(@NonNull Call<Configuracao> call,
+                                            @NonNull Throwable t) {
                 toggleDialogLoading(pb, rv, false);
-                Toast.makeText(ProjetosActivity.this, "Falha ao carregar projeto: " + t.getMessage(), Toast.LENGTH_LONG).show();
+                Toast.makeText(ProjetosActivity.this,
+                        "Falha ao carregar projeto: " + t.getMessage(),
+                        Toast.LENGTH_LONG).show();
             }
         });
     }
 
-    private void fetchLista(String tipo, List<String> ids, List<ItemLinha> out,
-                            AtomicInteger pendentes, ItensAdapter adapter,
-                            ProgressBar pb, RecyclerView rv) {
+    private void fetchListaOnline(String tipo, List<String> ids, List<ItemLinha> out,
+                                  AtomicInteger pendentes, ItensAdapter adapter,
+                                  ProgressBar pb, RecyclerView rv) {
         if (ids == null) return;
         for (String id : ids) {
-            // Decide endpoint por tipo
             Call<Map<String, Object>> call;
             switch (tipo) {
                 case "Módulo":       call = api.getModulo(id); break;
@@ -376,14 +579,14 @@ public class ProjetosActivity extends AppCompatActivity {
                 default:             call = null;
             }
             if (call == null) {
-                // Sem endpoint → fallback amigável (sem ID)
                 out.add(new ItemLinha(tipo, fallbackNome(tipo), null));
-                if (pendentes.decrementAndGet() == 0) finishAggregate(out, adapter, pb, rv);
+                if (pendentes.decrementAndGet() == 0) finishAggregateOnline(out, adapter, pb, rv);
                 continue;
             }
 
             call.enqueue(new Callback<Map<String, Object>>() {
-                @Override public void onResponse(@NonNull Call<Map<String, Object>> c, @NonNull Response<Map<String, Object>> r) {
+                @Override public void onResponse(@NonNull Call<Map<String, Object>> c,
+                                                 @NonNull Response<Map<String, Object>> r) {
                     if (r.isSuccessful() && r.body() != null) {
                         Map<String, Object> m = r.body();
                         String nomeResolved = resolverNomeComoNoWeb(m, tipo);
@@ -392,26 +595,75 @@ public class ProjetosActivity extends AppCompatActivity {
                     } else {
                         out.add(new ItemLinha(tipo, fallbackNome(tipo), null));
                     }
-                    if (pendentes.decrementAndGet() == 0) finishAggregate(out, adapter, pb, rv);
+                    if (pendentes.decrementAndGet() == 0) finishAggregateOnline(out, adapter, pb, rv);
                 }
 
-                @Override public void onFailure(@NonNull Call<Map<String, Object>> c, @NonNull Throwable t) {
+                @Override public void onFailure(@NonNull Call<Map<String, Object>> c,
+                                                @NonNull Throwable t) {
                     out.add(new ItemLinha(tipo, fallbackNome(tipo), null));
-                    if (pendentes.decrementAndGet() == 0) finishAggregate(out, adapter, pb, rv);
+                    if (pendentes.decrementAndGet() == 0) finishAggregateOnline(out, adapter, pb, rv);
                 }
             });
         }
     }
 
-    private void finishAggregate(List<ItemLinha> out, ItensAdapter adapter, ProgressBar pb, RecyclerView rv) {
-        Collections.sort(out, Comparator.comparing((ItemLinha i) -> i.tipo).thenComparing(i -> i.nome));
+    private void finishAggregateOnline(List<ItemLinha> out,
+                                       ItensAdapter adapter,
+                                       ProgressBar pb,
+                                       RecyclerView rv) {
+        Collections.sort(out, Comparator.comparing((ItemLinha i) -> i.tipo)
+                .thenComparing(i -> i.nome));
         runOnUiThread(() -> {
             toggleDialogLoading(pb, rv, false);
             adapter.submit(out);
         });
     }
 
-    // ===== Loader do diálogo =====
+    // ========================= VER ITENS – OFFLINE =========================
+
+    private void abrirItensProjetoOffline(ItemUI item) {
+        View content = LayoutInflater.from(this).inflate(R.layout.dialog_itens_projeto, null, false);
+        TextView tvTitulo = content.findViewById(R.id.tvTituloDialog);
+        RecyclerView rv   = content.findViewById(R.id.rvItensProjeto);
+        ProgressBar pb    = content.findViewById(R.id.progressItens);
+
+        tvTitulo.setText("Itens – " + (item.nome == null ? "" : item.nome));
+        rv.setLayoutManager(new LinearLayoutManager(this));
+        ItensAdapter itensAdapter = new ItensAdapter();
+        rv.setAdapter(itensAdapter);
+
+        AlertDialog dlg = new AlertDialog.Builder(this)
+                .setView(content)
+                .setCancelable(true)
+                .create();
+        dlg.show();
+
+        toggleDialogLoading(pb, rv, true);
+
+        List<ItemLinha> cachedItens = null;
+        if (!TextUtils.isEmpty(item.id)) {
+            cachedItens = OfflineProjetosCache.carregarItensConfiguracao(this, item.id);
+        }
+
+        // Se já foi baixado, mostra a lista completa
+        if (cachedItens != null && !cachedItens.isEmpty()) {
+            Collections.sort(cachedItens, Comparator.comparing((ItemLinha i) -> i.tipo)
+                    .thenComparing(i -> i.nome));
+            toggleDialogLoading(pb, rv, false);
+            itensAdapter.submit(cachedItens);
+            return;
+        }
+
+        // Caso extremo: projeto não foi baixado, mas o usuário está offline
+        toggleDialogLoading(pb, rv, false);
+        Toast.makeText(this,
+                "Este projeto ainda não foi baixado. Conecte-se e use o botão de download.",
+                Toast.LENGTH_LONG).show();
+        itensAdapter.submit(new ArrayList<>());
+    }
+
+    // ========================= Loader diálogo =========================
+
     private void toggleDialogLoading(ProgressBar pb, RecyclerView rv, boolean show) {
         if (pb != null) pb.setVisibility(show ? View.VISIBLE : View.GONE);
         if (rv != null) {
@@ -420,7 +672,8 @@ public class ProjetosActivity extends AppCompatActivity {
         }
     }
 
-    // ===== Resolução de nome/preço (tolerante, estilo web) =====
+    // ========================= Nome / preço tolerante =========================
+
     private String resolverNomeComoNoWeb(Map<String, Object> m, String tipo) {
         if (m == null) return fallbackNome(tipo);
 
@@ -461,6 +714,7 @@ public class ProjetosActivity extends AppCompatActivity {
         Object v = first(m, keys);
         return v == null ? null : String.valueOf(v).trim();
     }
+
     private Object first(Map<String, Object> m, String... keys) {
         if (m == null) return null;
         for (String k : keys) if (m.containsKey(k) && m.get(k) != null) return m.get(k);
@@ -473,7 +727,8 @@ public class ProjetosActivity extends AppCompatActivity {
         return null;
     }
 
-    // ===== Reflection helpers =====
+    // ========================= Reflection helpers =========================
+
     private String resolveId(Configuracao c) {
         String[] cand = {"getId", "getConfiguracaoId", "get_id", "getUuid"};
         for (String m : cand) {
@@ -485,6 +740,7 @@ public class ProjetosActivity extends AppCompatActivity {
         }
         return null;
     }
+
     private String getStr(Configuracao c, String m) {
         try {
             Method md = c.getClass().getMethod(m);
@@ -493,6 +749,7 @@ public class ProjetosActivity extends AppCompatActivity {
         }
         catch (Exception e) { return null; }
     }
+
     private Double getDbl(Configuracao c, String m) {
         try {
             Method md = c.getClass().getMethod(m);
@@ -501,6 +758,7 @@ public class ProjetosActivity extends AppCompatActivity {
             return v != null ? Double.parseDouble(String.valueOf(v)) : null;
         } catch (Exception e) { return null; }
     }
+
     @SafeVarargs
     private final List<String> getList(Configuracao c, String... methods) {
         for (String m : methods) {
@@ -512,9 +770,11 @@ public class ProjetosActivity extends AppCompatActivity {
         }
         return new ArrayList<>();
     }
+
     private int size(List<?> l){ return l==null?0:l.size(); }
 
-    // ===== Models da UI =====
+    // ========================= Models UI =========================
+
     private static class ItemUI {
         final String id, nome, resumo, relatorio;
         final double preco;
@@ -525,16 +785,22 @@ public class ProjetosActivity extends AppCompatActivity {
     }
 
     private static class ItemLinha {
-        final String tipo; final String nome; final Double preco;
-        ItemLinha(String tipo, String nome, Double preco){ this.tipo=tipo; this.nome=nome; this.preco=preco; }
+        final String tipo;
+        final String nome;
+        final Double preco;
+        ItemLinha(String tipo, String nome, Double preco){
+            this.tipo=tipo; this.nome=nome; this.preco=preco;
+        }
     }
 
-    // ===== Adapters =====
+    // ========================= Adapters =========================
+
     private static class ProjetosAdapter extends RecyclerView.Adapter<ProjetosAdapter.VH> {
 
         interface OnProjetoAction {
             void onVer(ItemUI it);
             void onRemover(ItemUI it, int position);
+            void onBaixar(ItemUI it);
         }
 
         private final List<ItemUI> data = new ArrayList<>();
@@ -575,7 +841,6 @@ public class ProjetosActivity extends AppCompatActivity {
                 if (listener != null) listener.onVer(it);
             });
 
-            // Clique longo do VER → abrir PDF (opcional)
             h.btnVer.setOnLongClickListener(v -> {
                 if (!TextUtils.isEmpty(it.relatorio)) {
                     ctx.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(it.relatorio)));
@@ -585,13 +850,18 @@ public class ProjetosActivity extends AppCompatActivity {
                 return true;
             });
 
-            // Remover projeto
             h.btnRemover.setOnClickListener(v -> {
                 if (listener != null) {
                     int pos = h.getAdapterPosition();
                     if (pos != RecyclerView.NO_POSITION) {
                         listener.onRemover(it, pos);
                     }
+                }
+            });
+
+            h.btnBaixar.setOnClickListener(v -> {
+                if (listener != null) {
+                    listener.onBaixar(it);
                 }
             });
         }
@@ -602,13 +872,15 @@ public class ProjetosActivity extends AppCompatActivity {
             final TextView tvNome, tvResumo, tvPreco;
             final MaterialButton btnVer;
             final View btnRemover;
+            final View btnBaixar;
             VH(@NonNull View itemView) {
                 super(itemView);
-                tvNome = itemView.findViewById(R.id.tvNome);
-                tvResumo = itemView.findViewById(R.id.tvResumo);
-                tvPreco = itemView.findViewById(R.id.tvPreco);
-                btnVer = itemView.findViewById(R.id.btnVer);
-                btnRemover = itemView.findViewById(R.id.btnRemover);
+                tvNome    = itemView.findViewById(R.id.tvNome);
+                tvResumo  = itemView.findViewById(R.id.tvResumo);
+                tvPreco   = itemView.findViewById(R.id.tvPreco);
+                btnVer    = itemView.findViewById(R.id.btnVer);
+                btnRemover= itemView.findViewById(R.id.btnRemover);
+                btnBaixar = itemView.findViewById(R.id.btnBaixar);
             }
         }
     }
@@ -617,7 +889,11 @@ public class ProjetosActivity extends AppCompatActivity {
         private final List<ItemLinha> data = new ArrayList<>();
         private final NumberFormat brl = NumberFormat.getCurrencyInstance(new Locale("pt","BR"));
 
-        void submit(List<ItemLinha> itens){ data.clear(); if (itens!=null) data.addAll(itens); notifyDataSetChanged(); }
+        void submit(List<ItemLinha> itens){
+            data.clear();
+            if (itens!=null) data.addAll(itens);
+            notifyDataSetChanged();
+        }
 
         @NonNull @Override public ItemVH onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
             View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.row_item_projeto, parent, false);
@@ -641,6 +917,75 @@ public class ProjetosActivity extends AppCompatActivity {
                 tvInfo  = itemView.findViewById(R.id.tvInfoItem);
                 tvPreco = itemView.findViewById(R.id.tvPrecoItem);
             }
+        }
+    }
+
+    // ========================= Cache offline =========================
+
+    private static class OfflineProjetosCache {
+
+        private static final String PREF_NAME = "offline_projetos_prefs";
+
+        private static String getKeyForUser(String userId) {
+            return "cached_projetos_user_" + userId;
+        }
+
+        private static String getKeyForConfigItens(String configId) {
+            return "cached_itens_config_" + configId;
+        }
+
+        static void salvarProjetos(Context context, String userId, List<Configuracao> projetos) {
+            if (context == null || userId == null) return;
+
+            SharedPreferences prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
+            SharedPreferences.Editor editor = prefs.edit();
+
+            Gson gson = new Gson();
+            String json = gson.toJson(projetos);
+
+            editor.putString(getKeyForUser(userId), json);
+            editor.apply();
+        }
+
+        static List<Configuracao> carregarProjetos(Context context, String userId) {
+            if (context == null || userId == null) return new ArrayList<>();
+
+            SharedPreferences prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
+            String json = prefs.getString(getKeyForUser(userId), null);
+
+            if (json == null) return new ArrayList<>();
+
+            Gson gson = new Gson();
+            Type listType = new TypeToken<List<Configuracao>>() {}.getType();
+            List<Configuracao> lista = gson.fromJson(json, listType);
+            return lista != null ? lista : new ArrayList<>();
+        }
+
+        static void salvarItensConfiguracao(Context context, String configId, List<ItemLinha> itens) {
+            if (context == null || configId == null) return;
+
+            SharedPreferences prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
+            SharedPreferences.Editor editor = prefs.edit();
+
+            Gson gson = new Gson();
+            String json = gson.toJson(itens);
+
+            editor.putString(getKeyForConfigItens(configId), json);
+            editor.apply();
+        }
+
+        static List<ItemLinha> carregarItensConfiguracao(Context context, String configId) {
+            if (context == null || configId == null) return new ArrayList<>();
+
+            SharedPreferences prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
+            String json = prefs.getString(getKeyForConfigItens(configId), null);
+
+            if (json == null) return new ArrayList<>();
+
+            Gson gson = new Gson();
+            Type listType = new TypeToken<List<ItemLinha>>() {}.getType();
+            List<ItemLinha> lista = gson.fromJson(json, listType);
+            return lista != null ? lista : new ArrayList<>();
         }
     }
 }
