@@ -30,6 +30,13 @@ public class ConfiguracaoService {
     }
 
 
+    public List<ConfiguracaoDTO> listarPorUsuario(UUID usuarioId) {
+        return configuracaoRepository.findByUsuario_Id(usuarioId)
+                .stream()
+                .map(ConfiguracaoDTO::new)
+                .toList();
+    }
+
     public Optional<ConfiguracaoDTO> buscarPorId(UUID id) {
         return configuracaoRepository.findById(id)
                 .map(ConfiguracaoDTO::new);
