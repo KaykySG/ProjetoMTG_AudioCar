@@ -12,119 +12,109 @@
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="389dp"
-        android:padding="16dp">
+        android:layout_height="wrap_content"   
+    android:padding="16dp">
 
-        <!-- IMAGEM -->
-        <ImageView
-            android:id="@+id/ivImage"
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            android:contentDescription="@null"
-            android:scaleType="centerCrop"
-            app:layout_constraintDimensionRatio="16:9"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+    <!-- IMAGEM -->
+    <ImageView
+        android:id="@+id/ivImage"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:contentDescription="@null"
+        android:scaleType="centerCrop"
+        app:layout_constraintDimensionRatio="16:9"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
-        <!-- TÍTULO -->
-        <com.google.android.material.textview.MaterialTextView
-            android:id="@+id/tvTitle"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:textColor="@color/black"
-            android:textSize="20sp"
-            android:textStyle="bold"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/ivImage" />
+    <!-- TÍTULO -->
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/tvTitle"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:textColor="@color/black"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/ivImage" />
 
-        <!-- PREÇO -->
-        <com.google.android.material.textview.MaterialTextView
-            android:id="@+id/tvPrice"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:textColor="#034E34"
-            android:textSize="16sp"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/tvTitle" />
+    <!-- PREÇO -->
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/tvPrice"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:textColor="#034E34"
+        android:textSize="16sp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tvTitle" />
 
-        <!-- DESCRIÇÃO -->
-        <com.google.android.material.textview.MaterialTextView
-            android:id="@+id/tvDescription"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:ellipsize="end"
-            android:maxLines="4"
-            android:textColor="#332B2B"
-            android:textSize="14sp"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/tvPrice" />
+    <!-- DESCRIÇÃO -->
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/tvDescription"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:ellipsize="end"
+        android:maxLines="4"
+        android:textColor="#332B2B"
+        android:textSize="14sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tvPrice" />
 
-        <!-- BOTÃO "+" -->
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnAdd"
-            android:layout_width="45dp"
-            android:layout_height="48dp"
-            android:layout_marginTop="16dp"
-            android:textAppearance="@style/TextAppearance.AppCompat.Body1"
-            android:textSize="48sp"
-            app:icon="@android:drawable/ic_input_add"
-            app:iconGravity="textEnd"
-            app:iconPadding="0dp"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/tvDescription" />
+    <!-- BOTÃO "+" -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnAdd"
+        android:layout_width="45dp"
+        android:layout_height="48dp"
+        android:layout_marginTop="16dp"
+        android:textAppearance="@style/TextAppearance.AppCompat.Body1"
+        android:textSize="48sp"
+        app:icon="@android:drawable/ic_input_add"
+        app:iconGravity="textEnd"
+        app:iconPadding="0dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tvDescription"
+        app:layout_constraintBottom_toBottomOf="parent" />
 
-        <!-- [ALTERAÇÃO] Removido do btnAdd:
-             app:layout_constraintEnd_toEndOf="parent"
-             app:layout_constraintHorizontal_bias="0.0"
-             (agora ele ancora só à esquerda) -->
+    <!-- BOTÃO "-" -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnRemove"
+        android:layout_width="45dp"
+        android:layout_height="48dp"
+        android:layout_marginTop="16dp"
+        android:textAppearance="@style/TextAppearance.AppCompat.Body1"
+        android:textSize="48sp"
+        app:icon="@drawable/outline_check_indeterminate_small_24"
+        app:iconGravity="textEnd"
+        app:iconPadding="0dp"
+        app:iconSize="22dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tvDescription"
+        app:layout_constraintBottom_toBottomOf="parent" />
 
-        <!-- BOTÃO "-" -->
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnRemove"
-            android:layout_width="45dp"
-            android:layout_height="48dp"
-            android:layout_marginTop="16dp"
-            android:textAppearance="@style/TextAppearance.AppCompat.Body1"
-            android:textSize="48sp"
-            app:icon="@drawable/outline_check_indeterminate_small_24"
-            app:iconGravity="textEnd"
-            app:iconPadding="0dp"
-            app:iconSize="22dp"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/tvDescription" />
-
-        <!-- [ALTERAÇÃO] Removido do btnRemove:
-             app:layout_constraintStart_toStartOf="parent"
-             app:layout_constraintHorizontal_bias="1.0"
-             (agora ele ancora só à direita) -->
-
-        <!-- [ALTERAÇÃO] NOVO: CONTADOR CENTRAL ENTRE + e - -->
-        <com.google.android.material.textview.MaterialTextView
-            android:id="@+id/tvCount"
-            android:layout_width="wrap_content"
-            android:layout_height="36dp"
-            android:minWidth="56dp"
-            android:layout_marginTop="16dp"
-            android:paddingHorizontal="12dp"
-            android:gravity="center"
-            android:text="0"
-            android:textStyle="bold"
-            android:textSize="18sp"
-            android:textColor="@color/black"
-            android:background="@drawable/bg_counter_pill"
+    <!-- CONTADOR CENTRAL -->
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/tvCount"
+        android:layout_width="wrap_content"
+        android:layout_height="36dp"
+        android:minWidth="56dp"
+        android:layout_marginTop="16dp"
+        android:paddingHorizontal="12dp"
+        android:gravity="center"
+        android:text="0"
+        android:textStyle="bold"
+        android:textSize="18sp"
+        android:textColor="@color/black"
+        android:background="@drawable/bg_counter_pill"
         app:layout_constraintTop_toBottomOf="@id/tvDescription"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toEndOf="@id/btnAdd"
         app:layout_constraintEnd_toStartOf="@id/btnRemove"
         app:layout_constraintHorizontal_bias="0.5" />
 
-    </androidx.constraintlayout.widget.ConstraintLayout>
-</com.google.android.material.card.MaterialCardView>
+</androidx.constraintlayout.widget.ConstraintLayout>
+    </com.google.android.material.card.MaterialCardView>
