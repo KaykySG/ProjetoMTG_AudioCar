@@ -144,6 +144,7 @@ public class ConfiguracaoService {
         clone.setPotenciaRmsW(original.getPotenciaRmsW());
         clone.setImpedanciaOhms(original.getImpedanciaOhms());
         clone.setFaixaFrequenciaHz(original.getFaixaFrequenciaHz());
+        clone.setTipo(original.getTipo());
         clone.setPreco(original.getPreco());
         return clone;
     }

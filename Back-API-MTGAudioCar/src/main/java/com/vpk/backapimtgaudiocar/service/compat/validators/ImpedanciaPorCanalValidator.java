@@ -13,10 +13,6 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * OBS: idealmente você teria um DTO que mapeia LIGAÇÕES por canal/bridge.
- * Aqui mantemos uma checagem conservadora por par (falante x módulo).
- */
 @Component
 @Order(20)
 public class ImpedanciaPorCanalValidator implements CompatValidator {
@@ -25,56 +21,58 @@ public class ImpedanciaPorCanalValidator implements CompatValidator {
     public List<ValidacaoCompatibilidadeDTO> validate(CompatValidationContext ctx) {
         var msgs = new ArrayList<ValidacaoCompatibilidadeDTO>();
 
-        System.out.println("\n==== [DEBUG] Iniciando ImpedanciaPorCanalValidator ====");
+        System.out.println("\n==== [DEBUG] Iniciando ImpedanciaPorCanalValidator ====\n");
 
         for (ModuloAmplificador mod : ctx.cfg().getModulos()) {
-            Double impMin = Double.valueOf(mod.getImpedanciaMinimaOhms());
 
+            Double impMin = Double.valueOf(mod.getImpedanciaMinimaOhms());
             System.out.println("[DEBUG] Modulo: " + mod.getTipo()
                     + " | impedanciaMinima = " + impMin);
 
             if (impMin == null) continue;
 
-            // Subwoofers
+            // ---------------- SUBWOOFERS ----------------
             for (Subwoofer sub : ctx.cfg().getSubwoofers()) {
                 if (sub.getImpedanciaOhms() == null) continue;
-                double carga = sub.getImpedanciaOhms(); // TODO: usar associação real por canal
 
-                System.out.println("[DEBUG]   Sub: " + sub.getModelo()
+                double carga = sub.getImpedanciaOhms();
+                System.out.println("[DEBUG][SUB] Modelo: " + sub.getModelo()
                         + " | Z_sub = " + carga + " Ω");
 
                 if (!AudioMath.respeitaImpedanciaMin(carga, impMin)) {
+                    System.out.println("[DEBUG][SUB][ALERTA] INCOMPATIVEL → " + carga + " Ω < " + impMin + " Ω");
                     msgs.add(new ValidacaoCompatibilidadeDTO(
                             "Carga de subwoofer em " + carga + " Ω inferior ao mínimo " + impMin + " Ω do módulo " + mod.getTipo(),
                             "Reveja associação (série/paralelo) ou use módulo que aceite menor impedância.",
                             null
                     ));
-                }
-                if (carga < impMin) {
-                    System.out.println("[DEBUG]   -> INCOMPATIVEL: " + carga + " Ω < " + impMin + " Ω");
                 } else {
-                    System.out.println("[DEBUG]   -> OK: " + carga + " Ω >= " + impMin + " Ω");
+                    System.out.println("[DEBUG][SUB] OK → " + carga + " Ω >= " + impMin + " Ω");
                 }
-
-
             }
 
-            // Alto-falantes
+            // ---------------- ALTO-FALANTES ----------------
             for (AltoFalante af : ctx.cfg().getAltoFalantes()) {
                 if (af.getImpedanciaOhms() == null) continue;
+
                 double carga = af.getImpedanciaOhms();
+                System.out.println("[DEBUG][AF] Modelo: " + af.getModelo()
+                        + " | Z_af = " + carga + " Ω");
+
                 if (!AudioMath.respeitaImpedanciaMin(carga, impMin)) {
+                    System.out.println("[DEBUG][AF][ALERTA] INCOMPATIVEL → " + carga + " Ω < " + impMin + " Ω");
                     msgs.add(new ValidacaoCompatibilidadeDTO(
                             "Carga de alto-falante em " + carga + " Ω inferior ao mínimo " + impMin + " Ω do módulo " + mod.getTipo(),
                             "Reveja associação (série/paralelo) ou use módulo que aceite menor impedância.",
                             null
                     ));
+                } else {
+                    System.out.println("[DEBUG][AF] OK → " + carga + " Ω >= " + impMin + " Ω");
                 }
             }
         }
 
-
-        System.out.println("==== [DEBUG] Fim ImpedanciaPorCanalValidator ====\n");
+        System.out.println("\n==== [DEBUG] Fim ImpedanciaPorCanalValidator ====\n");
 
         return msgs;
     }
