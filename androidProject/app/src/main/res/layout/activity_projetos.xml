@@ -7,8 +7,7 @@
     android:background="@drawable/home_gradient_bg"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ui.ProjetosActivity"
-    >
+    tools:context=".ui.ProjetosActivity">
 
     <!-- Título -->
     <TextView
@@ -19,10 +18,10 @@
         android:textSize="24sp"
         android:textStyle="bold"
         android:padding="16dp"
+        android:textColor="@android:color/white"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:textColor="@android:color/white" />
+        app:layout_constraintEnd_toEndOf="parent" />
 
     <!-- Lista -->
     <androidx.recyclerview.widget.RecyclerView
@@ -43,10 +42,29 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Sem projetos salvos ainda."
+        android:textColor="@android:color/white"
         android:visibility="gone"
         app:layout_constraintTop_toBottomOf="@id/tvTitulo"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"/>
+
+    <!-- Círculo de loading central -->
+    <ProgressBar
+        android:id="@+id/progress"
+        style="?android:attr/progressBarStyleLarge"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:contentDescription="Carregando…"
+        android:indeterminate="true"
+        android:visibility="gone"
+
+        android:indeterminateTint="@android:color/white"
+        android:indeterminateTintMode="src_in"
+
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

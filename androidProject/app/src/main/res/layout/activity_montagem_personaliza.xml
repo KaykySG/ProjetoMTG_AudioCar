@@ -2,6 +2,7 @@
 <androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/home_gradient_bg">
@@ -11,7 +12,7 @@
         android:id="@+id/tvTitulo"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:text="Volkswagen Gol"
+        android:text="TIPO DE CARRO"
         android:textSize="22sp"
         android:textStyle="bold"
         android:textColor="@android:color/white"
@@ -21,6 +22,17 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
+
+    <Spinner
+        android:id="@+id/spnVeiculo"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tvTitulo" />
+
     <!-- Área 3D -->
     <FrameLayout
         android:id="@+id/threeContainer"
@@ -28,11 +40,10 @@
         android:layout_height="0dp"
         android:layout_marginHorizontal="16dp"
         android:layout_marginTop="12dp"
-        android:layout_marginBottom="12dp"
-        app:layout_constraintTop_toBottomOf="@id/tvTitulo"
+        app:layout_constraintTop_toBottomOf="@id/spnVeiculo"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toTopOf="@id/cardEquipamentos">
+        app:layout_constraintBottom_toTopOf="@+id/cardEquipamentos">
 
         <WebView
             android:id="@+id/web3d"
@@ -42,8 +53,6 @@
             android:backgroundTint="@android:color/transparent"
             android:overScrollMode="never" />
     </FrameLayout>
-
-
 
     <!-- Card inferior com os equipamentos -->
     <androidx.cardview.widget.CardView
@@ -64,13 +73,21 @@
             android:layout_height="wrap_content">
 
             <TextView
-                android:text="Equipamentos"
-                android:textStyle="bold"
-                android:textSize="16sp"
-                android:textColor="#1F2937"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp"/>
+                android:layout_marginBottom="8dp"
+                android:text="Equipamentos"
+                android:textColor="#1F2937"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnSalvarProjeto"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="match_parent"
+                android:layout_height="55dp"
+                android:text="Salvar Projeto"
+                app:cornerRadius="15dp" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnAmplificador"
@@ -80,7 +97,7 @@
                 android:textAllCaps="false"
                 android:textColor="#1F2937"
                 android:background="@drawable/menu_button_light"
-                app:icon="@drawable/home_gradient_bg"
+                app:icon="@drawable/icon_amp"
                 app:iconGravity="textStart"
                 app:iconPadding="8dp"
                 app:iconSize="20dp"
@@ -95,7 +112,7 @@
                 android:textAllCaps="false"
                 android:textColor="#1F2937"
                 android:background="@drawable/menu_button_light"
-                app:icon="@drawable/logo"
+                app:icon="@drawable/icon_alto"
                 app:iconGravity="textStart"
                 app:iconPadding="8dp"
                 app:iconSize="20dp"
@@ -110,7 +127,7 @@
                 android:textAllCaps="false"
                 android:textColor="#1F2937"
                 android:background="@drawable/menu_button_light"
-                app:icon="@drawable/login_gradient_bg"
+                app:icon="@drawable/icon_sub"
                 app:iconGravity="textStart"
                 app:iconPadding="8dp"
                 app:iconSize="20dp"
@@ -125,7 +142,7 @@
                 android:textAllCaps="false"
                 android:textColor="#1F2937"
                 android:background="@drawable/menu_button_light"
-                app:icon="@drawable/ic_launcher_background"
+                app:icon="@drawable/icon_cross"
                 app:iconGravity="textStart"
                 app:iconPadding="8dp"
                 app:iconSize="20dp"
@@ -133,5 +150,21 @@
                 android:layout_marginTop="6dp"/>
         </LinearLayout>
     </androidx.cardview.widget.CardView>
+
+    <!-- Loader central branco (fica sobre tudo) -->
+    <ProgressBar
+        android:id="@+id/progress"
+        style="?android:attr/progressBarStyleLarge"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:indeterminate="true"
+        android:visibility="gone"
+        android:contentDescription="Carregando…"
+        android:indeterminateTint="@android:color/white"
+        android:indeterminateTintMode="src_in"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
