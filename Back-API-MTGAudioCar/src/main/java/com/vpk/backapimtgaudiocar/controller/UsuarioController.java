@@ -8,6 +8,7 @@ import com.vpk.backapimtgaudiocar.service.UsuarioService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -20,6 +21,9 @@ public class UsuarioController {
 
     @Autowired
     private UsuarioService usuarioService;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     @GetMapping
     public ResponseEntity<List<UsuarioDTO>> listarTodos() {
@@ -56,15 +60,24 @@ public class UsuarioController {
 
         if (usuarioOpt.isPresent()) {
             Usuario usuario = usuarioOpt.get();
-            if (usuario.getSenhaHash().equals(loginDTO.getSenha())) {
-                // Autenticação simples sem token
+
+            // Valida usando BCrypt (senha digitada vs senha criptografada do banco)
+            boolean senhaCorreta = passwordEncoder.matches(
+                    loginDTO.getSenha(),
+                    usuario.getSenhaHash()
+            );
+
+            if (senhaCorreta) {
                 return ResponseEntity.ok(new UsuarioDTO(usuario));
             } else {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Usuário não encontrado ou Senha inválida");
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body("Usuário não encontrado ou Senha inválida");
             }
         }
 
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Usuário não encontrado ou Senha inválida");
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body("Usuário não encontrado ou Senha inválida");
     }
+
 
 }
