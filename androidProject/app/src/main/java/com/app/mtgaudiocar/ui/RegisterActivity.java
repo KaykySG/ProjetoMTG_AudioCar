@@ -95,7 +95,7 @@ public class RegisterActivity extends AppCompatActivity {
         usuario.setNome(nome);
         usuario.setEmail(email);
         usuario.setSenhaHash(senha);   // será serializado como "senhaHash"
-        usuario.setAutenticado(false);  // novo usuário começa não autenticado
+        usuario.setAutenticado(true);  // novo usuário começa não autenticado
 
         bloquearBotao(true);
 

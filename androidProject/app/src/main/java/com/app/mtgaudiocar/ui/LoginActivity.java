@@ -10,6 +10,7 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.app.mtgaudiocar.R;
+import util.SessionManager;
 import com.google.android.material.textfield.TextInputEditText;
 
 import java.util.HashMap;
@@ -35,6 +36,21 @@ public class LoginActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // ⚡ Se já estiver logado, pula a tela de login e vai pra Home
+        if (SessionManager.isLoggedIn(this)) {
+            String userId = SessionManager.getUserId(this);
+            if (userId != null) {
+                // garante compatibilidade com o resto do app
+                ConfigDraft.get().setUsuarioId(userId);
+            }
+
+            Intent intent = new Intent(LoginActivity.this, HomeActivity.class);
+            startActivity(intent);
+            finish();
+            return;
+        }
+
         setContentView(R.layout.activity_login);
 
         // Referências de layout
@@ -91,22 +107,27 @@ public class LoginActivity extends AppCompatActivity {
                 if (response.isSuccessful() && response.body() != null) {
                     Usuario usuario = response.body();
 
-                    // Aqui o backend já deve ter marcado autenticado = true
-                    // se o login deu certo.
+                    // Backend deve marcar autenticado = true se estiver ok
                     if (usuario.getAutenticado() != null && usuario.getAutenticado()) {
                         toast("Login realizado com sucesso!");
 
-                        //Guarda o ID do usuário logado para uso em toda a sessão
+                        // Guarda o ID do usuário para uso na sessão atual
                         ConfigDraft.get().setUsuarioId(usuario.getId());
 
-                        //ir para a HomeActivity
+                        // 🔐 Persiste o login para sessões futuras
+                        SessionManager.saveLogin(
+                                LoginActivity.this,
+                                usuario.getId(),
+                                usuario.getNome()
+                        );
+
+                        // Ir para a HomeActivity
                         Intent intent = new Intent(LoginActivity.this, HomeActivity.class);
                         intent.putExtra("usuarioId", usuario.getId());
                         intent.putExtra("usuarioNome", usuario.getNome());
                         startActivity(intent);
                         finish();
                     } else {
-                        // Por segurança, caso venha algo estranho
                         toast("Falha na autenticação. Tente novamente.");
                     }
 

@@ -1,26 +1,23 @@
 package com.app.mtgaudiocar.ui;
 
+import android.content.Intent;
 import android.os.Bundle;
 
-import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
-
-import com.app.mtgaudiocar.R;
 
 public class PredefinidoActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        EdgeToEdge.enable(this);
-        setContentView(R.layout.activity_predefinido);
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-            return insets;
-        });
+
+        // Redireciona direto para a tela de projetos,
+        // marcando que é uma listagem PREDEFINIDA
+        Intent i = new Intent(this, ProjetosActivity.class);
+        i.putExtra(HomeActivity.EXTRA_TIPO_LISTA, HomeActivity.TIPO_LISTA_PREDEFINIDA);
+        startActivity(i);
+
+        // Fecha esta Activity, o usuário nem percebe que ela existiu
+        finish();
     }
 }

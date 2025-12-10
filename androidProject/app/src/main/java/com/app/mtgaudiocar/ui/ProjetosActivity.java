@@ -129,28 +129,40 @@ public class ProjetosActivity extends AppCompatActivity {
 
     // ========================= CARREGAR PROJETOS =========================
 
+    private static final String USUARIO_PREDEFINIDO_ID =
+            "4f181b66-e602-4b31-b361-badaf4b5541d";
     private void carregarConfiguracoes() {
         toggleLoading(true);
 
-        String usuarioId = ConfigDraft.get().getUsuarioId();
-        if (TextUtils.isEmpty(usuarioId)) {
-            String extra = getIntent().getStringExtra("usuarioId");
-            if (!TextUtils.isEmpty(extra)) {
-                ConfigDraft.get().setUsuarioId(extra);
-                usuarioId = extra;
+        // Decide qual usuário usar
+        final String usuarioIdFinal;
+
+        if (HomeActivity.TIPO_LISTA_PREDEFINIDA.equals(tipoLista)) {
+            // ✅ Montagem predefinida: SEMPRE usa o ID fixo
+            usuarioIdFinal = USUARIO_PREDEFINIDO_ID;
+
+        } else {
+            // ✅ Lista de projetos do usuário: mantém sua lógica atual
+            String usuarioId = ConfigDraft.get().getUsuarioId();
+            if (TextUtils.isEmpty(usuarioId)) {
+                String extra = getIntent().getStringExtra("usuarioId");
+                if (!TextUtils.isEmpty(extra)) {
+                    ConfigDraft.get().setUsuarioId(extra);
+                    usuarioId = extra;
+                }
             }
-        }
 
-        if (TextUtils.isEmpty(usuarioId)) {
-            Toast.makeText(this,
-                    "Usuário não identificado. Faça login novamente.",
-                    Toast.LENGTH_LONG).show();
-            toggleLoading(false);
-            aplicarLista(new ArrayList<>());
-            return;
-        }
+            if (TextUtils.isEmpty(usuarioId)) {
+                Toast.makeText(this,
+                        "Usuário não identificado. Faça login novamente.",
+                        Toast.LENGTH_LONG).show();
+                toggleLoading(false);
+                aplicarLista(new ArrayList<>());
+                return;
+            }
 
-        final String usuarioIdFinal = usuarioId;
+            usuarioIdFinal = usuarioId;
+        }
 
         // OFFLINE → lista apenas projetos baixados anteriormente
         if (!isOnline()) {
@@ -161,9 +173,9 @@ public class ProjetosActivity extends AppCompatActivity {
                 List<ItemUI> itens = mapearParaUI(cached);
 
                 if (HomeActivity.TIPO_LISTA_PREDEFINIDA.equals(tipoLista)) {
-                    itens = filtrarPredefinidos(itens);
+                    itens = filtrarPredefinidos(itens);   // mantém só os 3 IDs
                 } else {
-                    itens = removerPredefinidos(itens);
+                    itens = removerPredefinidos(itens);   // remove os 3 IDs
                 }
 
                 Toast.makeText(this,
@@ -179,42 +191,43 @@ public class ProjetosActivity extends AppCompatActivity {
             return;
         }
 
-        // ONLINE → busca lista normalmente (sem salvar em cache)
-        api.getConfiguracoes(usuarioIdFinal).enqueue(new Callback<List<Configuracao>>() {
-            @Override
-            public void onResponse(@NonNull Call<List<Configuracao>> call,
-                                   @NonNull Response<List<Configuracao>> response) {
-                toggleLoading(false);
-                if (response.isSuccessful() && response.body() != null) {
-                    List<Configuracao> lista = response.body();
+        // ONLINE → busca no backend
+        ApiService api = ApiClient.getClient().create(ApiService.class);
+        api.getConfiguracoesUsuario(usuarioIdFinal)
+                .enqueue(new Callback<List<Configuracao>>() {
+                    @Override
+                    public void onResponse(Call<List<Configuracao>> call,
+                                           Response<List<Configuracao>> response) {
+                        toggleLoading(false);
 
-                    List<ItemUI> itens = mapearParaUI(lista);
+                        if (!response.isSuccessful() || response.body() == null) {
+                            Toast.makeText(ProjetosActivity.this,
+                                    "Falha ao carregar projetos.",
+                                    Toast.LENGTH_LONG).show();
+                            aplicarLista(new ArrayList<>());
+                            return;
+                        }
 
-                    if (HomeActivity.TIPO_LISTA_PREDEFINIDA.equals(tipoLista)) {
-                        itens = filtrarPredefinidos(itens);
-                    } else {
-                        itens = removerPredefinidos(itens);
+                        List<ItemUI> itens = mapearParaUI(response.body());
+
+                        if (HomeActivity.TIPO_LISTA_PREDEFINIDA.equals(tipoLista)) {
+                            itens = filtrarPredefinidos(itens);   // só 3 predefinidos
+                        } else {
+                            itens = removerPredefinidos(itens);   // esconde os 3
+                        }
+
+                        aplicarLista(itens);
                     }
 
-                    aplicarLista(itens);
-                } else {
-                    Toast.makeText(ProjetosActivity.this,
-                            "Erro ao carregar configurações: " + response.code(),
-                            Toast.LENGTH_SHORT).show();
-                    aplicarLista(new ArrayList<>());
-                }
-            }
-
-            @Override
-            public void onFailure(@NonNull Call<List<Configuracao>> call,
-                                  @NonNull Throwable t) {
-                toggleLoading(false);
-                Toast.makeText(ProjetosActivity.this,
-                        "Falha na conexão: " + t.getMessage(),
-                        Toast.LENGTH_LONG).show();
-                aplicarLista(new ArrayList<>());
-            }
-        });
+                    @Override
+                    public void onFailure(Call<List<Configuracao>> call, Throwable t) {
+                        toggleLoading(false);
+                        Toast.makeText(ProjetosActivity.this,
+                                "Erro ao carregar projetos: " + t.getMessage(),
+                                Toast.LENGTH_LONG).show();
+                        aplicarLista(new ArrayList<>());
+                    }
+                });
     }
 
     private boolean isOnline() {

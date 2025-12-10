@@ -59,8 +59,9 @@ public interface ApiService {
     Call<List<Configuracao>> getConfiguracoes(@Query("usuarioId") String usuarioId);
     @POST("configuracoes")
     Call<Configuracao> criarConfiguracao(@Body ConfiguracaoCreateRequest body);
-    @GET("/api/configuracoes/{id}")
-    Call<List<model.DisplayItem>> getItensConfiguracao(@Path("id") String configuracaoId);
+    @GET("/api/configuracoes/usuario/{id}")
+    Call<List<Configuracao>> getConfiguracoesUsuario(@Path("id") String id);;
+
     @GET("/api/configuracoes/{id}")
     Call<model.Configuracao> getConfiguracao(@Path("id") String id);
     @DELETE("configuracoes/{id}")
