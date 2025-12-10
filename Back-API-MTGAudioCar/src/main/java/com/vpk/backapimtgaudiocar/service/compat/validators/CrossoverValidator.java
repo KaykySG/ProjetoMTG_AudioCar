@@ -35,8 +35,8 @@ public class CrossoverValidator implements CompatValidator {
         System.out.println("[DEBUG][XO] temTweeter = " + temTweeter);
 
         if (temTweeter) {
-            System.out.println("[DEBUG][XO] Configuração contém pelo menos um Tweeter. "
-                    + "HPF será verificado mesmo em crossovers sem 'passa-alta' no nome.");
+            System.out.println("[DEBUG][XO] Config contém Tweeter. "
+                    + "Para proteção vamos considerar a MAIOR frequência de corte do crossover.");
         }
 
         for (Crossover xo : ctx.cfg().getCrossovers()) {
@@ -44,89 +44,241 @@ public class CrossoverValidator implements CompatValidator {
             System.out.println("\n[DEBUG] Analisando crossover: " + xo.getTipo()
                     + " | freq raw = " + xo.getFrequenciasCorteHz());
 
-            if (xo.getFrequenciasCorteHz() != null && xo.getTipo() != null) {
+            if (xo.getFrequenciasCorteHz() == null || xo.getTipo() == null) {
+                System.out.println("[DEBUG] Crossover sem tipo ou frequências definidas. Ignorando.");
+                continue;
+            }
 
-                String raw = xo.getFrequenciasCorteHz();                // Ex: "3000Hz" ou "80Hz/3000Hz"
-                String onlyNumbers = raw.replaceAll("[^0-9]", " ");     // Ex: "3000" ou "80 3000"
-                String[] parts = onlyNumbers.trim().split("\\s+");
+            String raw = xo.getFrequenciasCorteHz();
 
-                Integer hpf = null;   // Passa-alta (High Pass)
-                Integer lpf = null;   // Passa-baixa (Low Pass)
+            Integer freqMin = extrairMenorFrequencia(raw);
+            Integer freqMax = extrairMaiorFrequencia(raw);
 
-                try {
-                    if (parts.length >= 1 && !parts[0].isBlank()) {
-                        hpf = Integer.valueOf(parts[0]);
-                    }
-                    if (parts.length >= 2 && !parts[1].isBlank()) {
-                        lpf = Integer.valueOf(parts[1]);
-                    }
-                } catch (NumberFormatException e) {
-                    System.out.println("[DEBUG][ERRO] Falha ao converter frequências: '" + raw + "'");
-                    continue;
-                }
+            System.out.println("[DEBUG] Frequências interpretadas → menor = "
+                    + freqMin + " Hz | maior = " + freqMax + " Hz");
 
-                System.out.println("[DEBUG] Frequências interpretadas → HPF = " + hpf + " Hz | LPF = " + lpf);
+            String tipo = xo.getTipo().toLowerCase();
+            boolean isPassaAlta = tipo.contains("passa-alta");
+            boolean isPassaBaixa = tipo.contains("passa-baixa");
 
-                String tipo = xo.getTipo().toLowerCase();
-                boolean isPassaAlta = tipo.contains("passa-alta");
-                boolean isPassaBaixa = tipo.contains("passa-baixa");
+            System.out.println("[DEBUG] Flags tipo → isPassaAlta=" + isPassaAlta + ", isPassaBaixa=" + isPassaBaixa);
 
-                System.out.println("[DEBUG] Flags tipo → isPassaAlta=" + isPassaAlta + ", isPassaBaixa=" + isPassaBaixa);
+            boolean gerouMensagem = false;
 
-                boolean gerouMensagem = false;
+            // ------------------------------------------------------------
+            // HPF p/ proteção de tweeter/driver
+            // - se há Tweeter: usar freqMax (corte mais alto do crossover)
+            // - se não há Tweeter, mas o tipo menciona "passa-alta":
+            //     usar freqMin como HPF genérico (proteção de mid, etc.)
+            // ------------------------------------------------------------
+            Integer hpfRef = null;
+            String origemHpf = "";
 
-                // --- HPF ---
-                // Regra antiga: se for "passa-alta"
-                // Regra nova: se há tweeter, também valida HPF mesmo sem "passa-alta" no tipo
-                if ((isPassaAlta || temTweeter) && hpf != null) {
+            if (temTweeter && freqMax != null) {
+                // Pensando no tweeter: corte mais alto disponível
+                hpfRef = freqMax;
+                origemHpf = "freqMax (mais alta) para tweeter";
+            } else if (isPassaAlta && freqMin != null) {
+                // Cenário antigo, sem tweeter explícito
+                hpfRef = freqMin;
+                origemHpf = "freqMin (primeira) para passa-alta genérico";
+            }
 
-                    if (isPassaAlta) {
-                        System.out.println("[DEBUG] Tipo passa-alta detectado. Verificando HPF...");
-                    } else if (temTweeter) {
-                        System.out.println("[DEBUG] Crossover não é 'passa-alta' pelo nome, "
-                                + "mas há Tweeter na configuração. Verificando HPF assim mesmo...");
-                    }
+            if (hpfRef != null) {
+                System.out.println("[DEBUG] HPF de referência para validação = "
+                        + hpfRef + " Hz (" + origemHpf + ")");
 
-                    if (hpf < 3000) {
-                        System.out.println("[DEBUG][ALERTA] HPF baixo detectado! (" + hpf + " Hz)");
-                        msgs.add(new ValidacaoCompatibilidadeDTO(
-                                "HPF do crossover (" + hpf + " Hz) pode ser baixo para tweeters/drivers (faixa típica ≥ 3000–3500 Hz).",
-                                "Eleve o HPF (ex.: ≥ 3000–3500 Hz) e/ou use 12–18 dB/oitava para proteger os tweeters.",
-                                null
-                        ));
-                        gerouMensagem = true;
+                if (hpfRef < 3000 && temTweeter) {
+                    // Apenas se temos tweeter é que reclamamos desse corte
+                    System.out.println("[DEBUG][ALERTA] HPF baixo para tweeter detectado! (" + hpfRef + " Hz)");
+
+                    Crossover sugestao = sugerirCrossoverParaTweeter(ctx, hpfRef);
+                    String sugestaoTexto;
+                    var sugestaoId = (sugestao != null ? sugestao.getId() : null);
+
+                    if (sugestao != null) {
+                        Integer freqMaxSug = extrairMaiorFrequencia(sugestao.getFrequenciasCorteHz());
+                        sugestaoTexto =
+                                "Sugestão: " + sugestao.getTipo()
+                                        + (freqMaxSug != null ? " (cortes até ≈ " + freqMaxSug + " Hz)" : "")
+                                        + ". Ajuste para HPF ≥ 3000–3500 Hz para tweeters.";
                     } else {
-                        System.out.println("[DEBUG] HPF OK (" + hpf + " Hz)");
+                        sugestaoTexto =
+                                "Considere usar um crossover com HPF ≥ 3000–3500 Hz "
+                                        + "e 12–18 dB/oitava para proteger tweeters/drivers.";
                     }
-                }
 
-                // --- LPF ---
-                if (isPassaBaixa && lpf != null) {
-                    System.out.println("[DEBUG] Tipo passa-baixa detectado. Verificando LPF...");
+                    msgs.add(new ValidacaoCompatibilidadeDTO(
+                            "HPF efetivo do crossover (" + hpfRef + " Hz) pode ser baixo para tweeters/drivers (faixa típica ≥ 3000–3500 Hz).",
+                            sugestaoTexto,
+                            sugestaoId
+                    ));
 
-                    if (lpf > 200) {
-                        System.out.println("[DEBUG][ALERTA] LPF muito alto detectado! (" + lpf + " Hz)");
-                        msgs.add(new ValidacaoCompatibilidadeDTO(
-                                "LPF do crossover (" + lpf + " Hz) pode ser alto demais para subwoofers.",
-                                "Use LPF entre 80–120 Hz para resultado ideal.",
-                                null
-                        ));
-                        gerouMensagem = true;
-                    } else {
-                        System.out.println("[DEBUG] LPF OK (" + lpf + " Hz)");
-                    }
-                }
-
-                if (!gerouMensagem) {
-                    System.out.println("[DEBUG] Nenhum problema encontrado neste crossover.");
+                    gerouMensagem = true;
+                } else {
+                    System.out.println("[DEBUG] HPF considerado OK para o contexto (hpfRef=" + hpfRef + " Hz).");
                 }
             } else {
-                System.out.println("[DEBUG] Crossover sem tipo ou frequências definidas. Ignorando.");
+                System.out.println("[DEBUG] Nenhum HPF de referência definido para este crossover.");
+            }
+
+            // ------------------------------------------------------------
+            // LPF p/ subwoofer (ainda opcional, pois nem todos
+            // os crossovers têm "passa-baixa" claro no tipo)
+            // Aqui podemos usar freqMin como referência de corte baixo
+            // ------------------------------------------------------------
+            if (isPassaBaixa && freqMin != null) {
+                System.out.println("[DEBUG] Tipo passa-baixa detectado. Verificando LPF com base na menor frequência...");
+
+                // LPF muito alto para sub (por ex. 300 Hz, 500 Hz...)
+                if (freqMin > 200) {
+                    System.out.println("[DEBUG][ALERTA] LPF muito alto para sub detectado! (" + freqMin + " Hz)");
+
+                    Crossover sugestao = sugerirCrossoverParaSub(ctx, freqMin);
+                    String sugestaoTexto;
+                    var sugestaoId = (sugestao != null ? sugestao.getId() : null);
+
+                    if (sugestao != null) {
+                        Integer freqMinSug = extrairMenorFrequencia(sugestao.getFrequenciasCorteHz());
+                        sugestaoTexto =
+                                "Sugestão: " + sugestao.getTipo()
+                                        + (freqMinSug != null ? " (cortes a partir de ≈ " + freqMinSug + " Hz)" : "")
+                                        + ". Use LPF entre ~80–120 Hz para subwoofer.";
+                    } else {
+                        sugestaoTexto =
+                                "Use um crossover com LPF entre ~80–120 Hz para subwoofer, "
+                                        + "evitando cortes acima de 200 Hz para não invadir médios.";
+                    }
+
+                    msgs.add(new ValidacaoCompatibilidadeDTO(
+                            "LPF do crossover (" + freqMin + " Hz) pode ser alto demais para subwoofers.",
+                            sugestaoTexto,
+                            sugestaoId
+                    ));
+
+                    gerouMensagem = true;
+                } else {
+                    System.out.println("[DEBUG] LPF OK para sub (" + freqMin + " Hz).");
+                }
+            }
+
+            if (!gerouMensagem) {
+                System.out.println("[DEBUG] Nenhum problema encontrado neste crossover.");
             }
         }
 
         System.out.println("\n========== [DEBUG] Fim da validação de CROSSOVER ==========\n");
 
         return msgs;
+    }
+
+    // =====================================================================
+    //  Helpers de sugestão
+    // =====================================================================
+
+    private Crossover sugerirCrossoverParaTweeter(CompatValidationContext ctx, int hpfAtual) {
+        var todos = ctx.xoverRepo().findAll();
+        if (todos == null || todos.isEmpty()) {
+            System.out.println("[DEBUG][XO] Nenhum crossover disponível para sugestão (tweeter).");
+            return null;
+        }
+
+        Crossover melhor = null;
+        Integer melhorFreq = null;
+
+        for (Crossover c : todos) {
+            if (c.getFrequenciasCorteHz() == null) continue;
+            Integer freqMax = extrairMaiorFrequencia(c.getFrequenciasCorteHz());
+            if (freqMax == null) continue;
+
+            // buscamos algo ≳ 3000 Hz
+            if (freqMax < 3000) continue;
+
+            if (melhor == null || freqMax < melhorFreq) {
+                melhor = c;
+                melhorFreq = freqMax;
+            }
+        }
+
+        if (melhor != null) {
+            System.out.println("[DEBUG][XO] Sugestão p/ tweeter: " + melhor.getTipo()
+                    + " | maior freq ≈ " + melhorFreq + " Hz");
+        } else {
+            System.out.println("[DEBUG][XO] Não foi encontrado crossover ideal p/ tweeter (≥ 3000 Hz).");
+        }
+
+        return melhor;
+    }
+
+    private Crossover sugerirCrossoverParaSub(CompatValidationContext ctx, int lpfAtual) {
+        var todos = ctx.xoverRepo().findAll();
+        if (todos == null || todos.isEmpty()) {
+            System.out.println("[DEBUG][XO] Nenhum crossover disponível para sugestão (sub).");
+            return null;
+        }
+
+        Crossover melhor = null;
+        Integer melhorFreq = null;
+
+        for (Crossover c : todos) {
+            if (c.getFrequenciasCorteHz() == null) continue;
+            Integer freqMin = extrairMenorFrequencia(c.getFrequenciasCorteHz());
+            if (freqMin == null) continue;
+
+            // queremos algo p/ sub: <= 120 Hz (80–120 ideal)
+            if (freqMin > 120) continue;
+
+            if (melhor == null || freqMin > melhorFreq) {
+                melhor = c;
+                melhorFreq = freqMin;
+            }
+        }
+
+        if (melhor != null) {
+            System.out.println("[DEBUG][XO] Sugestão p/ sub: " + melhor.getTipo()
+                    + " | menor freq ≈ " + melhorFreq + " Hz");
+        } else {
+            System.out.println("[DEBUG][XO] Não foi encontrado crossover ideal p/ sub (≤ 120 Hz).");
+        }
+
+        return melhor;
+    }
+
+    // =====================================================================
+    //  Helpers de parsing
+    // =====================================================================
+
+    /** Menor frequência numérica encontrada na string. */
+    private Integer extrairMenorFrequencia(String raw) {
+        if (raw == null) return null;
+        String[] parts = raw.replaceAll("[^0-9]", " ").trim().split("\\s+");
+        Integer menor = null;
+        for (String p : parts) {
+            if (p.isBlank()) continue;
+            try {
+                int v = Integer.parseInt(p);
+                if (menor == null || v < menor) {
+                    menor = v;
+                }
+            } catch (NumberFormatException ignored) {}
+        }
+        return menor;
+    }
+
+    /** Maior frequência numérica encontrada na string. */
+    private Integer extrairMaiorFrequencia(String raw) {
+        if (raw == null) return null;
+        String[] parts = raw.replaceAll("[^0-9]", " ").trim().split("\\s+");
+        Integer maior = null;
+        for (String p : parts) {
+            if (p.isBlank()) continue;
+            try {
+                int v = Integer.parseInt(p);
+                if (maior == null || v > maior) {
+                    maior = v;
+                }
+            } catch (NumberFormatException ignored) {}
+        }
+        return maior;
     }
 }
