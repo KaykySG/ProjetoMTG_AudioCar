@@ -60,7 +60,7 @@ public class PotenciaPorBandaValidator implements CompatValidator {
             );
 
             msgs.add(new ValidacaoCompatibilidadeDTO(
-                    "Potência dos subwoofers (com folga) excede a soma dos módulos.",
+                    "Potência dos subwoofers excede a soma dos módulos.",
                     sugestaoSub != null
                             ? "Sugestão de módulo para sub: " + sugestaoSub.getTipo()
                             + " (" + sugestaoSub.getId() + "), ~"
@@ -83,7 +83,7 @@ public class PotenciaPorBandaValidator implements CompatValidator {
             );
 
             msgs.add(new ValidacaoCompatibilidadeDTO(
-                    "Potência dos alto-falantes (com folga) excede a soma dos módulos.",
+                    "Potência dos alto-falantes excede a soma dos módulos.",
                     sugestaoAf != null
                             ? "Sugestão de módulo para alto-falantes: " + sugestaoAf.getTipo()
                             + " (" + sugestaoAf.getId() + "), ~"

@@ -1,12 +1,10 @@
 package com.vpk.backapimtgaudiocar.service;
 
-
-import com.vpk.backapimtgaudiocar.dto.SubwooferDTO;
 import com.vpk.backapimtgaudiocar.dto.UsuarioDTO;
 import com.vpk.backapimtgaudiocar.model.Usuario;
 import com.vpk.backapimtgaudiocar.repository.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -18,6 +16,9 @@ public class UsuarioService {
 
     @Autowired
     private UsuarioRepository usuarioRepository;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     public List<UsuarioDTO> listarTodos() {
         return usuarioRepository.findAll()
@@ -31,18 +32,35 @@ public class UsuarioService {
                 .map(UsuarioDTO::new);
     }
 
+    // SALVAR com senha criptografada
     public Usuario salvar(Usuario usuario) {
+        if (usuario.getSenhaHash() != null && !usuario.getSenhaHash().isBlank()) {
+            String senhaCriptografada = passwordEncoder.encode(usuario.getSenhaHash());
+            usuario.setSenhaHash(senhaCriptografada);
+        }
         return usuarioRepository.save(usuario);
     }
 
+    // ATUALIZAR com senha criptografada
     public Usuario atualizar(UUID id, Usuario atualizado) {
         return usuarioRepository.findById(id).map(usuario -> {
             usuario.setNome(atualizado.getNome());
             usuario.setEmail(atualizado.getEmail());
-            usuario.setSenhaHash(atualizado.getSenhaHash());
+
+
+            if (atualizado.getSenhaHash() != null && !atualizado.getSenhaHash().isBlank()) {
+                String senhaCriptografada = passwordEncoder.encode(atualizado.getSenhaHash());
+                usuario.setSenhaHash(senhaCriptografada);
+            }
+
             usuario.setAutenticado(atualizado.getAutenticado());
             return usuarioRepository.save(usuario);
         }).orElseGet(() -> {
+            // Caso não exista, cria novo já criptografando a senha
+            if (atualizado.getSenhaHash() != null && !atualizado.getSenhaHash().isBlank()) {
+                String senhaCriptografada = passwordEncoder.encode(atualizado.getSenhaHash());
+                atualizado.setSenhaHash(senhaCriptografada);
+            }
             atualizado.setId(id);
             return usuarioRepository.save(atualizado);
         });
