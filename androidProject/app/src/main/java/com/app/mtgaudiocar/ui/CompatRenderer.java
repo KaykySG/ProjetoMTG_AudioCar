@@ -68,7 +68,7 @@ public class CompatRenderer {
 
         // Se houver sugestão e callback, mostra o botão "Adicionar sugestão"
         if (!sugestao.isEmpty() && action != null) {
-            builder.setNegativeButton("Adicionar sugestão", (dialog, which) -> {
+            builder.setNegativeButton("Ver sugestão", (dialog, which) -> {
                 action.onSuggestionSelected(
                         rawSugestao != null ? rawSugestao : "",
                         idSugestao,
