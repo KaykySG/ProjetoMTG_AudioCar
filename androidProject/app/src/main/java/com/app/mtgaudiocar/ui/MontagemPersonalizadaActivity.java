@@ -23,14 +23,13 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.webkit.WebViewAssetLoader;
-import androidx.activity.OnBackPressedCallback;
-
 
 import com.app.mtgaudiocar.R;
 import com.google.android.material.button.MaterialButton;
@@ -68,8 +67,14 @@ public class MontagemPersonalizadaActivity extends AppCompatActivity {
     // UI
     private MaterialButton btnSalvarProjeto;
     private MaterialButton btnAmp, btnAlto, btnSub, btnCross;
+    private MaterialButton btnToggleBalanco;
     private ProgressBar progress;
     private Spinner spnVeiculo;
+    private View layoutBalancoAudio;
+
+    // Gráfico de balanço de áudio
+    private ProgressBar barraGrave, barraVoz, barraEnergia, barraCusto;
+    private TextView txtPercGrave, txtPercVoz, txtPercEnergia, txtPercCusto;
 
     // API
     private ApiService api;
@@ -137,14 +142,28 @@ public class MontagemPersonalizadaActivity extends AppCompatActivity {
 
         // Views
         spnVeiculo = findViewById(R.id.spnVeiculo);
-        web3d      = findViewById(R.id.web3d);
+        web3d = findViewById(R.id.web3d);
 
-        btnAmp   = findViewById(R.id.btnAmplificador);
-        btnAlto  = findViewById(R.id.btnAltoFalante);
-        btnSub   = findViewById(R.id.btnSubwoofer);
+        btnAmp = findViewById(R.id.btnAmplificador);
+        btnAlto = findViewById(R.id.btnAltoFalante);
+        btnSub = findViewById(R.id.btnSubwoofer);
         btnCross = findViewById(R.id.btnCrossover);
         btnSalvarProjeto = findViewById(R.id.btnSalvarProjeto);
+        btnToggleBalanco = findViewById(R.id.btnToggleBalanco);
         progress = findViewById(R.id.progress);
+
+        layoutBalancoAudio = findViewById(R.id.layoutBalancoAudio);
+
+        // Gráfico de balanço de áudio
+        barraGrave   = findViewById(R.id.barraGrave);
+        barraVoz     = findViewById(R.id.barraVoz);
+        barraEnergia = findViewById(R.id.barraEnergia);
+
+
+        txtPercGrave   = findViewById(R.id.txtPercGrave);
+        txtPercVoz     = findViewById(R.id.txtPercVoz);
+        txtPercEnergia = findViewById(R.id.txtPercEnergia);
+
 
         initSpinnerVeiculo();
         init3D();
@@ -153,6 +172,17 @@ public class MontagemPersonalizadaActivity extends AppCompatActivity {
         btnAlto.setOnClickListener(v -> openList(ComponentType.ALTOFALANTE));
         btnSub.setOnClickListener(v -> openList(ComponentType.SUBWOOFER));
         btnCross.setOnClickListener(v -> openList(ComponentType.CROSSOVER));
+
+        // Toggle do painel de balanço
+        btnToggleBalanco.setOnClickListener(v -> {
+            if (layoutBalancoAudio.getVisibility() == View.VISIBLE) {
+                layoutBalancoAudio.setVisibility(View.GONE);
+            } else {
+                layoutBalancoAudio.setVisibility(View.VISIBLE);
+                // ao abrir, já atualiza os valores
+                atualizarGraficoBalanco();
+            }
+        });
 
         // Validação + review antes de salvar
         btnSalvarProjeto.setOnClickListener(v -> validarAntesDeRevisar());
@@ -163,6 +193,8 @@ public class MontagemPersonalizadaActivity extends AppCompatActivity {
         super.onResume();
         // Reaplica o modelo 3D considerando o veículo + quantidades atuais
         aplicarVeiculoNo3D();
+        // Atualiza gráfico de balanço de áudio com o estado atual da montagem
+        atualizarGraficoBalanco();
     }
 
     @Override
@@ -302,21 +334,15 @@ public class MontagemPersonalizadaActivity extends AppCompatActivity {
     /**
      * Mapeia a escolha do usuário + quantidade de alto-falantes/subwoofers
      * para o caminho do modelo .glb dentro de assets.
-     *
-     * Regra:
-     * - Base: padrão
-     * - Médio: >= 2 alto-falantes E >= 2 subwoofers
-     * - Completo: >= 4 alto-falantes E >= 4 subwoofers
      */
     private String getModelSrcForVehicle(String veiculo) {
         if (veiculo == null) veiculo = "Sedan";
         String v = veiculo.toLowerCase(Locale.ROOT);
 
         int qtdAlto = getQuantidadeTotal(ComponentType.ALTOFALANTE);
-        int qtdSub  = getQuantidadeTotal(ComponentType.SUBWOOFER);
+        int qtdSub = getQuantidadeTotal(ComponentType.SUBWOOFER);
 
-        // Define o "tamanho" do modelo
-        String nivel; // "base", "medio", "completo"
+        String nivel;
         if (qtdAlto >= 4 && qtdSub >= 4) {
             nivel = "completo";
         } else if (qtdAlto >= 2 && qtdSub >= 2) {
@@ -401,6 +427,7 @@ public class MontagemPersonalizadaActivity extends AppCompatActivity {
         if (btnAlto != null) btnAlto.setEnabled(!show);
         if (btnSub != null) btnSub.setEnabled(!show);
         if (btnCross != null) btnCross.setEnabled(!show);
+        if (btnToggleBalanco != null) btnToggleBalanco.setEnabled(!show);
     }
 
     // =========================
@@ -434,7 +461,6 @@ public class MontagemPersonalizadaActivity extends AppCompatActivity {
     }
 
     private static double normalizeBRPrice(double v) {
-        // pequenas correções de casas decimais erradas
         if (v >= 1000.0 && (v / 10.0) < 1000.0) return v / 10.0;
         if (v >= 10000.0 && (v / 100.0) >= 1.0 && (v / 100.0) < 10000.0) return v / 100.0;
         return v;
@@ -444,7 +470,6 @@ public class MontagemPersonalizadaActivity extends AppCompatActivity {
         List<Linha> linhas = new ArrayList<>();
         double total = 0.0;
 
-        // Monta as linhas por tipo de componente
         for (ComponentType type : ComponentType.values()) {
             List<SelectedComponent> list = ConfigDraft.get().getList(type);
             if (list == null) continue;
@@ -541,7 +566,6 @@ public class MontagemPersonalizadaActivity extends AppCompatActivity {
         TextInputLayout til = view.findViewById(R.id.tilNomeProjeto);
         EditText etNome = view.findViewById(R.id.etNomeProjeto);
 
-        // Preenche com o último nome usado, se tiver
         String nomeDraft = ConfigDraft.get().getProjetoNome();
         if (nomeDraft != null && !nomeDraft.trim().isEmpty()) {
             etNome.setText(nomeDraft);
@@ -601,7 +625,6 @@ public class MontagemPersonalizadaActivity extends AppCompatActivity {
             return;
         }
 
-        // Monta request e body para validação de compatibilidade
         String nome = ConfigDraft.get().getProjetoNome();
         if (nome == null || nome.trim().isEmpty()) {
             nome = "Projeto Mobile";
@@ -702,7 +725,6 @@ public class MontagemPersonalizadaActivity extends AppCompatActivity {
                 if (response.isSuccessful()) {
                     Toast.makeText(MontagemPersonalizadaActivity.this,
                             "Projeto salvo!", Toast.LENGTH_SHORT).show();
-                    // Aqui continua limpando o draft porque o projeto foi salvo
                     ConfigDraft.get().clear();
                     finish();
                 } else {
@@ -739,7 +761,6 @@ public class MontagemPersonalizadaActivity extends AppCompatActivity {
 
         ConfiguracaoCreateRequest req = new ConfiguracaoCreateRequest();
         req.setnome(nomeProjeto);
-        // Veículo vindo da combo box (default: "Sedan")
         req.setVeiculo(draft.getVeiculoNome() == null ? "Sedan" : draft.getVeiculoNome());
         req.setRelatorioPdf(draft.getRelatorioPdf() == null
                 ? "Relatório da configuração em PDF"
@@ -762,5 +783,116 @@ public class MontagemPersonalizadaActivity extends AppCompatActivity {
                 dest.add(sc.getId());
             }
         }
+    }
+
+    // =========================
+    // Gráfico de balanço de áudio
+    // =========================
+
+    /**
+     * Atualiza as barras do gráfico de balanço de áudio
+     * com base no estado atual do ConfigDraft.
+     */
+    private void atualizarGraficoBalanco() {
+        if (barraGrave == null) return; // layout não carregado ou gráfico não existe
+
+        int qtdSubs    = getQuantidadeTotal(ComponentType.SUBWOOFER);
+        int qtdAltos   = getQuantidadeTotal(ComponentType.ALTOFALANTE);
+        int qtdModulos = getQuantidadeTotal(ComponentType.MODULO);
+
+        int pctGrave   = calcularPercentualPotenciaGrave(qtdSubs, qtdAltos);
+        int pctVoz     = calcularPercentualPotenciaVoz(qtdSubs, qtdAltos);
+        int pctEnergia = calcularPercentualConsumoEnergia(qtdModulos, qtdSubs, qtdAltos);
+        int pctCusto   = calcularPercentualCustoFinanceiro();
+
+        aplicarValorNaBarra(barraGrave, txtPercGrave, pctGrave);
+        aplicarValorNaBarra(barraVoz,   txtPercVoz,   pctVoz);
+        aplicarValorNaBarra(barraEnergia, txtPercEnergia, pctEnergia);
+        aplicarValorNaBarra(barraCusto,   txtPercCusto,   pctCusto);
+    }
+
+    /**
+     * Potência de Grave: proporção de subwoofers em relação ao total de falantes.
+     */
+    private int calcularPercentualPotenciaGrave(int qtdSubs, int qtdAltos) {
+        int totalFalantes = qtdSubs + qtdAltos;
+        if (totalFalantes <= 0) {
+            return 0;
+        }
+        float percentual = (qtdSubs * 100f) / (float) totalFalantes;
+        return clampPercent(Math.round(percentual));
+    }
+
+    /**
+     * Potência de Voz: proporção de alto-falantes em relação ao total de falantes.
+     */
+    private int calcularPercentualPotenciaVoz(int qtdSubs, int qtdAltos) {
+        int totalFalantes = qtdSubs + qtdAltos;
+        if (totalFalantes <= 0) {
+            return 0;
+        }
+        float percentual = (qtdAltos * 100f) / (float) totalFalantes;
+        return clampPercent(Math.round(percentual));
+    }
+
+    /**
+     * Consumo de Energia: heurística baseada na quantidade de módulos, subwoofers
+     * e alto-falantes.
+     */
+    private int calcularPercentualConsumoEnergia(int qtdModulos, int qtdSubs, int qtdAltos) {
+        int score = qtdModulos * 25 + qtdSubs * 10 + qtdAltos * 5;
+        if (score <= 0) return 0;
+        return clampPercent(score);
+    }
+
+    /**
+     * Custo Financeiro: soma o preço dos componentes selecionados e normaliza
+     * para um teto (ex: R$ 10.000 == 100%).
+     */
+    private int calcularPercentualCustoFinanceiro() {
+        double total = 0.0;
+
+        for (ComponentType type : ComponentType.values()) {
+            List<SelectedComponent> list = ConfigDraft.get().getList(type);
+            if (list == null) continue;
+
+            for (SelectedComponent sc : list) {
+                double preco = normalizeBRPrice(sc.getPreco());
+                if (preco < 0) preco = 0;
+                int qtd = sc.getQuantidade();
+                if (qtd <= 0) qtd = 1;
+                if (qtd > 5000) qtd = 5000;
+                total += preco * qtd;
+            }
+        }
+
+        double teto = 10000.0; // Ajuste este valor ao contexto real
+        if (total <= 0) return 0;
+
+        int pct = (int) Math.round((total / teto) * 100.0);
+        return clampPercent(pct);
+    }
+
+    /**
+     * Aplica o valor na barra de progresso e no texto de percentual.
+     */
+    private void aplicarValorNaBarra(ProgressBar barra, TextView txt, int valor) {
+        int v = clampPercent(valor);
+        if (barra != null) {
+            barra.setMax(100);
+            barra.setProgress(v);
+        }
+        if (txt != null) {
+            txt.setText(v + "%");
+        }
+    }
+
+    /**
+     * Garante que o percentual fique no intervalo 0..100.
+     */
+    private int clampPercent(int v) {
+        if (v < 0) return 0;
+        if (v > 100) return 100;
+        return v;
     }
 }

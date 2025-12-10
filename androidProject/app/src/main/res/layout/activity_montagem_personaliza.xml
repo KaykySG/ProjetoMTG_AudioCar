@@ -22,7 +22,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
-
     <Spinner
         android:id="@+id/spnVeiculo"
         android:layout_width="0dp"
@@ -48,7 +47,7 @@
         app:layout_constraintTop_toBottomOf="@id/spnVeiculo"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toTopOf="@+id/cardEquipamentos">
+        app:layout_constraintBottom_toTopOf="@+id/layoutBalancoAudio">
 
         <WebView
             android:id="@+id/web3d"
@@ -58,6 +57,141 @@
             android:backgroundTint="@android:color/transparent"
             android:overScrollMode="never" />
     </FrameLayout>
+
+    <!-- Card de balanço de áudio (INICIALMENTE ESCONDIDO) -->
+    <LinearLayout
+        android:id="@+id/layoutBalancoAudio"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginTop="12dp"
+        android:layout_marginBottom="8dp"
+        android:orientation="vertical"
+        android:padding="12dp"
+        android:background="#222633"
+        android:visibility="gone"
+        app:layout_constraintTop_toBottomOf="@id/threeContainer"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/cardEquipamentos">
+
+        <!-- Potência de Grave -->
+        <TextView
+            android:id="@+id/tvLabelGrave"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Potência de Grave"
+            android:textColor="#FFFFFF"
+            android:textSize="14sp"
+            android:textStyle="bold" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <ProgressBar
+                android:id="@+id/barraGrave"
+                style="?android:attr/progressBarStyleHorizontal"
+                android:layout_width="0dp"
+                android:layout_height="18dp"
+                android:layout_weight="1"
+                android:backgroundTint="#555555"
+                android:max="100"
+                android:progress="0"
+                android:progressTint="#4CAF50" />
+
+            <TextView
+                android:id="@+id/txtPercGrave"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:text="0%"
+                android:textColor="#FFFFFF"
+                android:textSize="12sp" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/tvLabelVoz"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Potência de Voz"
+            android:textColor="#FFFFFF"
+            android:textSize="14sp"
+            android:textStyle="bold" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <ProgressBar
+                android:id="@+id/barraVoz"
+                style="?android:attr/progressBarStyleHorizontal"
+                android:layout_width="0dp"
+                android:layout_height="18dp"
+                android:layout_weight="1"
+                android:backgroundTint="#555555"
+                android:max="100"
+                android:progress="0"
+                android:progressTint="#4CAF50" />
+
+            <TextView
+                android:id="@+id/txtPercVoz"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:text="0%"
+                android:textColor="#FFFFFF"
+                android:textSize="12sp" />
+        </LinearLayout>
+
+        <!-- Consumo de Energia -->
+        <TextView
+            android:id="@+id/tvLabelEnergia"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="Consumo de Energia"
+            android:textColor="#FFFFFF"
+            android:textSize="14sp"
+            android:textStyle="bold" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <ProgressBar
+                android:id="@+id/barraEnergia"
+                style="?android:attr/progressBarStyleHorizontal"
+                android:layout_width="0dp"
+                android:layout_height="18dp"
+                android:layout_weight="1"
+                android:backgroundTint="#555555"
+                android:max="100"
+                android:progress="0"
+                android:progressTint="#4CAF50" />
+
+            <TextView
+                android:id="@+id/txtPercEnergia"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:text="0%"
+                android:textColor="#FFFFFF"
+                android:textSize="12sp" />
+        </LinearLayout>
+
+
+
+    </LinearLayout>
 
     <!-- Card inferior com os equipamentos -->
     <androidx.cardview.widget.CardView
@@ -77,14 +211,37 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
 
-            <TextView
-                android:layout_width="wrap_content"
+            <!-- Linha título + botão gráfico -->
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp"
-                android:text="Equipamentos"
-                android:textColor="#1F2937"
-                android:textSize="16sp"
-                android:textStyle="bold" />
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginBottom="8dp"
+                    android:text="Equipamentos"
+                    android:textColor="#1F2937"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnToggleBalanco"
+                    style="@style/Widget.Material3.Button.IconButton"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:backgroundTint="@android:color/transparent"
+                    android:contentDescription="Abrir balanço de áudio"
+                    android:padding="0dp"
+                    android:rotation="-90"
+                    app:cornerRadius="20dp"
+                    app:icon="@android:drawable/ic_menu_sort_by_size"
+                    app:iconSize="35dp"
+                    app:iconTint="#1F2937" />
+            </LinearLayout>
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnSalvarProjeto"
