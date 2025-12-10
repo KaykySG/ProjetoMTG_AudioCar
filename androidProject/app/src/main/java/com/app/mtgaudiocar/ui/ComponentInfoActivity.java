@@ -1,19 +1,21 @@
 package com.app.mtgaudiocar.ui;
 
 import android.os.Bundle;
+import android.view.Gravity;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.FrameLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.coordinatorlayout.widget.CoordinatorLayout;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-
-// [ALTERAÇÃO] imports para tratar edge-to-edge/insets
-import androidx.core.view.WindowCompat;           // novo
-import androidx.core.view.ViewCompat;            // novo
-import androidx.core.view.WindowInsetsCompat;    // novo
 
 import com.app.mtgaudiocar.R;
 import com.app.mtgaudiocar.ui.adpter.GenericComponentAdapter;
@@ -24,7 +26,7 @@ import com.google.android.material.snackbar.Snackbar;
 import java.util.List;
 
 import data.ConfigDraft;
-import data.SelectedComponent; // ➕ (necessário para checar quantidades)
+import data.SelectedComponent;
 import model.ComponentType;
 import model.DisplayItem;
 import network.ApiClient;
@@ -42,7 +44,6 @@ public class ComponentInfoActivity extends AppCompatActivity {
     private ProgressBar progress;
     private RecyclerView recycler;
 
-    // [ALTERAÇÃO] deixei explícito
     private GenericComponentAdapter adapter;
     private ComponentType type;
 
@@ -50,7 +51,7 @@ public class ComponentInfoActivity extends AppCompatActivity {
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // [ALTERAÇÃO] evita conteúdo sob a status bar (empurra layout)
+        // evita conteúdo sob a status bar
         WindowCompat.setDecorFitsSystemWindows(getWindow(), true);
 
         setContentView(R.layout.activity_component_info);
@@ -63,7 +64,7 @@ public class ComponentInfoActivity extends AppCompatActivity {
         progress = findViewById(R.id.progress);
         recycler = findViewById(R.id.recyclerComponents);
 
-        // [ALTERAÇÃO] aplica paddingTop conforme status bar (robusto a temas edge-to-edge)
+        // padding top de acordo com a status bar
         ViewCompat.setOnApplyWindowInsetsListener(toolbar, (v, insets) -> {
             int top = insets.getInsets(WindowInsetsCompat.Type.statusBars()).top;
             if (v.getPaddingTop() != top) {
@@ -82,11 +83,11 @@ public class ComponentInfoActivity extends AppCompatActivity {
         toolbar.setTitle(titleFor(type));
         tvHeader.setText(headerFor(type));
 
-        // List mode
+        // modo lista
         if (detailContainer != null) detailContainer.setVisibility(View.GONE);
         if (listContainer != null) listContainer.setVisibility(View.VISIBLE);
 
-        // Defaults temporários
+        // defaults temporários
         if (ConfigDraft.get().getProjetoNome() == null) {
             ConfigDraft.get().setProjetoNome("Projeto Mobile");
         }
@@ -97,15 +98,12 @@ public class ComponentInfoActivity extends AppCompatActivity {
             ConfigDraft.get().setRelatorioPdf("Relatório da configuração em PDF");
         }
 
-
         recycler.setLayoutManager(new LinearLayoutManager(this));
 
-        // [ALTERAÇÃO] passa o 'type' para o adapter
-        //  -> exige construtor GenericComponentAdapter(ComponentType, OnItemAction)
         adapter = new GenericComponentAdapter(type, new GenericComponentAdapter.OnItemAction() {
             @Override
             public void onAdd(DisplayItem item) {
-                double preco = parsePreco(item.getPreco()); // conversão String → double
+                double preco = parsePreco(item.getPreco());
                 int q = ConfigDraft.get().add(
                         type,
                         item.getId(),
@@ -117,8 +115,6 @@ public class ComponentInfoActivity extends AppCompatActivity {
                 showSnack("Adicionado: " + item.getNome() + " (qtd: " + q + ")");
                 validarCompatibilidade();
 
-                // [ALTERAÇÃO] rebind para refletir contador no card
-                //  -> se ainda não tiver getPositionById no adapter, use notifyDataSetChanged()
                 try {
                     int pos = adapter.getPositionById(item.getId());
                     if (pos != RecyclerView.NO_POSITION) {
@@ -133,7 +129,6 @@ public class ComponentInfoActivity extends AppCompatActivity {
 
             @Override
             public void onRemove(DisplayItem item) {
-                // 🔒 Checagem antes de remover
                 if (!canRemoveItem(type, item.getId())) {
                     new MaterialAlertDialogBuilder(ComponentInfoActivity.this)
                             .setTitle("Não é possível remover")
@@ -150,7 +145,6 @@ public class ComponentInfoActivity extends AppCompatActivity {
                 showSnack(msg);
                 validarCompatibilidade();
 
-                // [ALTERAÇÃO] rebind para refletir contador no card
                 try {
                     int pos = adapter.getPositionById(item.getId());
                     if (pos != RecyclerView.NO_POSITION) {
@@ -178,7 +172,6 @@ public class ComponentInfoActivity extends AppCompatActivity {
                 return sc.getQuantidade() > 0;
             }
         }
-        // Se o item ainda não foi adicionado, não pode remover
         return false;
     }
 
@@ -211,7 +204,7 @@ public class ComponentInfoActivity extends AppCompatActivity {
                     tvEmpty.setText("Nenhum item encontrado.");
                 } else {
                     recycler.setVisibility(View.VISIBLE);
-                    adapter.submit(items); // [mantido]
+                    adapter.submit(items);
                 }
             }
             @Override
@@ -233,13 +226,35 @@ public class ComponentInfoActivity extends AppCompatActivity {
             }
             @Override
             public void onError(Throwable t) {
-                Snackbar.make(recycler, "Erro ao validar: " + t.getMessage(), Snackbar.LENGTH_SHORT).show();
+                showSnack("Erro ao validar: " + (t != null ? t.getMessage() : "desconhecido"));
             }
         });
     }
 
+    /** Snackbar no TOPO da tela. */
     private void showSnack(String msg) {
-        Snackbar.make(recycler, msg, Snackbar.LENGTH_SHORT).show();
+        Snackbar snackbar = Snackbar.make(recycler, msg, Snackbar.LENGTH_SHORT);
+        View sbView = snackbar.getView();
+        ViewGroup.LayoutParams lp = sbView.getLayoutParams();
+
+        if (lp instanceof CoordinatorLayout.LayoutParams) {
+            CoordinatorLayout.LayoutParams params = (CoordinatorLayout.LayoutParams) lp;
+            params.gravity = Gravity.TOP;
+            params.topMargin = dpToPx(16);
+            sbView.setLayoutParams(params);
+        } else if (lp instanceof FrameLayout.LayoutParams) {
+            FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) lp;
+            params.gravity = Gravity.TOP;
+            params.topMargin = dpToPx(16);
+            sbView.setLayoutParams(params);
+        }
+
+        snackbar.show();
+    }
+
+    private int dpToPx(int dp) {
+        float density = getResources().getDisplayMetrics().density;
+        return Math.round(dp * density);
     }
 
     private String titleFor(ComponentType t) {
