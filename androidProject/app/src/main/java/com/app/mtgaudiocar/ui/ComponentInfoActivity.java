@@ -34,6 +34,12 @@ import network.ApiService;
 import network.ComponentRepository;
 import network.CompatibilityManager;
 
+import java.util.Locale; // não esquece esse import no topo
+import android.widget.ImageView;
+import com.bumptech.glide.Glide;
+
+
+
 public class ComponentInfoActivity extends AppCompatActivity {
 
     public static final String EXTRA_TYPE = "extra_type";
@@ -219,17 +225,99 @@ public class ComponentInfoActivity extends AppCompatActivity {
     private void validarCompatibilidade() {
         ApiService api = ApiClient.getClient().create(ApiService.class);
         CompatibilityManager compat = new CompatibilityManager(api);
+
         compat.validar(new CompatibilityManager.CallbackCompat() {
             @Override
             public void onResult(List<model.ValidacaoCompatibilidade> lista) {
-                CompatRenderer.showFirst(recycler, lista);
+
+                // Usa o CompatRenderer com callback de sugestão
+                CompatRenderer.showFirst(recycler, lista,
+                        (rawSugestao, idSugestao, v) -> {
+
+                            if (idSugestao == null || idSugestao.isEmpty()) {
+                                showSnack("Não foi possível aplicar a sugestão automaticamente.");
+                                return;
+                            }
+
+                            // Descobre o tipo (módulo, subwoofer, etc.) a partir do texto
+                            String textoBase = rawSugestao;
+                            if (textoBase == null && v != null) {
+                                textoBase = v.getSugestao();
+                            }
+                            ComponentType suggestedType = guessTypeFromSuggestion(textoBase);
+
+                            // Busca o componente sugerido na API
+                            ApiService apiComp = ApiClient.getClient().create(ApiService.class);
+                            ComponentRepository repo = new ComponentRepository(apiComp);
+
+                            progress.setVisibility(View.VISIBLE);
+
+                            repo.load(suggestedType, new ComponentRepository.LoadCallback() {
+                                @Override
+                                public void onLoaded(List<DisplayItem> items) {
+                                    progress.setVisibility(View.GONE);
+
+                                    DisplayItem match = null;
+                                    if (items != null) {
+                                        for (DisplayItem di : items) {
+                                            if (di != null && idSugestao.equals(di.getId())) {
+                                                match = di;
+                                                break;
+                                            }
+                                        }
+                                    }
+
+                                    if (match != null) {
+                                        // Abre o pop-up com o CARD da sugestão
+                                        mostrarDialogSugestao(match, suggestedType);
+                                    } else {
+                                        showSnack("Sugestão não encontrada na lista de componentes.");
+                                    }
+                                }
+
+                                @Override
+                                public void onError(Throwable t) {
+                                    progress.setVisibility(View.GONE);
+                                    showSnack("Erro ao carregar sugestão: "
+                                            + (t != null ? t.getMessage() : "desconhecido"));
+                                }
+                            });
+                        });
             }
+
             @Override
             public void onError(Throwable t) {
                 showSnack("Erro ao validar: " + (t != null ? t.getMessage() : "desconhecido"));
             }
         });
     }
+
+    /**
+     * Tenta adivinhar o tipo do componente sugerido analisando o texto.
+     * Assim o ID vai parar na lista certa (MÓDULO, SUBWOOFER, etc.).
+     */
+    private ComponentType guessTypeFromSuggestion(String texto) {
+        if (texto == null) return type; // se não souber, usa o tipo da tela atual
+        String t = texto.toLowerCase(java.util.Locale.ROOT);
+
+        if (t.contains("módulo") || t.contains("modulo") || t.contains("amplificador")) {
+            return ComponentType.MODULO;
+        }
+        if (t.contains("subwoofer") || t.contains("subwoofer")
+                || t.contains("sub ") || t.contains("sub:")) {
+            return ComponentType.SUBWOOFER;
+        }
+        if (t.contains("alto-falante") || t.contains("alto falante") || t.contains("falante")) {
+            return ComponentType.ALTOFALANTE;
+        }
+        if (t.contains("crossover")) {
+            return ComponentType.CROSSOVER;
+        }
+
+        return type;
+    }
+
+
 
     /** Snackbar no TOPO da tela. */
     private void showSnack(String msg) {
@@ -276,4 +364,50 @@ public class ComponentInfoActivity extends AppCompatActivity {
             default: return "Componentes disponíveis";
         }
     }
+
+    private void mostrarDialogSugestao(DisplayItem match, ComponentType suggestedType) {
+        // Infla o layout do card
+        View view = getLayoutInflater().inflate(R.layout.dialog_sugestao_preview, null);
+
+        ImageView iv = view.findViewById(R.id.ivSugestaoImage);
+        TextView tvNome = view.findViewById(R.id.tvSugestaoNome);
+        TextView tvPreco = view.findViewById(R.id.tvSugestaoPreco);
+        TextView tvDesc = view.findViewById(R.id.tvSugestaoDescricao);
+
+        tvNome.setText(match.getNome());
+
+        Object precoObj = match.getPreco();
+        String precoStr = precoObj != null ? precoObj.toString() : "";
+        tvPreco.setText(precoStr);
+        tvDesc.setText(match.getDescricao());
+
+        if (match.getImagemUrl() != null && !match.getImagemUrl().isEmpty()) {
+            Glide.with(this)
+                    .load(match.getImagemUrl())
+                    .into(iv);
+        }
+
+        new MaterialAlertDialogBuilder(this)
+                .setTitle("Adicionar sugestão")
+                .setView(view)
+                .setNegativeButton("Cancelar", null)
+                .setPositiveButton("Adicionar", (dialog, which) -> {
+                    // Agora adiciona de verdade ao ConfigDraft com dados reais
+                    double precoDouble = parsePreco(match.getPreco());
+                    int qtd = ConfigDraft.get().add(
+                            suggestedType,
+                            match.getId(),
+                            match.getNome(),
+                            precoDouble,
+                            match.getDescricao(),
+                            match.getImagemUrl()
+                    );
+                    showSnack("Sugestão adicionada: " + match.getNome() + " (qtd: " + qtd + ")");
+
+                    // Revalida a configuração após adicionar
+                    validarCompatibilidade();
+                })
+                .show();
+    }
+
 }

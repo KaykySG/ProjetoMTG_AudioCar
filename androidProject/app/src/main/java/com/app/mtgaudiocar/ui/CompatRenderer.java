@@ -1,91 +1,129 @@
 package com.app.mtgaudiocar.ui;
 
 import android.content.Context;
-import android.view.Gravity;
 import android.view.View;
-import android.view.ViewGroup;
-
-import android.widget.FrameLayout;
-
-import androidx.coordinatorlayout.widget.CoordinatorLayout;
 
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.snackbar.Snackbar;
 
 import java.util.List;
 import java.util.Locale;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import model.ValidacaoCompatibilidade;
 
 public class CompatRenderer {
 
+    /** Callback disparado quando o usuário clica em "Adicionar sugestão" */
+    public interface OnSuggestionSelected {
+        void onSuggestionSelected(String rawSugestao, String idSugestao, ValidacaoCompatibilidade v);
+    }
+
+    // Versão antiga continua existindo, pra não quebrar nada:
     public static void showFirst(View anchor, List<ValidacaoCompatibilidade> lista) {
+        showFirst(anchor, lista, null);
+    }
+
+    // Nova versão: aceita callback para "Adicionar sugestão"
+    public static void showFirst(View anchor,
+                                 List<ValidacaoCompatibilidade> lista,
+                                 OnSuggestionSelected action) {
         if (anchor == null) return;
         Context ctx = anchor.getContext();
 
-        // ✅ CASO 1: lista nula/vazia -> considerar compatível
         if (lista == null || lista.isEmpty()) {
-            showTopSnack(anchor, "Configuração compatível");
+            Snackbar.make(anchor, "Configuração compatível", Snackbar.LENGTH_SHORT).show();
             return;
         }
 
         ValidacaoCompatibilidade v = lista.get(0);
-        String msg = v != null ? v.getMensagem() : null;
+        String rawMsg = v != null ? v.getMensagem() : null;
+        String rawSugestao = v != null ? v.getSugestao() : null;
 
-        // ✅ CASO 2: mensagem de sucesso da API -> só snackbar (em cima)
-        if (isMensagemDeSucesso(msg)) {
-            showTopSnack(anchor, "Configuração compatível");
+        // mensagem de sucesso -> só snackbar, sem popup
+        if (isMensagemDeSucesso(rawMsg)) {
+            Snackbar.make(anchor, "Configuração compatível", Snackbar.LENGTH_SHORT).show();
             return;
         }
 
-        // ⚠️ CASO 3: incompatível -> abre POP-UP
+        // limpa textos pra exibir bonito
+        String mensagem = limparMensagem(rawMsg);
+        String sugestao = limparSugestao(rawSugestao);
+        String idSugestao = extrairIdSugestao(rawSugestao); // pode ser null
+
         StringBuilder sb = new StringBuilder();
-        if (msg != null && !msg.isEmpty()) {
-            sb.append(msg);
+        if (!mensagem.isEmpty()) {
+            sb.append(mensagem);
         }
-        if (v != null && v.getSugestao() != null && !v.getSugestao().isBlank()) {
+        if (!sugestao.isEmpty()) {
             if (sb.length() > 0) sb.append("\n\n");
+            sb.append("Sugestão: ").append(sugestao);
         }
 
-        new MaterialAlertDialogBuilder(ctx)
+        MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(ctx)
                 .setTitle("Ajuste de configuração")
                 .setMessage(sb.toString())
-                .setPositiveButton("OK", null)
-                .show();
+                .setPositiveButton("OK", null);
+
+        // Se houver sugestão e callback, mostra o botão "Adicionar sugestão"
+        if (!sugestao.isEmpty() && action != null) {
+            builder.setNegativeButton("Adicionar sugestão", (dialog, which) -> {
+                action.onSuggestionSelected(
+                        rawSugestao != null ? rawSugestao : "",
+                        idSugestao,
+                        v
+                );
+            });
+        }
+
+        builder.show();
     }
 
-    // 🔹 Identifica mensagem "ok" da API
+    /** Detecta mensagens de sucesso da API. Ajuste se o texto mudar. */
     private static boolean isMensagemDeSucesso(String msg) {
         if (msg == null) return false;
         String m = msg.toLowerCase(Locale.ROOT);
-        // ajuste aqui se o texto mudar
         return m.contains("todos os componentes est") && m.contains("compat");
     }
 
-    // 🔹 Mostra Snackbar no TOPO da tela
-    private static void showTopSnack(View anchor, String text) {
-        Snackbar snackbar = Snackbar.make(anchor, text, Snackbar.LENGTH_SHORT);
-        View sbView = snackbar.getView();
+    /** Remove "Sugestão:" grudado no fim da mensagem e garante pontuação. */
+    private static String limparMensagem(String msg) {
+        if (msg == null) return "";
+        String m = msg.trim();
 
-        ViewGroup.LayoutParams lp = sbView.getLayoutParams();
-
-        if (lp instanceof CoordinatorLayout.LayoutParams) {
-            CoordinatorLayout.LayoutParams params = (CoordinatorLayout.LayoutParams) lp;
-            params.gravity = Gravity.TOP;
-            params.topMargin = dpToPx(anchor, 16); // margem do topo
-            sbView.setLayoutParams(params);
-        } else if (lp instanceof FrameLayout.LayoutParams) {
-            FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) lp;
-            params.gravity = Gravity.TOP;
-            params.topMargin = dpToPx(anchor, 16);
-            sbView.setLayoutParams(params);
+        int idx = m.toLowerCase(Locale.ROOT).lastIndexOf("sugestão:");
+        if (idx > 0) {
+            m = m.substring(0, idx).trim();
         }
 
-        snackbar.show();
+        if (!m.isEmpty()
+                && !m.endsWith(".")
+                && !m.endsWith("!")
+                && !m.endsWith("?")) {
+            m = m + ".";
+        }
+        return m;
     }
 
-    private static int dpToPx(View v, int dp) {
-        float density = v.getResources().getDisplayMetrics().density;
-        return Math.round(dp * density);
+    /** Remove GUID entre parênteses e espaços duplos da sugestão. */
+    private static String limparSugestao(String s) {
+        if (s == null) return "";
+        String out = s.trim();
+
+        out = out.replaceAll("\\([0-9a-fA-F\\-]{30,}\\)", "").trim();
+        out = out.replace("  ", " ");
+
+        return out;
+    }
+
+    /** Extrai o ID entre parênteses da sugestão, se existir. */
+    private static String extrairIdSugestao(String rawSugestao) {
+        if (rawSugestao == null) return null;
+        Matcher m = Pattern.compile("\\(([0-9a-fA-F\\-]{30,})\\)").matcher(rawSugestao);
+        if (m.find()) {
+            return m.group(1);
+        }
+        return null;
     }
 }
