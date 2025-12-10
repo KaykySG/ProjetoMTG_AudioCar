@@ -26,6 +26,12 @@ public class ConfiguracaoController {
         return ResponseEntity.ok(lista);
     }
 
+    @GetMapping("/usuario/{usuarioId}")
+    public List<ConfiguracaoDTO> listarPorUsuario(@PathVariable UUID usuarioId) {
+        return configuracaoService.listarPorUsuario(usuarioId);
+    }
+
+
     @GetMapping("/{id}")
     public ResponseEntity<ConfiguracaoDTO> buscarPorId(@PathVariable UUID id) {
         return configuracaoService.buscarPorId(id)
